@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="description" content="Descubre restaurantes, ocio y planes en Madrid. Filtra, guarda favoritos, explora el mapa y organiza tu itinerario con RADAR · PLANES.">
+<meta name="description" content="Descubre restaurantes, ocio y planes en Madrid. Filtra, guarda favoritos, explora el mapa y organiza tu itinerario con RENTA.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,7 +11,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
-<title>Radar de Planes · Madrid</title>
+<title>RENTA · Planes en Madrid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -324,6 +324,16 @@ body.discover-open{overflow:hidden}
 .rf-item p{margin:7px 0;font-size:11px}
 .rf-link{display:inline-block;margin-top:4px;font-size:11px;color:var(--accent,#2dd4bf);text-decoration:none}
 .rf-note{padding:10px;border-radius:12px;background:rgba(245,158,11,.08);font-size:11px!important}
+
+
+/* RENTA v23: catálogo compacto, cerrado al inicio y con resultados paginados */
+.rf-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;margin:14px 0;padding:15px 16px;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:16px;background:var(--card,rgba(127,145,170,.045));color:var(--text,inherit);font:inherit;font-weight:750;text-align:left;cursor:pointer}
+.rf-toggle span{font-size:20px;color:var(--accent,#2dd4bf)}
+#rentaFoodOffline{display:none;margin-top:0}
+#rentaFoodOffline.rf-open{display:block}
+.rf-loadmore{width:100%;padding:12px;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:12px;background:transparent;color:var(--text,inherit);font-weight:700}
+.rf-empty{padding:18px;border:1px dashed var(--border,rgba(128,145,170,.3));border-radius:14px;color:var(--muted,#8996aa);font-size:12px;line-height:1.5}
+body .brand h1{letter-spacing:-.06em}
 
 </style>
 <style>
@@ -1315,11 +1325,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
   <header class="top">
     <div class="brand">
-      <h1>RADAR<span>·</span>PLANES</h1>
+      <h1>RENTA</h1>
       <div class="header-tools">
         <button type="button" class="header-shortcut" id="headerFavoritesBtn" aria-label="Abrir favoritos" title="Mis favoritos">♥ <span id="headerFavoriteCount">0</span></button>
         <button type="button" class="header-shortcut" id="headerMapBtn" aria-label="Abrir mapa" title="Abrir mapa">⌖ Mapa</button>
-        <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" aria-label="Abrir RADAR Discover" title="Abrir RADAR Discover">▶ Discover</button>
+        <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" aria-label="Abrir RENTA Discover" title="Abrir RENTA Discover">▶ Discover</button>
         <button type="button" class="header-shortcut plan-shortcut" id="openPlanLabBtn" aria-label="Abrir mi plan" title="Mi plan">＋ Mi plan <span id="planCountBadge">0</span></button>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">☼</button>
         <div class="readout" id="clockReadout">MADRID<br><span class="dot" id="gpsDot"></span><span id="gpsTxt">SIN GPS</span></div>
@@ -1335,17 +1345,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <button id="tabPide"><i>✨</i><span>Pídeme</span></button>
     <button id="tabAutoplan"><i>🧭</i><span>Autoplan</span></button>
     <button id="tabEventos"><i>📅</i><span>Eventos</span></button>
-    <button id="tabRadarLab"><i>✦</i><span>RADAR Lab</span></button>
-    <button id="tabMatch"><i>♥</i><span>Match</span></button>
+    <button id="tabRadarLab"><i>✦</i><span>RENTA Lab</span></button>
+    <button id="tabMatch"><i>♥</i><span>RENTA</span></button>
   </nav>
 
 
   
 
 
-<section id="matchTabPanel" class="match-tab-panel" style="display:none" aria-label="RADAR Match">
+<section id="matchTabPanel" class="match-tab-panel" style="display:none" aria-label="RENTA">
   <div class="match-heading">
-    <div><span class="radar-lab-kicker">RADAR / MATCH</span><h2>¿Te va o pasamos?</h2><p>Desliza, vota y RADAR irá afinando sus recomendaciones.</p></div>
+    <div><span class="radar-lab-kicker">RENTA</span><h2>¿Te va o pasamos?</h2><p>Desliza, vota y RENTA irá afinando sus recomendaciones.</p></div>
     <div class="match-score"><b id="matchLearnedCount">0</b><span>gustos aprendidos</span></div>
   </div>
   <div class="match-toolbar">
@@ -1381,7 +1391,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <button type="button" class="hero-action primary" id="heroNearby">⌖ Cerca de mí</button>
         <button type="button" class="hero-action secondary" id="heroZone">⌁ Elegir zona</button>
         <button type="button" class="hero-action surprise-action" id="heroSurprise">✦ Sorpréndeme</button>
-        <button type="button" class="hero-action discover-action" id="heroDiscover">◉ RADAR Discover</button>
+        <button type="button" class="hero-action discover-action" id="heroDiscover">◉ RENTA Discover</button>
       </div>
     </div>
     <div class="hero-index"><span>RADAR / MADRID</span><span>01 — DESCUBRIR</span></div>
@@ -1553,8 +1563,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
       </div>
 <p class="renta-catalog-note">Las tarjetas buscan lugares reales en Google Places con la clave que hayas configurado. Los resultados dependen de la zona y de la cobertura de cada fuente.</p>
     </section>
+<button type="button" id="rfToggle" class="rf-toggle" aria-expanded="false" aria-controls="rentaFoodOffline">🍽️ Abrir catálogo gastronómico offline <span>＋</span></button>
 <section class="renta-food" id="rentaFoodOffline" aria-labelledby="rentaFoodTitle">
-  <div class="renta-catalog-head"><div><p class="eyebrow">CATÁLOGO LOCAL · SIN CONEXIÓN</p><h3 id="rentaFoodTitle">Dónde comer en Madrid</h3><p>Dos selecciones de 60 entradas por categoría para probar el catálogo completo: mejores reseñas y calidad-precio. Datos locales; abrir Google Maps requiere conexión.</p></div></div>
+  <div class="renta-catalog-head"><div><p class="eyebrow">CATÁLOGO LOCAL · SIN CONEXIÓN</p><h3 id="rentaFoodTitle">Dónde comer en Madrid</h3><p>Elige una categoría o busca un restaurante para ver resultados. La lista se carga por tandas para que la página no se haga interminable. Google Maps requiere conexión.</p></div></div>
   <div class="rf-cats" id="rfModes"><button type="button" class="rf-cat active" data-mode="reseñas">⭐ Mejores reseñas</button><button type="button" class="rf-cat" data-mode="calidad-precio">💶 Calidad-precio</button></div>
   <div class="rf-controls">
     <input id="rfSearch" type="search" placeholder="Buscar restaurante, zona o plato…" aria-label="Buscar restaurantes">
@@ -1818,7 +1829,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="photo-source-status" id="photoSourceStatus" aria-live="polite">Las fotos reales se consultan bajo demanda y pueden proceder de páginas públicas; revisa que correspondan al lugar.</div>
   </section>
 
-  <section class="discover-overlay" id="discoverOverlay" aria-label="RADAR Discover" aria-hidden="true">
+  <section class="discover-overlay" id="discoverOverlay" aria-label="RENTA Discover" aria-hidden="true">
     <header class="discover-topbar">
       <div>
         <div class="discover-kicker"><span class="discover-live-dot"></span> RADAR / DISCOVER</div>
@@ -4230,7 +4241,7 @@ function refreshRealPhotosInView(){
 }
 document.getElementById('enableRealPhotosBtn').addEventListener('click',enableRealPhotos);
 
-// ---------- RADAR Discover: feed visual con desplazamiento vertical ----------
+// ---------- RENTA Discover: feed visual con desplazamiento vertical ----------
 let discoverItems=[];
 function openDiscover(){
   const overlay=document.getElementById('discoverOverlay');
@@ -5073,23 +5084,30 @@ const RENTA_FOOD_OFFLINE=[{"name": "Casa Lucio", "category": "Española y tapas"
 const RENTA_FOOD_CATEGORIES=[{"name": "Española y tapas", "icon": "🥘", "terms": ["Española", "tapas", "casera", "tradicional"]}, {"name": "Italiana y pizza", "icon": "🍕", "terms": ["Italiana", "pizza", "pasta"]}, {"name": "Hamburguesas", "icon": "🍔", "terms": ["Hamburguesas", "burger"]}, {"name": "Japonesa y sushi", "icon": "🍣", "terms": ["Japonesa", "sushi", "ramen"]}, {"name": "China", "icon": "🥢", "terms": ["China"]}, {"name": "Coreana", "icon": "🍜", "terms": ["coreana", "Coreana"]}, {"name": "India", "icon": "🍛", "terms": ["India"]}, {"name": "Mexicana", "icon": "🌮", "terms": ["Mexicana"]}, {"name": "Peruana y nikkei", "icon": "🐟", "terms": ["Peruana", "Nikkei", "fusión peruana"]}, {"name": "Carnes y parrilla", "icon": "🥩", "terms": ["Carnes", "parrilla", "asador"]}, {"name": "Marisquerías", "icon": "🦐", "terms": ["Marisquería", "Marisco"]}, {"name": "Mediterránea", "icon": "🫒", "terms": ["Mediterránea", "mediterránea"]}, {"name": "Vegetariana y vegana", "icon": "🥬", "terms": ["Vegana", "vegetal", "Vegetariana"]}, {"name": "Brunch y cafeterías", "icon": "☕", "terms": ["Brunch", "cafetería", "Cafetería"]}, {"name": "Francesa", "icon": "🥐", "terms": ["Francesa"]}, {"name": "Fusión", "icon": "🍽️", "terms": ["Fusión", "fusión"]}];
 (function(){
  const root=document.getElementById('rentaFoodOffline'); if(!root)return;
+ const toggle=document.getElementById('rfToggle');
  const search=document.getElementById('rfSearch'), order=document.getElementById('rfOrder'), catsEl=document.getElementById('rfCats'), list=document.getElementById('rfList');
- let active='Todas'; let mode='reseñas';
+ let active='Todas', mode='reseñas', visibleCount=12;
  const modes=document.getElementById('rfModes');
- modes.addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;mode=b.dataset.mode;modes.querySelectorAll('.rf-cat').forEach(x=>x.classList.toggle('active',x===b));render();});
+ toggle.addEventListener('click',()=>{const open=root.classList.toggle('rf-open');toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span').textContent=open?'−':'＋';if(open){render();root.scrollIntoView({behavior:'smooth',block:'start'});}});
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const catNames=['Todas',...RENTA_FOOD_CATEGORIES.map(c=>c.name)];
  catsEl.innerHTML=catNames.map(n=>`<button type="button" class="rf-cat ${n===active?'active':''}" data-cat="${esc(n)}">${n==='Todas'?'🍽️ ':''}${esc(n)}</button>`).join('');
- catsEl.addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;active=b.dataset.cat;catsEl.querySelectorAll('.rf-cat').forEach(x=>x.classList.toggle('active',x===b));render();});
+ catsEl.addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;active=b.dataset.cat;visibleCount=12;catsEl.querySelectorAll('.rf-cat').forEach(x=>x.classList.toggle('active',x===b));render();});
+ modes.addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;mode=b.dataset.mode;visibleCount=12;modes.querySelectorAll('.rf-cat').forEach(x=>x.classList.toggle('active',x===b));render();});
  function render(){
-   const q=search.value.trim().toLocaleLowerCase('es');
-   let rows=RENTA_FOOD_OFFLINE.filter(r=>r.kind===mode&&(active==='Todas'||r.category===active)&&(!q||[r.name,r.category,r.area,r.note].join(' ').toLocaleLowerCase('es').includes(q)));
-   if(order.value==='alpha')rows.sort((a,b)=>a.name.localeCompare(b.name,'es'));
-   if(order.value==='value')rows.sort((a,b)=>({'€':0,'€€':1,'€€€':2,'€€€€':3}[a.price]??2)-({'€':0,'€€':1,'€€€':2,'€€€€':3}[b.price]??2)||a.name.localeCompare(b.name,'es'));
-   if(order.value==='reviews')rows.sort((a,b)=>(Number(b.verified)-Number(a.verified))||a.category.localeCompare(b.category,'es')||a.name.localeCompare(b.name,'es'));
-   list.innerHTML=rows.length?rows.map(r=>`<article class="rf-item"><div class="rf-item-top"><strong>${esc(r.name)}</strong><span class="rf-meta">${esc(r.price)}</span></div><div class="rf-meta">${esc(r.category)} · ${esc(r.area)}</div><p>${esc(r.note)} <span class="rf-meta">Fuente: ${esc(r.status)}.</span></p><a class="rf-link" href="${r.maps}" target="_blank" rel="noopener noreferrer">Abrir ficha/búsqueda en Google Maps ↗</a></article>`).join(''):'<p>No hay restaurantes que coincidan con la búsqueda.</p>';
+  if(!root.classList.contains('rf-open'))return;
+  const q=search.value.trim().toLocaleLowerCase('es');
+  if(active==='Todas'&&!q){list.innerHTML='<div class="rf-empty">Para no cargar cientos de fichas de golpe, selecciona un tipo de comida arriba o escribe algo en el buscador. Después podrás cargar más resultados poco a poco.</div>';return;}
+  let rows=RENTA_FOOD_OFFLINE.filter(r=>r.kind===mode&&(active==='Todas'||r.category===active)&&(!q||[r.name,r.category,r.area,r.note].join(' ').toLocaleLowerCase('es').includes(q)));
+  if(order.value==='alpha')rows.sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  if(order.value==='value')rows.sort((a,b)=>({'€':0,'€€':1,'€€€':2,'€€€€':3}[a.price]??2)-({'€':0,'€€':1,'€€€':2,'€€€€':3}[b.price]??2)||a.name.localeCompare(b.name,'es'));
+  if(order.value==='reviews')rows.sort((a,b)=>(Number(b.verified)-Number(a.verified))||a.category.localeCompare(b.category,'es')||a.name.localeCompare(b.name,'es'));
+  const shown=rows.slice(0,visibleCount);
+  list.innerHTML=(shown.length?shown.map(r=>`<article class="rf-item"><div class="rf-item-top"><strong>${esc(r.name)}</strong><span class="rf-meta">${esc(r.price)}</span></div><div class="rf-meta">${esc(r.category)} · ${esc(r.area)}</div><p>${esc(r.note)} <span class="rf-meta">Fuente: ${esc(r.status)}.</span></p><a class="rf-link" href="${r.maps}" target="_blank" rel="noopener noreferrer">Abrir búsqueda en Google Maps ↗</a></article>`).join(''):'<div class="rf-empty">No hay restaurantes que coincidan con la búsqueda.</div>')+(rows.length>visibleCount?`<button type="button" class="rf-loadmore" id="rfLoadMore">Cargar 12 más (${rows.length-visibleCount} restantes)</button>`:'');
+  const more=document.getElementById('rfLoadMore');if(more)more.addEventListener('click',()=>{visibleCount+=12;render();});
  }
- search.addEventListener('input',render);order.addEventListener('change',render);render();
+ search.addEventListener('input',()=>{visibleCount=12;render();});
+ order.addEventListener('change',()=>{visibleCount=12;render();});
 })();
 </script>
 

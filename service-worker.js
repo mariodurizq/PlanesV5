@@ -1,11 +1,12 @@
-const VERSION = 'radar-shell-v18';
+const VERSION = 'renta-shell-v26';
 const APP_FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './icons/icon-maskable-512.png',
+  './icons/renta-icon.jpeg'
 ];
 
 self.addEventListener('install', event => {

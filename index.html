@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A0F1C">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/renta-icon.jpeg"><link rel="icon" type="image/jpeg" href="./icons/renta-icon.jpeg">
 
 <title>RENTA · Planes en Madrid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -334,6 +334,81 @@ body.discover-open{overflow:hidden}
 .rf-loadmore{width:100%;padding:12px;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:12px;background:transparent;color:var(--text,inherit);font-weight:700}
 .rf-empty{padding:18px;border:1px dashed var(--border,rgba(128,145,170,.3));border-radius:14px;color:var(--muted,#8996aa);font-size:12px;line-height:1.5}
 body .brand h1{letter-spacing:-.06em}
+
+
+/* RENTA v24: compact discovery layout */
+.renta-catalog-grid{display:none}
+.renta-catalog-grid.renta-grid-open{display:grid}
+#rentaLocalDirectory{display:none;margin-top:12px;padding-top:12px}
+#rentaLocalDirectory.rf-directory-open{display:block}
+#rentaLocalDirectory .renta-local-head{gap:8px;margin-bottom:8px}
+#rentaLocalDirectory .renta-local-head h4{font-size:14px}
+#rentaLocalDirectory .renta-local-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#rentaLocalDirectory .renta-local-card{padding:9px;border-radius:11px;gap:5px}
+#rentaLocalDirectory .renta-local-card h5{font-size:11px}
+#rentaLocalDirectory .renta-local-card p{font-size:9px;line-height:1.35}
+#rentaLocalDirectory .renta-local-card a{font-size:10px}
+.renta-compact-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 12px;margin:8px 0;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:12px;background:var(--surface,rgba(127,145,170,.045));color:var(--text,inherit);font:inherit;font-size:12px;font-weight:700;text-align:left;cursor:pointer}
+.renta-compact-toggle span{color:var(--accent,#2dd4bf)}
+#rentaLocalDirectory .renta-local-results{margin-top:8px}
+@media(max-width:380px){#rentaLocalDirectory .renta-local-results{grid-template-columns:1fr}}
+
+
+/* RENTA v26 — cohesive, compact product redesign */
+:root{--renta-ink:#111a29;--renta-cream:#f7f3e9;--renta-teal:#8bd8c9;--renta-line:rgba(128,145,170,.19)}
+html{scroll-behavior:smooth}
+body{overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{touch-action:manipulation}
+img{max-width:100%}
+.discovery-hero,.renta-food,.osm-discovery,.photo-source-panel,.radar-lab-launcher,.radar-lab-extra,.radar-live-panel{max-width:100%;min-width:0}
+#tabbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#tabbar button{min-width:0;white-space:nowrap}
+#tabbar button span{font-size:clamp(10px,2.8vw,13px)}
+/* Better hierarchy and reduced vertical bulk */
+.discovery-hero{padding-top:clamp(12px,3vh,26px)!important}
+.discovery-hero h2,.discovery-hero h1{line-height:1.08;letter-spacing:-.035em}
+.discovery-hero p{max-width:42ch;line-height:1.5}
+.renta-catalog-grid{gap:8px!important}
+.renta-catalog-grid>*{min-width:0}
+.renta-catalog-grid button,.renta-catalog-grid a{min-height:0}
+.renta-compact-toggle{min-height:42px}
+#rentaLocalDirectory .renta-local-results{align-items:stretch}
+#rentaLocalDirectory .renta-local-card{min-width:0;overflow:hidden}
+#rentaLocalDirectory .renta-local-card h5{line-height:1.25;overflow-wrap:anywhere}
+#rentaLocalDirectory .renta-local-card p{margin:0}
+#rentaLocalDirectory .renta-local-card a{overflow-wrap:anywhere}
+.rf-item{padding:12px!important;border-radius:14px!important}
+.rf-item p{line-height:1.45}
+.rf-item-top strong{line-height:1.25}
+.rf-controls input,.rf-controls select{min-width:0;max-width:100%}
+/* Consistent cards, controls and spacing */
+:where(.card,.venue,.rf-item,.renta-local-card,.renta-catalog-card,.place-card){box-sizing:border-box}
+:where(button,input,select,textarea,a){-webkit-tap-highlight-color:transparent}
+:where(button,input,select,textarea){border-radius:12px}
+:where(input,select,textarea){max-width:100%}
+:where(button):focus-visible,:where(a):focus-visible,:where(input,select,textarea):focus-visible{outline:2px solid var(--renta-teal);outline-offset:2px}
+.venue{content-visibility:auto;contain-intrinsic-size:320px 360px}
+.venue img,.venue .photo img,.rf-item img{loading:lazy}
+#rentaFoodOffline{max-width:100%}
+#rentaFoodOffline .rf-cats{display:flex;gap:6px;overflow-x:auto;padding:3px 1px 8px;scrollbar-width:none}
+#rentaFoodOffline .rf-cats::-webkit-scrollbar{display:none}
+#rentaFoodOffline .rf-cats button{flex:0 0 auto}
+#rfList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#rfList .rf-item{min-width:0;margin:0!important}
+#rfList .rf-item-top{gap:6px;align-items:flex-start}
+#rfList .rf-item-top strong{font-size:13px}
+#rfList .rf-meta{font-size:10px;line-height:1.35}
+#rfList .rf-item p{font-size:11px;line-height:1.4}
+#rfList .rf-link{font-size:11px;display:inline-block;margin-top:4px}
+#rfList .rf-loadmore,#rfList .rf-empty{grid-column:1/-1}
+@media(max-width:420px){
+ #tabbar{gap:3px!important;padding-left:6px!important;padding-right:6px!important}
+ #tabbar button{padding-left:6px!important;padding-right:6px!important}
+ #rfList{grid-template-columns:1fr}
+ #rentaLocalDirectory .renta-local-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 </style>
 <style>
@@ -1532,6 +1607,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <p class="renta-catalog-subtitle">Naturaleza, bienestar, cultura y experiencias, además de comer y salir.</p>
         </div>
       </div>
+      <button type="button" class="renta-compact-toggle" id="rentaCategoriesToggle" aria-expanded="false">Explorar categorías <span>＋</span></button>
       <div class="renta-catalog-grid" id="rentaCatalogGrid">
         <button type="button" class="renta-catalog-card" data-renta-category="Naturaleza y aire libre"><span class="renta-catalog-icon">🌿</span><span><strong>Naturaleza</strong><small>Parques, rutas y miradores</small></span><span class="renta-catalog-arrow">↗</span></button>
         <button type="button" class="renta-catalog-card" data-renta-category="Bienestar"><span class="renta-catalog-icon">🧘</span><span><strong>Bienestar</strong><small>Spa, yoga y desconexión</small></span><span class="renta-catalog-arrow">↗</span></button>
@@ -1543,6 +1619,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <button type="button" class="renta-catalog-card" data-renta-category="Planes originales y diferentes"><span class="renta-catalog-icon">🪄</span><span><strong>Planes diferentes</strong><small>Ideas fuera de lo habitual</small></span><span class="renta-catalog-arrow">↗</span></button>
       </div>
       
+      <button type="button" class="renta-compact-toggle" id="rentaLocalToggle" aria-expanded="false">🥾 Senderismo y escape rooms <span>＋</span></button>
       <div class="renta-local-directory" id="rentaLocalDirectory">
         <div class="renta-local-head">
           <div><p class="eyebrow">CATÁLOGO GUARDADO</p><h4 id="rentaLocalTitle">Rutas y escape rooms</h4><p id="rentaLocalCount" class="renta-catalog-subtitle">Selección local disponible sin esperar a Google Places.</p></div>
@@ -2560,6 +2637,7 @@ const RENTA_LOCAL_ESCAPES = [{"n":"Fox in a Box","address":"Calle del Áncora, 1
 let rentaLocalKind='routes';
 let rentaRouteDifficulty='Todas';
 let rentaLocalQuery='';
+let rentaLocalVisible=6;
 function rentaSafeText(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 function renderRentaLocalCatalog(){
   const isRoute=rentaLocalKind==='routes';
@@ -2577,18 +2655,29 @@ function renderRentaLocalCatalog(){
   const results=document.getElementById('rentaLocalResults');
   if(!title||!count||!filters||!results)return;
   title.textContent=isRoute?'Rutas de senderismo y paseos':'Escape rooms y juegos urbanos';
-  count.textContent=`${list.length} de ${data.length} fichas guardadas en la aplicación`;
+  count.textContent=`${list.length} resultados · ${data.length} guardados`;
   filters.style.display=isRoute?'flex':'none';
-  results.innerHTML=list.map(item=>{
+  const shown=list.slice(0,rentaLocalVisible);
+  results.innerHTML=shown.map(item=>{
     const area=isRoute?item.z:item.z;
     const meta=isRoute?[item.km,item.difficulty,item.kind].filter(Boolean):[item.z].filter(Boolean);
     const detail=isRoute?item.description:item.address+'. '+item.description;
     const url=item.url||'#';
     return `<article class="renta-local-card"><h5>${rentaSafeText(item.n)}</h5><div class="renta-local-meta">${meta.map(m=>`<span class="renta-local-pill">${rentaSafeText(m)}</span>`).join('')}</div><p>📍 ${rentaSafeText(area||'Comunidad de Madrid')}</p><p>${rentaSafeText(detail)}</p><a href="${rentaSafeText(url)}" target="_blank" rel="noopener noreferrer">Ver ruta o consultar proveedor ↗</a></article>`;
   }).join('')||'<div class="renta-local-empty">No hay resultados con ese filtro. Prueba otra búsqueda.</div>';
+  let more=document.getElementById('rentaLocalMore');if(more)more.remove();
+  if(list.length>rentaLocalVisible){more=document.createElement('button');more.id='rentaLocalMore';more.type='button';more.className='renta-compact-toggle';more.textContent=`Cargar 6 más (${list.length-rentaLocalVisible} restantes)`;more.addEventListener('click',()=>{rentaLocalVisible+=6;
+const rentaCategoriesToggle=document.getElementById('rentaCategoriesToggle');
+const rentaCategoriesGrid=document.querySelector('.renta-catalog-grid');
+if(rentaCategoriesToggle&&rentaCategoriesGrid){rentaCategoriesToggle.addEventListener('click',()=>{const open=rentaCategoriesGrid.classList.toggle('renta-grid-open');rentaCategoriesToggle.setAttribute('aria-expanded',String(open));rentaCategoriesToggle.querySelector('span').textContent=open?'−':'＋';});}
+const rentaLocalToggle=document.getElementById('rentaLocalToggle');
+const rentaLocalDirectory=document.getElementById('rentaLocalDirectory');
+if(rentaLocalToggle&&rentaLocalDirectory){rentaLocalToggle.addEventListener('click',()=>{const open=rentaLocalDirectory.classList.toggle('rf-directory-open');rentaLocalToggle.setAttribute('aria-expanded',String(open));rentaLocalToggle.querySelector('span').textContent=open?'−':'＋';if(open)renderRentaLocalCatalog();});}
+renderRentaLocalCatalog();});results.after(more);}
+
 }
 document.querySelectorAll('[data-local-kind]').forEach(btn=>btn.addEventListener('click',()=>{
-  rentaLocalKind=btn.dataset.localKind||'routes';
+  rentaLocalKind=btn.dataset.localKind||'routes'; rentaLocalVisible=6;
   document.querySelectorAll('[data-local-kind]').forEach(b=>b.classList.toggle('active',b===btn));
   document.querySelectorAll('[data-route-filter]').forEach(b=>b.classList.toggle('active',b.dataset.routeFilter==='Todas'));
   rentaRouteDifficulty='Todas'; rentaLocalQuery='';
@@ -2596,7 +2685,7 @@ document.querySelectorAll('[data-local-kind]').forEach(btn=>btn.addEventListener
   renderRentaLocalCatalog();
 }));
 document.querySelectorAll('[data-route-filter]').forEach(btn=>btn.addEventListener('click',()=>{
-  rentaRouteDifficulty=btn.dataset.routeFilter||'Todas';
+  rentaRouteDifficulty=btn.dataset.routeFilter||'Todas'; rentaLocalVisible=6;
   document.querySelectorAll('[data-route-filter]').forEach(b=>b.classList.toggle('active',b===btn));
   renderRentaLocalCatalog();
 }));
@@ -2615,6 +2704,7 @@ document.querySelectorAll('[data-renta-category]').forEach(card=>{
     document.querySelectorAll('[data-renta-category]').forEach(c=>c.classList.toggle('is-selected',c===card));
     if(selectedCatalogCategory==='Naturaleza y aire libre'||selectedCatalogCategory==='Experiencias y actividades'){
       rentaLocalKind=selectedCatalogCategory==='Naturaleza y aire libre'?'routes':'escape';
+      const ld=document.getElementById('rentaLocalDirectory');if(ld)ld.classList.add('rf-directory-open');const lt=document.getElementById('rentaLocalToggle');if(lt){lt.setAttribute('aria-expanded','true');lt.querySelector('span').textContent='−';}
       document.querySelectorAll('[data-local-kind]').forEach(b=>b.classList.toggle('active',b.dataset.localKind===rentaLocalKind));
       rentaRouteDifficulty='Todas';rentaLocalQuery='';
       const localSearch=document.getElementById('rentaLocalSearch');if(localSearch)localSearch.value='';

@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "RADAR · PLANES",
-  "short_name": "RADAR",
-  "description": "Descubre lugares, crea planes y encuentra tu próximo sitio favorito.",
+  "name": "RENTA",
+  "short_name": "RENTA",
+  "description": "Descubre planes, lugares y experiencias con RENTA.",
   "lang": "es-ES",
   "start_url": "./",
   "scope": "./",
@@ -17,22 +17,10 @@
   ],
   "icons": [
     {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
+      "src": "./icons/renta-icon.jpeg",
+      "type": "image/jpeg",
+      "sizes": "any",
       "purpose": "any"
-    },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }

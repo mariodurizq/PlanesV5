@@ -1,12 +1,11 @@
-const VERSION = 'renta-shell-v26';
+const VERSION = 'renta-shell-v27';
 const APP_FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png',
-  './icons/renta-icon.jpeg'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -20,7 +19,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key.startsWith('radar-shell-') && key !== VERSION).map(key => caches.delete(key)));
+    await Promise.all(keys.filter(key => (key.startsWith('radar-shell-') || key.startsWith('renta-shell-')) && key !== VERSION).map(key => caches.delete(key)));
     await self.clients.claim();
   })());
 });

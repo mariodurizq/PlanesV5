@@ -1409,8 +1409,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #tabbar.tabbar button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap!important;font-size:inherit!important}
 #tabbar.tabbar button.active{color:#fff!important;font-weight:800!important}
 #tabbar.tabbar button.active i{transform:translateY(-1px) scale(1.08)!important}
-#tabbar.tabbar .tabind{position:absolute!important;top:5px!important;bottom:5px!important;left:calc(5px + var(--i,0) * ((100% - 10px) / 7))!important;
-  width:calc((100% - 10px) / 7)!important;border-radius:17px!important;transition:left .35s cubic-bezier(.2,.8,.2,1)!important}
+#tabbar.tabbar .tabind{position:absolute!important;top:5px!important;bottom:5px!important;left:calc(5px + var(--i,0) * ((100% - 10px) / 6))!important;
+  width:calc((100% - 10px) / 6)!important;border-radius:17px!important;transition:left .35s cubic-bezier(.2,.8,.2,1)!important}
 .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}
 :root[data-theme="dark"] #tabbar.segctl.tabbar{background:rgba(9,13,10,.96)!important;border-color:#263229!important;box-shadow:0 14px 42px rgba(0,0,0,.55)!important}
 :root[data-theme="dark"] #tabbar.tabbar button{color:#9ca99e!important}
@@ -1439,6 +1439,17 @@ header.top.scrolled .tagline{max-height:0}
 .radar-cluster{background:transparent!important}
 .radar-cluster span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#26332b;color:#fff;font:800 13px/1 Inter,system-ui,sans-serif;border:3px solid #fff;box-shadow:0 6px 16px rgba(20,30,25,.3)}
 #radarMap.is-dark .radar-cluster span{background:#b9d995;color:#152015;border-color:#1b1d22}
+#tabbar button[hidden]{display:none!important}
+.explore-switch{display:flex;gap:4px;padding:4px;margin:0 0 14px;border-radius:16px;background:var(--surface-2,#efede6);border:1px solid var(--line,#e3e1d8)}
+.explore-switch button{flex:1;border:0;border-radius:12px;padding:11px 8px;font:700 14px/1 Inter,system-ui,sans-serif;background:transparent;color:var(--muted,#6b716c);cursor:pointer;transition:background .2s,color .2s}
+.explore-switch button.active{background:var(--r-olive,#35452e);color:#fff;box-shadow:0 4px 12px rgba(40,50,35,.18)}
+:root[data-theme="dark"] .explore-switch{background:#141a16;border-color:#263229}
+:root[data-theme="dark"] .explore-switch button.active{background:#b9d995;color:#172016}
+.match-place-card{transition:transform .17s ease-in,opacity .17s ease-in;animation:matchIn .22s ease-out}
+.match-place-card.match-out-right{transform:translateX(60%) rotate(8deg);opacity:0}
+.match-place-card.match-out-left{transform:translateX(-60%) rotate(-8deg);opacity:0}
+@keyframes matchIn{from{transform:scale(.96) translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.match-place-card{animation:none;transition:none}}
 </style>
 </head>
 <body>
@@ -1461,8 +1472,8 @@ header.top.scrolled .tagline{max-height:0}
 
   <nav class="segctl tabbar" id="tabbar">
     <span class="tabind"></span>
-    <button id="tabGuiado" class="active"><i>📍</i><span>Guiado</span></button>
-    <button id="tabDirecto"><i>🗺️</i><span>Directo</span></button>
+    <button id="tabGuiado" class="active" aria-label="Explorar"><i>📍</i><span>Explorar</span></button>
+    <button id="tabDirecto" hidden aria-hidden="true" tabindex="-1"><i>🗺️</i><span>Directo</span></button>
     <button id="tabPide"><i>✨</i><span>Pídeme</span></button>
     <button id="tabAutoplan"><i>🧭</i><span>Autoplan</span></button>
     <button id="tabEventos"><i>📅</i><span>Eventos</span></button>
@@ -1822,6 +1833,10 @@ header.top.scrolled .tagline{max-height:0}
   </div>
 
 
+  <div class="explore-switch" id="exploreSwitch" role="tablist" aria-label="Cómo quieres buscar">
+    <button type="button" role="tab" data-explore="guiado" class="active">📍 Cerca de mí</button>
+    <button type="button" role="tab" data-explore="directo">🗺️ Por zona</button>
+  </div>
   <div class="card" id="guiadoPanel">
     <div class="label">CERCA DE TI <span class="n">01</span></div>
     <div class="radarBox">
@@ -4236,9 +4251,19 @@ function toggleFavoriteView(){
 // CARTO Basemaps API key (clave pública de teselas del mapa base).
 const RADAR_CARTO_API_KEY = "cb1_4lmn_1_2aac24edf7da67a8627f2599";
 function radarCartoTilesUrl(path) {
-  // Estilos modernos de CARTO: light_all (claro y limpio) y dark_all (noche). Gratis para uso moderado.
-  const style = path==='dark_all' ? 'dark_all' : 'light_all';
-  return `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`;
+  // CARTO exige clave en todos sus estilos. light_all = claro y limpio; dark_all = noche; voyager = respaldo.
+  const style = ['dark_all','light_all','voyager'].includes(path) ? path : 'light_all';
+  return `https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(RADAR_CARTO_API_KEY)}`;
+}
+// Si un estilo falla (p. ej. no disponible con la clave), pasamos a voyager automáticamente
+function radarWatchTiles(layer){
+  let errors=0;
+  layer.on('tileerror',()=>{ if(++errors===4 && radarMap && layer===radarTileLayer && !layer._radarFallback){
+    radarMap.removeLayer(layer);
+    radarTileLayer=L.tileLayer(radarCartoTilesUrl('voyager'),{subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(radarMap);
+    radarTileLayer._radarFallback=true; radarTileLayer.bringToBack();
+  }});
+  return layer;
 }
 function radarThemeIsDark(){ return document.documentElement.getAttribute('data-theme')==='dark'; }
 function ensureRadarMap(){
@@ -4251,6 +4276,7 @@ function ensureRadarMap(){
   radarTileLayer=L.tileLayer(radarCartoTilesUrl(mapStyleMode==='dark'?'dark_all':'light_all'),{
     subdomains:'abcd',maxZoom:20,detectRetina:false,attribution:'&copy; OpenStreetMap &copy; CARTO'
   }).addTo(radarMap);
+  radarWatchTiles(radarTileLayer);
   document.getElementById('radarMap')?.classList.toggle('is-dark',mapStyleMode==='dark');
   { const btn=document.getElementById('mapStyleBtn'); if(btn) btn.textContent=mapStyleMode==='dark'?'☀ Modo claro':'☾ Modo noche'; }
   // No agrupamos por barrios ni por clúster: cada marcador corresponde a una coordenada cartografiada.
@@ -4276,6 +4302,7 @@ function setMapStyle(mode){
   radarTileLayer=L.tileLayer(radarCartoTilesUrl(path),{
     subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'
   }).addTo(radarMap);
+  if(mapStyleMode!=='dark') radarWatchTiles(radarTileLayer);
   document.getElementById('radarMap')?.classList.toggle('is-dark',mapStyleMode==='dark');
   radarTileLayer.bringToBack();
   const btn=document.getElementById('mapStyleBtn');
@@ -4812,13 +4839,16 @@ const tabButtons = {guiado:'tabGuiado', directo:'tabDirecto', pide:'tabPide', au
 const tabOrder = ['guiado','directo','pide','autoplan','eventos','radarlab','match'];
 const searchSections = ['catCard','guiadoPanel','directoPanel','resultsHead','resultsList','loadMoreBtn','toggleSuggested','liveMapsBox'];
 
+document.addEventListener('click',e=>{const b=e.target.closest('#exploreSwitch [data-explore]');if(b)switchTab(b.dataset.explore);});
 function switchTab(tab){
   activeTab = tab;
   if(tab==='guiado' || tab==='directo') mode = tab;
 
   Object.entries(tabButtons).forEach(([key, id])=>{
-    document.getElementById(id).classList.toggle('active', key===tab);
+    document.getElementById(id).classList.toggle('active', key===tab || (key==='guiado' && tab==='directo'));
   });
+  document.querySelectorAll('#exploreSwitch [data-explore]').forEach(b=>b.classList.toggle('active', b.dataset.explore===tab));
+  { const sw=document.getElementById('exploreSwitch'); if(sw) sw.style.display=(tab==='guiado'||tab==='directo')?'flex':'none'; }
 
   const isSearch = (tab==='guiado' || tab==='directo');
   document.getElementById('searchHero').style.display = isSearch ? 'block' : 'none';
@@ -4841,7 +4871,7 @@ function switchTab(tab){
   document.getElementById('radarLabTabPanel').style.display = (tab==='radarlab') ? 'block' : 'none';
   document.getElementById('matchTabPanel').style.display = (tab==='match') ? 'block' : 'none';
   if(tab!=='radarlab') document.getElementById('radarLivePanel').hidden = true;
-  document.getElementById('tabbar').style.setProperty('--i', tabOrder.indexOf(tab));
+  document.getElementById('tabbar').style.setProperty('--i', ['guiado','pide','autoplan','eventos','radarlab','match'].indexOf(tab==='directo'?'guiado':tab));
   try{ navigator.vibrate && navigator.vibrate(8); }catch(e){}
 
   if(isSearch){ visibleCount=20; renderResults(); }
@@ -5170,39 +5200,57 @@ renderResults();
     if(/cafe|brunch|postre|helader|pastel|panader/.test(c))return 'coffee';
     return 'food';
   };
+  // Antes se recalculaba (leyendo localStorage y normalizando 700 nombres) miles de veces por voto.
+  let venuesCache=null,venuesKey='';
   const allVenues=()=>{
     const base=Array.isArray(DATA)?DATA:[];
+    let raw='';try{raw=localStorage.getItem(DISCOVERED_KEY)||'';}catch(e){}
+    const key=base.length+'|'+raw.length;
+    if(venuesCache&&venuesKey===key)return venuesCache;
     const ext=safeRead(DISCOVERED_KEY,[]);
     const names=new Set(base.map(d=>norm(d.n)));
     ext.forEach(d=>{if(d&&d.n&&!names.has(norm(d.n))){base.push(d);names.add(norm(d.n));}});
-    return base.filter(d=>d&&d.n);
+    venuesCache=base.filter(d=>d&&d.n);venuesKey=base.length+'|'+raw.length;
+    return venuesCache;
   };
   const allVotes=()=>matchState.votes||{};
+  // Perfil de gustos: qué categorías, zonas y precios te gustan o descartas. Se calcula una vez por voto.
+  let profileCache=null,profileKey='';
+  const zoneKey=d=>norm(String(d.z||'').split(/[\/,(]/)[0]);
+  const priceKey=d=>{const p=pMid(d);return p==null?'?':p<15?'b':p<30?'m':p<50?'a':'l';};
+  const profile=()=>{
+    const key=(matchState.likes||[]).length+'|'+(matchState.passes||[]).length+'|'+Object.keys(matchState.votes||{}).length;
+    if(profileCache&&profileKey===key)return profileCache;
+    const byName=new Map(allVenues().map(d=>[d.n,d]));
+    const P={cm:{},type:{},zone:{},price:{},n:0};
+    const add=(d,w)=>{if(!d)return;P.n++;[['cm',d.cm],['type',type(d)],['zone',zoneKey(d)],['price',priceKey(d)]].forEach(([k,v])=>{if(v)P[k][v]=(P[k][v]||0)+w;});};
+    (matchState.likes||[]).forEach(n=>add(byName.get(n),1));
+    (matchState.passes||[]).forEach(n=>add(byName.get(n),-0.7));
+    profileCache=P;profileKey=key;return P;
+  };
   const tasteWeight=d=>{
-    const v=allVotes()[d.n];let s=0;
-    if(v==='like')s+=28;if(v==='pass')s-=14;
-    if((matchState.likes||[]).includes(d.n))s+=16;
-    if((matchState.passes||[]).includes(d.n))s-=20;
-    const liked=allVenues().filter(x=>(matchState.likes||[]).includes(x.n));
-    const catCounts={};liked.forEach(x=>catCounts[type(x)]=(catCounts[type(x)]||0)+1);
-    s+=(catCounts[type(d)]||0)*4;
-    const likedCats=liked.map(type);
-    if(likedCats.length&&likedCats.every(t=>t===type(d)))s+=3;
+    const P=profile(),v=allVotes()[d.n];let s=0;
+    if(v==='like')s+=28;if(v==='pass')s-=20;
+    s+=(P.cm[d.cm]||0)*6+(P.type[type(d)]||0)*3+(P.zone[zoneKey(d)]||0)*2.5+(P.price[priceKey(d)]||0)*1.5;
     return s;
   };
+  // Pequeña dosis de variedad (estable por sitio y voto) para que no salga siempre lo mismo
+  const jitter=(name,seed)=>{let h=2166136261;const str=name+'|'+seed;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return ((h>>>0)%1000)/1000;};
   const budgetOk=d=>{const max=$('matchBudget').value;if(max==='any')return true;const p=pMid(d);return p===null||p<=Number(max)};
   const selectedCat=()=> $('matchCategory').value;
   const matchPool=()=>{
-    const zone=norm($('matchZone').value),cat=selectedCat();
+    const zone=norm($('matchZone').value),cat=selectedCat(),P=profile(),seed=Object.keys(matchState.votes||{}).length;
+    const likes=new Set(matchState.likes||[]),passes=new Set(matchState.passes||[]);
     return allVenues().filter(d=>{
       if(!d||!d.n||!d.cm)return false;
-      if((matchState.likes||[]).includes(d.n)||(matchState.passes||[]).includes(d.n))return false;
+      if(likes.has(d.n)||passes.has(d.n))return false;
+      if(d.e==='Cerrado temporalmente')return false;
       if(!budgetOk(d))return false;
       if(zone&&!norm((d.z||'')+' '+(d.address||'')).includes(zone))return false;
       if(cat!=='mixed'&&type(d)!==cat)return false;
       if(cat==='rooftop'&&type(d)!=='rooftop')return false;
       return true;
-    }).sort((a,b)=>tasteWeight(b)-tasteWeight(a)+(Number(b.v||0)-Number(a.v||0))*2);
+    }).map(d=>{const t=tasteWeight(d);return {d,s:t+Number(d.v||0)*2+jitter(d.n,seed)*(P.n<3?9:4)};}).sort((a,b)=>b.s-a.s).map(x=>x.d);
   };
   const imageFor=d=>d.photoUrl||d.photo||venuePhoto(d.cm);
   const mapUrl=d=>d.googleMapsUri||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.n+' '+(d.address||d.z||'Madrid'))}`;
@@ -5214,6 +5262,14 @@ renderResults();
     const pool=matchPool();
     if(!pool.length){showMatchEmpty('Has visto todos los sitios que encajan con estos filtros. Cambia de zona/categoría o pulsa «Buscar sitios nuevos».');return;}
     currentMatch=pool[0];renderMatchCard(currentMatch);
+    if(pool[1]){const im=new Image();im.src=String(imageFor(pool[1]));}
+  }
+  function learningHint(){
+    const P=profile();if(P.n<2)return '';
+    const best=(o)=>Object.entries(o).filter(([k,v])=>v>0.9).sort((a,b)=>b[1]-a[1])[0];
+    const c=best(P.cm),z=best(P.zone);
+    const parts=[];if(c)parts.push(c[0].toLowerCase());if(z&&z[0]){const v=allVenues().find(d=>zoneKey(d)===z[0]);parts.push('por '+(v?String(v.z).split(/[\/,(]/)[0].trim():z[0]));}
+    return parts.length?` · Aprendiendo: más ${parts.join(' ')}`:'';
   }
   function renderMatchCard(d){
     const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?' · '+Number(d.nr).toLocaleString('es-ES')+' opiniones':''}`:(d.rating?`★ ${Number(d.rating).toFixed(1)}`:'Valoración no disponible');
@@ -5233,7 +5289,7 @@ renderResults();
     const card=$('matchActiveCard');
     card.addEventListener('touchstart',e=>{const t=e.changedTouches[0];matchTouchX=t.clientX;matchTouchY=t.clientY},{passive:true});
     card.addEventListener('touchend',e=>{if(matchTouchX===null)return;const t=e.changedTouches[0],dx=t.clientX-matchTouchX,dy=t.clientY-matchTouchY;matchTouchX=null;matchTouchY=null;if(Math.abs(dx)>85&&Math.abs(dx)>Math.abs(dy)*1.15)recordVote(dx>0?'like':'pass')},{passive:true});
-    $('matchSourceStatus').textContent=`Sitio ${Math.min(voteCount()+1,999)} · catálogo y recomendaciones según tus votos`;
+    $('matchSourceStatus').textContent=`Sitio ${Math.min(voteCount()+1,999)}${learningHint()||' · vota para que aprenda tus gustos'}`;
   }
   function recordVote(vote){
     if(!currentMatch)return;
@@ -5248,9 +5304,11 @@ renderResults();
       matchState.likes=matchState.likes.filter(n=>n!==d.n);
     }
     persistMatch();
-    nextLocalMatch();
-    renderTasteSummary();
+    const card=$('matchActiveCard');
+    const go=()=>{nextLocalMatch();renderTasteSummary();};
+    if(card&&!matchMediaReduce){card.classList.add(vote==='like'?'match-out-right':'match-out-left');setTimeout(go,170);}else go();
   }
+  const matchMediaReduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   $('matchPassBtn').addEventListener('click',()=>recordVote('pass'));
   $('matchSaveBtn').addEventListener('click',()=>recordVote('like'));
   $('matchUndoBtn').addEventListener('click',()=>{
@@ -5277,7 +5335,7 @@ renderResults();
   }
   function renderTasteSummary(){
     const el=$('radarTasteSummary');if(!el)return;
-    const liked=allVenues().filter(d=>matchState.likes.includes(d.n)),counts={};liked.forEach(d=>counts[type(d)]=(counts[type(d)]||0)+1);
+    const likeSet=new Set(matchState.likes),liked=allVenues().filter(d=>likeSet.has(d.n)),counts={};liked.forEach(d=>counts[type(d)]=(counts[type(d)]||0)+1);
     const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
     el.textContent=liked.length?`${liked.length} sitios te gustan. Tu tendencia principal: ${({food:'gastronomía',drinks:'bares y copas',coffee:'cafés y brunch',fun:'ocio',rooftop:'terrazas y rooftops'}[top?.[0]]||'variado')}.`:'Vota en Match para que RADAR aprenda tus preferencias.';
     $('matchLearnedCount').textContent=String(voteCount());

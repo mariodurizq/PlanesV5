@@ -116,6 +116,10 @@ def main():
     found = closed = nomi = 0; missing = []
     for d in data:
         if d.get('verifiedAt'): continue
+        # Cada ejecución empieza de cero desde el centro de barrio original
+        if d.get('zlat') is not None:
+            d['lat'], d['lon'] = d['zlat'], d['zlon']
+            for k in ('locationVerified', 'oh', 'osmCuisine', 'addr'): d.pop(k, None)
         has = isinstance(d.get('zlat', d.get('lat')), (int, float))
         zlat, zlon = d.get('zlat', d.get('lat')), d.get('zlon', d.get('lon'))
         radius = (4.5 if shared.get(f'{zlat:.3f},{zlon:.3f}', 0) > 3 else 2.5) if has else None
@@ -126,7 +130,14 @@ def main():
             dk = km(zlat, zlon, p['lat'], p['lon']) if has else None
             if dk is not None and dk > radius: continue
             if dk is None and s < .95: continue
-            score = s - (dk or 0) / 30
+            # Cadenas: "Massart Pizza - Goya" solo vale si el local del mapa está en Goya
+            br = branch(d['n'])
+            if br and not branch(p['name']):
+                words = [w for w in br.split() if len(w) >= 4]
+                where = strip(p['name'] + ' ' + p['addr'])
+                if words and any(w in where for w in words): s = min(1, s + .05)
+                elif words: continue
+            score = s - (dk or 0) / 10
             if not best or score > best[0]: best = (score, p)
         if has and 'zlat' not in d: d['zlat'], d['zlon'] = zlat, zlon   # guarda el centro de barrio original
         if best:

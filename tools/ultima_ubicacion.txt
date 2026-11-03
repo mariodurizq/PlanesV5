@@ -1,5 +1,5 @@
 Ubicación del 2026-11-03
-352 de 699 sitios con coordenadas reales (331 por mapa abierto, 21 por búsqueda individual).
+339 de 699 sitios con coordenadas reales (316 por mapa abierto, 20 por búsqueda individual).
 3 marcados como posible cierre en el mapa.
 
 Sin ubicar:
@@ -63,17 +63,22 @@ Sin ubicar:
 - Tetehookah 火咖 (Usera)
 - Nox Aurea (Moratalaz)
 - Harmony Lounge & Bar (Chamartín)
+- Abacería La Pastelería | Vinos Naturales (Centro)
 - Okio Asian Street Market (Hortaleza)
 - Skyrland (Chamberí)
 - Rhudo (Salamanca)
 - DALÙ BURGER (Chamberí)
 - Boa Lounge (Salamanca)
 - Chuck Chuck Chicken (Tetuán)
+- HOST - Coffee & Wine (Chamberí)
 - Ki-Jote Restaurante Fusiòn (Alcalá de Henares)
 - Restaurante Eximio (Alcalá de Henares)
 - Ebano Gastro Experience (Alcalá de Henares)
 - Akiro Hand Roll Bar (Salamanca)
+- Kokó Classic (Moncloa-Aravaca)
+- Restaurante PAROLE - Pizzería Italiana (Chamberí)
 - SAM'S (Chamartín)
+- Chun-Li Dumplings - Ópera (Centro)
 - Osaka Ramen (Moratalaz)
 - Kippu (Salamanca)
 - La Milanese Madrid (Salamanca)
@@ -90,6 +95,7 @@ Sin ubicar:
 - Campogrande La Cuna Del Buey (Chamberí)
 - Yeite (Centro)
 - Munchies by foodgoddess (Centro)
+- Jenkin's - Orense (Tetuán)
 - Élkar - Restaurante en la Castellana (Fuencarral-El Pardo)
 - MATEO HONTEN (Centro)
 - Monaco preparty lounge (Villaverde)
@@ -125,6 +131,7 @@ Sin ubicar:
 - Restaurante Japonés Inari (Salamanca)
 - Ostinato
 - MY Hookah Da Club (Chamartín)
+- HUNDRED (Moncloa-Aravaca)
 - The Kyoto Lounge (Chamberí)
 - Can chan chán (Salamanca)
 - Frankie Burgers Espronceda (Chamberí)
@@ -173,6 +180,7 @@ Sin ubicar:
 - LA FONTANA GASTRO (Barajas)
 - Luxury Monkey (Las Rozas)
 - La Prensa Burgers & Beers (Centro)
+- Cesar's burgers (Arganzuela)
 - Occhiali Restaurante (Ottica) (Chamartín)
 - El Japo Carranza (Chamberí)
 - Yakiniku Shōgun (Chamberí)
@@ -231,6 +239,7 @@ Sin ubicar:
 - Lovo Bar Madrid (Centro)
 - Kamado Asian Food (Centro)
 - La burlona bar (Centro)
+- redbar Madrid | Plaza España (Centro)
 - Beer Pong Madrid (Malasaña31) (Centro)
 - Restaurante Salitre (Taberna Salitre) (Salamanca)
 - Bule Bule Madrid (Centro)
@@ -256,6 +265,7 @@ Sin ubicar:
 - Cor e Cor (Centro)
 - The Chapel by Sin Sombrero (Salamanca)
 - Hemingway Cocktail Bar
+- Room Mate Macarena - Gran Via Hotel (Centro)
 - El Social (Centro)
 - Bonamara Madrid (Móstoles)
 - Pintxaki (Pozuelo de Alarcón)
@@ -293,6 +303,7 @@ Sin ubicar:
 - Mulandarah shishas y cocteles (Villa de Vallecas)
 - El Edén Hawaiano (El Edén) (Rivas-Vaciamadrid)
 - Bosco de Lobos (Centro)
+- Terraza de Sabatini (Moncloa-Aravaca)
 - Dingo Restaurante
 - Paperboy
 - Hotel Indigo Madrid - Gran Vía (Centro)
@@ -315,6 +326,7 @@ Sin ubicar:
 - Mela Hookah
 - Bavylon shisha&cocktails
 - KIMBALA LOUNGE CLUB
+- Massart Pizza - Goya (Salamanca)
 - FAMOUS SHISHAS 2 (Retiro)
 - Palacio de Arena
 - Teteria Darkom (Centro)
@@ -341,6 +353,7 @@ Sin ubicar:
 - Serendipia Lounge (Villa de Vallecas)
 - 7 Islas Hotel Madrid (Centro)
 - Gustami italia (Centro)
+- Bowling Chamartín - bolera en madrid (Chamartín)
 - Picalagartos Sky Bar (Centro)
 - Parque Juan Carlos I (Barajas)
 - Zielou (Chamartín)

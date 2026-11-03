@@ -1,0 +1,28 @@
+# Agenda real de Madrid: se descarga cada mañana de datos.madrid.es y se guarda en eventos.json
+name: Actualizar eventos
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
+  push:
+    branches: [main]
+    paths: ['tools/eventos.py']
+permissions:
+  contents: write
+jobs:
+  eventos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar agenda
+        run: python3 tools/eventos.py
+      - name: Guardar cambios
+        run: |
+          git add eventos.json
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "renta-bot"
+          git config user.email "renta-bot@users.noreply.github.com"
+          git commit -m "Agenda de eventos actualizada"
+          git pull --rebase -q origin main
+          git push

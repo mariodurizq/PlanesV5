@@ -1451,7 +1451,8 @@ header.top.scrolled .tagline{max-height:0}
 @keyframes matchIn{from{transform:scale(.96) translateY(8px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.match-place-card{animation:none;transition:none}}
 #radarMap .leaflet-top,#radarMap .leaflet-bottom{z-index:1100}
-.map-group-chips{display:flex;gap:6px;max-width:calc(100vw - 90px);overflow-x:auto;padding:2px;scrollbar-width:none}
+.map-group-chips{display:flex;gap:6px;max-width:calc(100vw - 90px);overflow-x:auto;padding:2px;scrollbar-width:none;cursor:grab;user-select:none}
+@media (min-width:900px){.map-group-chips{flex-wrap:wrap;max-width:calc(100% - 20px);overflow:visible;cursor:default}#radarMap .leaflet-top.leaflet-left{right:60px}}
 .map-group-chips::-webkit-scrollbar{display:none}
 .map-group-chips button{flex:none;border:0;border-radius:999px;padding:8px 12px;font:700 12px/1 Inter,system-ui,sans-serif;background:rgba(255,255,255,.95);color:#2a302b;box-shadow:0 3px 10px rgba(0,0,0,.14);cursor:pointer}
 .map-group-chips button.active{background:#26332b;color:#fff}
@@ -1467,6 +1468,20 @@ header.top.scrolled .tagline{max-height:0}
  #mapShell .map-toolbar .map-search-area-btn{grid-column:1/-1}
  #radarMap{height:58vh!important;min-height:360px!important}
 }
+.renta-agenda{margin:6px 0 18px;padding:16px;border:1px solid var(--line,#e3e1d8);border-radius:20px;background:var(--surface,#fffefa)}
+.renta-agenda h3{margin:4px 0 2px;font-size:22px}.renta-agenda-head p{margin:0;color:var(--muted,#6b716c);font-size:12px}
+.renta-agenda-filters{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.renta-agenda-filters button{flex:none;border:1px solid var(--line,#e3e1d8);background:transparent;color:inherit;border-radius:999px;padding:8px 12px;font:700 12px/1 Inter,system-ui,sans-serif;cursor:pointer}
+.renta-agenda-filters button.active{background:var(--r-olive,#35452e);color:#fff;border-color:transparent}
+.renta-agenda-free{display:flex;gap:6px;align-items:center;font-size:13px;margin:8px 0}
+.renta-agenda-list{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.agenda-item{border:1px solid var(--line,#e3e1d8);border-radius:16px;padding:12px 14px}
+.agenda-item h4{margin:4px 0;font-size:15px;line-height:1.3}.agenda-item p{margin:0 0 6px;font-size:12px;color:var(--muted,#6b716c)}
+.agenda-date{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#e0583a}
+.agenda-tags{display:flex;gap:6px;flex-wrap:wrap}.agenda-tags span{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.05)}.agenda-tags .free{background:#e2f3e6;color:#1f7a3a}
+.agenda-links{display:flex;gap:12px;margin-top:8px;font-size:12px;font-weight:700}.agenda-links a{color:inherit}
+:root[data-theme="dark"] .renta-agenda{background:#111712;border-color:#263229}
+:root[data-theme="dark"] .renta-agenda-filters button.active{background:#b9d995;color:#172016}
 </style>
 </head>
 <body>
@@ -1814,7 +1829,17 @@ header.top.scrolled .tagline{max-height:0}
   </div>
 
   <div class="aiBox" id="eventsBox" style="display:none;">
-    <div class="label">📅 Ferias y eventos gastronómicos</div>
+    <div class="label">📅 Eventos y ferias</div>
+    <section class="renta-agenda" id="rentaAgenda">
+      <div class="renta-agenda-head"><div><span class="radar-lab-kicker">AGENDA REAL · SE ACTUALIZA CADA DÍA</span><h3>Qué hay en Madrid</h3><p id="agendaSource">Cargando agenda…</p></div></div>
+      <div class="renta-agenda-filters" id="agendaWhen">
+        <button type="button" data-when="hoy">Hoy</button><button type="button" data-when="finde" class="active">Este finde</button><button type="button" data-when="7">7 días</button><button type="button" data-when="30">30 días</button>
+      </div>
+      <div class="renta-agenda-filters" id="agendaCat"></div>
+      <label class="renta-agenda-free"><input type="checkbox" id="agendaFree"> Solo gratis</label>
+      <div class="renta-agenda-list" id="agendaList"></div>
+      <button type="button" class="renta-compact-toggle" id="agendaMore" hidden>Ver más</button>
+    </section>
 
     <section class="radar-live-events">
       <div class="radar-live-events-head"><span class="radar-lab-kicker">AGENDA ACTUALIZADA</span><h3>Eventos y experiencias en directo</h3><p>Abre agendas externas con fechas, precios y disponibilidad actualizados. Los eventos de la lista local de abajo pueden quedarse desfasados.</p></div>
@@ -1825,7 +1850,7 @@ header.top.scrolled .tagline{max-height:0}
       </div>
     </section>
 
-    <div class="aiHint">Tanda investigada por mí a fecha de hoy (agosto 2026) con datos reales. No es una API en vivo — cuando se te queden viejos, pídeme una actualización y te preparo otra tanda.</div>
+    <div class="aiHint">Ferias gastronómicas fuera de Madrid (selección manual; comprueba fechas en la web de cada evento):</div>
     <div class="label" style="margin-top:14px;">¿Dónde?</div>
     <div class="chipgrid" id="cityChips">
       <div class="chip active" data-city="Madrid">Madrid</div>
@@ -2044,6 +2069,13 @@ header.top.scrolled .tagline{max-height:0}
 
   // Palabras clave → filtros de OSM
   const RULES = [
+    {re:/spa|termal|bienestar|yoga|pilates|masaje|sauna/, f:['["leisure"~"^(sauna|spa|fitness_centre)$"]','["amenity"="public_bath"]','["shop"="massage"]']},
+    {re:/museo|exposic|galeria|teatro|cultura/, f:['["tourism"~"^(museum|gallery)$"]','["amenity"~"^(theatre|arts_centre)$"]']},
+    {re:/concierto|musica en directo|espectacul/, f:['["amenity"~"^(music_venue|theatre|events_venue)$"]','["amenity"="nightclub"]["live_music"="yes"]']},
+    {re:/rocodromo|escalada|bicicleta|deport/, f:['["leisure"~"^(sports_centre|climbing|fitness_centre)$"]','["sport"="climbing"]','["amenity"="bicycle_rental"]']},
+    {re:/parque|jardin|senderismo|mirador|naturaleza/, f:['["leisure"~"^(park|garden|nature_reserve)$"]','["tourism"="viewpoint"]']},
+    {re:/romantic|pareja/, f:['["tourism"="viewpoint"]','["leisure"="garden"]','["amenity"="restaurant"]["cuisine"~"french|italian",i]']},
+    {re:/originales|diferentes|alternativ|inmersiv|minigolf|taller/, f:['["leisure"~"^(escape_game|miniature_golf|amusement_arcade|trampoline_park)$"]','["tourism"="attraction"]']},
     {re:/shisha|cachimba|hookah/, f:['["amenity"="hookah_lounge"]']},
     {re:/discoteca|club|bailar|fiesta/, f:['["amenity"="nightclub"]']},
     {re:/copa|coctel|cocktail|gin/, f:['["amenity"~"^(bar|pub)$"]']},
@@ -2062,13 +2094,13 @@ header.top.scrolled .tagline{max-height:0}
     {re:/museo/, f:['["tourism"~"^(museum|gallery)$"]']},
     {re:/escape|bolera|ocio|actividad|experiencia|karaoke|recreativ/, f:['["leisure"~"^(escape_game|bowling_alley|amusement_arcade)$"]','["amenity"~"^(karaoke_box|cinema|theatre)$"]','["tourism"="attraction"]']},
     {re:/hotel/, f:['["tourism"="hotel"]']},
-    {re:/restaurante|comer|comida|cena|cenar|almuerzo/, f:['["amenity"="restaurant"]']}
+    {re:/restaurante|comer|comida|cena|cenar|almuerzo/, f:['["amenity"="restaurant"]'], generic:true}
   ];
   const DEFAULT_FILTERS = ['["amenity"~"^(restaurant|bar|pub|cafe)$"]'];
 
   function filtersFor(text){
     const t = strip(text); const out = [];
-    for(const r of RULES){ if(r.re.test(t)){ r.f.forEach(f=>{ if(!out.includes(f)) out.push(f); }); if(out.length>=3) break; } }
+    for(const r of RULES){ if(r.generic&&out.length) continue; if(r.re.test(t)){ r.f.forEach(f=>{ if(!out.includes(f)) out.push(f); }); if(out.length>=3) break; } }
     return out.length ? out : DEFAULT_FILTERS;
   }
   function placeFrom(text){
@@ -2675,7 +2707,7 @@ function renderResults(){
     const distTxt = d._dist!=null ? d._dist.toFixed(1)+' km' : (d.z || '—');
     const links = mapLinks(d.n, d.z);
     div.innerHTML = `
-      <div class="venue-photo" style="background-image:linear-gradient(180deg,transparent 40%,rgba(5,10,18,.52)),url('${venuePhoto(d.cm)}')">
+      <div class="venue-photo" style="background-image:linear-gradient(180deg,transparent 40%,rgba(5,10,18,.52)),url('${String(d.photo||venuePhoto(d.cm)).replace(/'/g,'%27')}')">
         <span class="photo-category">${CAT_ICONS[d.cm]||'✦'} ${d.cd || d.cm}</span>
         <span class="photo-note">Imagen orientativa</span>
         ${d.v ? `<span class="photo-rating">★ ${d.v.toFixed(1)}</span>` : ''}
@@ -2776,7 +2808,7 @@ function renderResults(){
       div.style.borderStyle = 'dashed';
       const links = mapLinks(s.n, s.z);
       div.innerHTML = `
-        <div class="venue-photo" style="background-image:linear-gradient(180deg,transparent 40%,rgba(5,10,18,.52)),url('${venuePhoto(s.cm)}')">
+        <div class="venue-photo" style="background-image:linear-gradient(180deg,transparent 40%,rgba(5,10,18,.52)),url('${String(s.photo||venuePhoto(s.cm)).replace(/'/g,'%27')}')">
           <span class="photo-category">${CAT_ICONS[s.cm]||'✦'} ${s.cd || s.cm}</span>
           <span class="photo-note">Imagen orientativa</span>
           <span class="photo-rating">NUEVA SUGERENCIA</span>
@@ -2984,16 +3016,16 @@ function renderRentaLocalCatalog(){
     return `<article class="renta-local-card"><h5>${rentaSafeText(item.n)}</h5><div class="renta-local-meta">${meta.map(m=>`<span class="renta-local-pill">${rentaSafeText(m)}</span>`).join('')}</div><p>📍 ${rentaSafeText(area||'Comunidad de Madrid')}</p><p>${rentaSafeText(detail)}</p><a href="${rentaSafeText(url)}" target="_blank" rel="noopener noreferrer">Ver ruta o consultar proveedor ↗</a></article>`;
   }).join('')||'<div class="renta-local-empty">No hay resultados con ese filtro. Prueba otra búsqueda.</div>';
   let more=document.getElementById('rentaLocalMore');if(more)more.remove();
-  if(list.length>rentaLocalVisible){more=document.createElement('button');more.id='rentaLocalMore';more.type='button';more.className='renta-compact-toggle';more.textContent=`Cargar 6 más (${list.length-rentaLocalVisible} restantes)`;more.addEventListener('click',()=>{rentaLocalVisible+=6;
+  if(list.length>rentaLocalVisible){more=document.createElement('button');more.id='rentaLocalMore';more.type='button';more.className='renta-compact-toggle';more.textContent=`Cargar 6 más (${list.length-rentaLocalVisible} restantes)`;more.addEventListener('click',()=>{rentaLocalVisible+=6;renderRentaLocalCatalog();});results.after(more);}
+}
+// Botones de categorías y del directorio local (antes estaban dentro de «Cargar más» y nunca se activaban)
 const rentaCategoriesToggle=document.getElementById('rentaCategoriesToggle');
 const rentaCategoriesGrid=document.querySelector('.renta-catalog-grid');
 if(rentaCategoriesToggle&&rentaCategoriesGrid){rentaCategoriesToggle.addEventListener('click',()=>{const open=rentaCategoriesGrid.classList.toggle('renta-grid-open');rentaCategoriesToggle.setAttribute('aria-expanded',String(open));rentaCategoriesToggle.querySelector('span').textContent=open?'−':'＋';});}
 const rentaLocalToggle=document.getElementById('rentaLocalToggle');
 const rentaLocalDirectory=document.getElementById('rentaLocalDirectory');
 if(rentaLocalToggle&&rentaLocalDirectory){rentaLocalToggle.addEventListener('click',()=>{const open=rentaLocalDirectory.classList.toggle('rf-directory-open');rentaLocalToggle.setAttribute('aria-expanded',String(open));rentaLocalToggle.querySelector('span').textContent=open?'−':'＋';if(open)renderRentaLocalCatalog();});}
-renderRentaLocalCatalog();});results.after(more);}
 
-}
 document.querySelectorAll('[data-local-kind]').forEach(btn=>btn.addEventListener('click',()=>{
   rentaLocalKind=btn.dataset.localKind||'routes'; rentaLocalVisible=6;
   document.querySelectorAll('[data-local-kind]').forEach(b=>b.classList.toggle('active',b===btn));
@@ -3042,6 +3074,7 @@ document.querySelectorAll('[data-renta-category]').forEach(card=>{
       results.innerHTML = '<div class="aiResult"><p>No he podido preparar la búsqueda. Recarga la página e inténtalo de nuevo.</p></div>';
       return;
     }
+    const liveBox=document.getElementById('liveMapsBox');if(liveBox)liveBox.open=true;
     searchBtn?.scrollIntoView({behavior:'smooth',block:'center'});
     if(searchBtn) searchBtn.click();
   });
@@ -3814,7 +3847,7 @@ const PD_SUBS = [
   {kw:['smash'], f:['smash'], label:'smash'},
   {kw:['escape'], f:['escape','ocio','juego'], label:'escape room', on:'ocio'},
 ];
-const PD_CITIES = ['toledo','segovia','avila','guadalajara','aranjuez','alcala de henares','alcala','chinchon','el escorial','cuenca','salamanca ciudad','valencia','barcelona','sevilla','malaga','bilbao','granada','cordoba','zaragoza','valladolid','san sebastian','donostia','lisboa','paris','londres','roma','milan','berlin','amsterdam','nueva york','new york','mexico','buenos aires','tokio','tokyo','oporto','porto'];
+const PD_CITIES = ['leganes','getafe','alcorcon','mostoles','fuenlabrada','parla','pinto','valdemoro','alcobendas','san sebastian de los reyes','sanse','tres cantos','colmenar viejo','las rozas','majadahonda','pozuelo de alarcon','pozuelo','boadilla del monte','boadilla','villaviciosa de odon','torrejon de ardoz','torrejon','coslada','san fernando de henares','rivas vaciamadrid','rivas','arganda del rey','arganda','collado villalba','villalba','galapagar','torrelodones','san lorenzo de el escorial','navalcarnero','ciempozuelos','mejorada del campo','paracuellos de jarama','paracuellos','algete','humanes','griñon','villanueva de la cañada','cercedilla','guadarrama','manzanares el real','buitrago del lozoya','rascafria','toledo','segovia','avila','guadalajara','aranjuez','alcala de henares','alcala','chinchon','el escorial','cuenca','salamanca ciudad','valencia','barcelona','sevilla','malaga','bilbao','granada','cordoba','zaragoza','valladolid','san sebastian','donostia','lisboa','paris','londres','roma','milan','berlin','amsterdam','nueva york','new york','mexico','buenos aires','tokio','tokyo','oporto','porto'];
 const PD_EXAMPLES_FAIL = 'Prueba con cosas como: "8 sitios para cenar italiano en Salamanca", "plan sábado noche con cena y copas", "5 rooftops en el centro".';
 
 function pdNorm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
@@ -4063,7 +4096,7 @@ async function pdLive(want, p, cityName, limit){
   const zone = p.zoneLabels[0] || '';
   const place = cityName ? cityName : (zone ? zone+' Madrid' : 'Madrid');
   const q = `${want.q} ${sub} ${p.price==='low'?'barato':p.price==='high'?'lujo':''} en ${place}`.replace(/\s+/g,' ').trim();
-  const r = await placesTextSearchAsync(q, null);
+  const r = await placesTextSearchAsync(q, null, Math.max(8,limit||8));
   if(!r.results) return {items:[], error:r.error};
   return {items:r.results.slice(0,limit).map(pl=>pdPlaceToItem(pl, want.cm==='FOOD'?'Restaurante (general)':want.cm, cityName?cityName:'')), error:null};
 }
@@ -4083,6 +4116,22 @@ async function pdBuildList(p, shuffle){
       items = r.items;
     } else {
       const f = pdFilter(w, p, new Set(), qty, p.newOnes);
+      if(p.zones.length){
+        // Respetar la zona pedida: solo lo que está en ella (tiers 0-1) + sitios reales del mapa de esa zona
+        const inZone = f.items.filter(d=>d._tier<2);
+        items = pdShuffleTop(pdSort(inZone, p), qty, shuffle);
+        if(items.length<qty){
+          const r = await pdLive(w, p, null, qty*2);
+          const have = new Set(items.map(i=>pdNorm(i.n)));
+          const extra = (r.items||[]).filter(i=>!have.has(pdNorm(i.n)));
+          if(extra.length) out.notes.push(`En tu lista había ${items.length} para "${w.label}" en ${p.zoneLabels.join(', ')}; añadí ${Math.min(extra.length,qty-items.length)} sitios reales de esa zona.`);
+          else if(r.error) out.notes.push('Mapa: '+r.error);
+          items = items.concat(extra).slice(0,qty);
+        }
+        if(!items.length) out.notes.push(`No he encontrado "${w.label}" en ${p.zoneLabels.join(', ')}. Prueba con otra zona cercana.`);
+        out.sections.push({want:w, items});
+        continue;
+      }
       out.notes.push(...f.notes);
       items = pdShuffleTop(pdSort(f.items, p), qty, shuffle);
       if(items.length<qty && key){
@@ -4138,7 +4187,8 @@ async function pdBuildPlan(p){
       item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
     } else {
       const f = pdFilter(w, p, used, 3, false);
-      out.notes.push(...f.notes);
+      if(p.zones.length) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
+      else out.notes.push(...f.notes);
       const sorted = pdSort(f.items, p, prev ? pdCoord(prev) : null);
       // lo mejor valorado entre los más cercanos, con algo de azar para que "otra versión" cambie
       const top = sorted.slice(0, 6);
@@ -4146,8 +4196,8 @@ async function pdBuildPlan(p){
       if(!item && key){
         const r = await pdLive(w, p, null, 5);
         const cands = (r.items||[]).filter(x=>!used.has(x.n));
-        item = cands[0] || null;
-        if(item) out.notes.push(`No encontré "${w.label}" en tu lista y lo busqué en Google.`);
+        item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
+        if(item) out.notes.push(`"${w.label}": no tenía nada en tu lista${p.zoneLabels.length?' en '+p.zoneLabels.join(', '):''}, así que elegí un sitio real del mapa.`);
       }
     }
     if(!item){ out.notes.push(`No encontré nada para "${w.label}".`); continue; }
@@ -4287,7 +4337,7 @@ function ensureRadarMap(){
   if(radarMap || !window.L) return !!radarMap;
   const el=document.getElementById('radarMap');
   if(!el) return false;
-  radarMap=L.map(el,{scrollWheelZoom:false,preferCanvas:true,zoomControl:false}).setView([40.4168,-3.7038],13);
+  radarMap=L.map(el,{scrollWheelZoom:true,wheelPxPerZoomLevel:90,touchZoom:true,dragging:true,tap:false,preferCanvas:true,zoomControl:false}).setView([40.4168,-3.7038],13);
   L.control.zoom({position:'bottomright'}).addTo(radarMap);
   mapStyleMode=radarThemeIsDark()?'dark':'light';
   radarTileLayer=L.tileLayer(radarCartoTilesUrl(mapStyleMode==='dark'?'dark_all':'light_all'),{
@@ -4550,7 +4600,7 @@ function radarPopupHtml(d){
   const openChip=openState===null?'':`<span class="radar-popup-chip ${openState?'is-open':'is-closed'}">${openState?'● Abierto ahora':'● Cerrado ahora'}</span>`;
   if(Number.isFinite(d.lat)&&d.locationVerified){links.gmapsView=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.n)}%20${d.lat},${d.lon}`;}
   return `<article class="radar-popup-card" data-place-name="${escapeMapText(d.n)}">
-    <div class="radar-popup-photo" style="background-image:url('${(realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm)}')">
+    <div class="radar-popup-photo" style="background-image:url('${String(d.photo || (realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm)).replace(/'/g,'%27')}')">
       <span class="radar-popup-photo-label">${escapeMapText(category+' '+(d.cd||d.cm||'Lugar'))}</span>
     </div>
     <div class="radar-popup-body">
@@ -4717,7 +4767,7 @@ function openDiscover(){
   }else{
     feed.innerHTML=discoverItems.map((d,i)=>{
       const links=mapLinks(d.n,d.z);
-      const photo=(realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm);
+      const photo=d.photo || (realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm);
       const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones`:''}`:'Valoración no disponible';
       const budget=radarBudget(d);
       const saved=favoriteNames.has(d.n);
@@ -4843,7 +4893,7 @@ function showSurprise(){
   if(candidates.length>1 && currentSurprise && pick.n===currentSurprise.n){ pick=candidates[(candidates.findIndex(d=>d.n===pick.n)+1)%candidates.length]; }
   currentSurprise=pick;
   const links=mapLinks(pick.n,pick.z);
-  document.getElementById('surprisePhoto').style.backgroundImage=`linear-gradient(180deg,transparent,rgba(0,0,0,.08)),url('${venuePhoto(pick.cm)}')`;
+  document.getElementById('surprisePhoto').style.backgroundImage=`linear-gradient(180deg,transparent,rgba(0,0,0,.08)),url('${String(pick.photo||venuePhoto(pick.cm)).replace(/'/g,'%27')}')`;
   document.getElementById('surpriseCategory').textContent=`${CAT_ICONS[pick.cm]||'✦'} ${pick.cd||pick.cm}`;
   document.getElementById('surpriseTitle').textContent=pick.n;
   document.getElementById('surpriseMeta').textContent=[pick.z||'Madrid',pick.p?`${pick.p} € por persona`:'precio por consultar',pick.v?`★ ${pick.v.toFixed(1)}${pick.nr?` · ${pick.nr} opiniones`:''}`:'valoración no disponible'].join(' · ');
@@ -5703,12 +5753,53 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
       const counts={};(DATA||[]).forEach(d=>{if(d.locationVerified&&!d.osm){const g=groupOf(d);counts[g]=(counts[g]||0)+1;}});
       el.innerHTML=GROUPS.filter(([k])=>k==='all'||counts[k]).map(([k,l])=>`<button type="button" data-g="${k}" class="${k==='all'?'active':''}">${l}${k!=='all'?` <small>${counts[k]}</small>`:''}</button>`).join('');
       L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);
+      // Arrastrar la fila de filtros con el ratón y moverla con la rueda
+      let down=false,sx=0,sl=0,moved=false;
+      el.addEventListener('mousedown',e=>{down=true;moved=false;sx=e.clientX;sl=el.scrollLeft;});
+      window.addEventListener('mousemove',e=>{if(!down)return;const dx=e.clientX-sx;if(Math.abs(dx)>4)moved=true;el.scrollLeft=sl-dx;});
+      window.addEventListener('mouseup',()=>{down=false;});
+      el.addEventListener('click',e=>{if(moved){e.stopPropagation();e.preventDefault();moved=false;}},true);
+      el.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){el.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
       el.addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;window.radarMapGroup=b.dataset.g;el.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderMapMarkers(radarCatalogOnMap);});
       return el;}});
     radarMap.addControl(new C());
   }
   const origEnsure=ensureRadarMap;
   ensureRadarMap=function(){const ok=origEnsure.apply(this,arguments);if(ok){addFilterControl();run();}return ok;};
+})();
+</script>
+<script id="renta-agenda-script">
+// Agenda real: eventos.json lo genera cada día GitHub Actions desde datos abiertos del Ayuntamiento de Madrid
+(function(){
+  const $=id=>document.getElementById(id);
+  if(!$('rentaAgenda'))return;
+  let all=[],when='finde',cat='Todo',shown=12;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const iso=d=>d.toISOString().slice(0,10);
+  function range(){const t=new Date();t.setHours(12);const a=iso(t);
+    if(when==='hoy')return [a,a];
+    if(when==='finde'){const d=t.getDay();if(d===0)return [a,a];const fri=new Date(t);fri.setDate(t.getDate()+Math.max(0,5-d));const sun=new Date(t);sun.setDate(t.getDate()+(7-d));return [d>=5?a:iso(fri),iso(sun)];}
+    const e=new Date(t);e.setDate(t.getDate()+Number(when));return [a,iso(e)];}
+  const fmt=s=>{const d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});};
+  const ICON={'Gastronomía':'🍽️','Música':'🎵','Teatro y danza':'🎭','Cine':'🎬','Exposiciones':'🖼️','Infantil':'🧸','Deporte':'🏃','Talleres':'🛠️','Otros':'✨'};
+  function render(){
+    const [a,b]=range();
+    let list=all.filter(e=>e.start<=b&&e.end>=a&&(cat==='Todo'||e.cat===cat)&&(!$('agendaFree').checked||e.free));
+    // Los que duran meses (exposiciones permanentes) van al final
+    list.sort((x,y)=>((x.end>x.start&&(new Date(x.end)-new Date(x.start))>864e6)-((y.end>y.start&&(new Date(y.end)-new Date(y.start))>864e6)))||x.start.localeCompare(y.start));
+    $('agendaList').innerHTML=list.slice(0,shown).map(e=>`<article class="agenda-item"><div class="agenda-date">${esc(e.start===e.end?fmt(e.start):fmt(e.start)+' → '+fmt(e.end))}${e.time?' · '+esc(e.time):''}</div>
+      <h4>${ICON[e.cat]||'✨'} ${esc(e.n)}</h4><p>${esc(e.place||'')}${e.addr?' · '+esc(e.addr):''}</p>
+      <div class="agenda-tags"><span>${esc(e.cat)}</span><span class="${e.free?'free':''}">${e.free?'Gratis':esc(e.price||'Precio en la web')}</span></div>
+      <div class="agenda-links">${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">Ver evento ↗</a>`:''}${e.lat?`<a href="https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lon}" target="_blank" rel="noopener">Cómo llegar</a>`:''}</div></article>`).join('')||'<div class="renta-local-empty">No hay eventos con esos filtros. Prueba otra fecha o categoría.</div>';
+    $('agendaMore').hidden=list.length<=shown;$('agendaMore').textContent=`Ver más (${list.length-shown})`;
+  }
+  function cats(){const c={};all.forEach(e=>c[e.cat]=(c[e.cat]||0)+1);$('agendaCat').innerHTML=['Todo',...Object.keys(c).sort((x,y)=>c[y]-c[x])].map(k=>`<button type="button" data-cat="${esc(k)}" class="${k===cat?'active':''}">${k==='Todo'?'Todo':(ICON[k]||'')+' '+esc(k)}</button>`).join('');}
+  $('agendaWhen').addEventListener('click',e=>{const b=e.target.closest('[data-when]');if(!b)return;when=b.dataset.when;shown=12;$('agendaWhen').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));render();});
+  $('agendaCat').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;cat=b.dataset.cat;shown=12;cats();render();});
+  $('agendaFree').addEventListener('change',()=>{shown=12;render();});
+  $('agendaMore').addEventListener('click',()=>{shown+=12;render();});
+  fetch('./eventos.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>{all=j.eventos||[];$('agendaSource').textContent=`${all.length} actividades · ${j.fuente} · actualizado ${new Date(j.actualizado+'T12:00:00').toLocaleDateString('es-ES')}`;cats();render();})
+    .catch(()=>{$('agendaSource').textContent='La agenda se está preparando; vuelve en unos minutos.';});
 })();
 </script>
 </body>

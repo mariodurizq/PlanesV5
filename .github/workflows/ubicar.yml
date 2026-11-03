@@ -1,0 +1,26 @@
+# Calcula las coordenadas reales de los sitios (OpenStreetMap) y las guarda en index.html.
+# Se lanza sola al cambiar tools/ubicar.py o tools/ubicar.trigger, o a mano desde la pestaña Actions.
+name: Ubicar sitios en el mapa
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/ubicar.py', 'tools/ubicar.trigger']
+permissions:
+  contents: write
+jobs:
+  ubicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ubicar
+        run: python3 tools/ubicar.py
+      - name: Guardar cambios
+        run: |
+          if git diff --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "renta-bot"
+          git config user.email "renta-bot@users.noreply.github.com"
+          git add index.html tools/ultima_ubicacion.txt
+          git commit -m "Ubicaciones reales actualizadas desde OpenStreetMap"
+          git push

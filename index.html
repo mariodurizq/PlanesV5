@@ -1457,6 +1457,16 @@ header.top.scrolled .tagline{max-height:0}
 .map-group-chips button.active{background:#26332b;color:#fff}
 #radarMap.is-dark .map-group-chips button{background:rgba(30,34,38,.95);color:#e8ece6}
 #radarMap.is-dark .map-group-chips button.active{background:#b9d995;color:#172016}
+.map-group-chips button small{opacity:.6;font-weight:600;margin-left:2px}
+@media (max-width:620px){
+ #mapShell .map-topline{padding:10px 12px!important;gap:8px!important}
+ #mapShell .map-topline .map-kicker,#mapShell .map-topline strong{display:none!important}
+ #mapShell #mapStatus{font-size:12px!important;line-height:1.35!important;display:block}
+ #mapShell .map-toolbar{display:grid!important;grid-template-columns:1fr 1fr auto;gap:6px!important;width:100%}
+ #mapShell .map-toolbar .map-control-btn,#mapShell .map-toolbar select{min-height:38px!important;padding:6px 8px!important;font-size:12px!important;border-radius:11px!important;width:auto!important}
+ #mapShell .map-toolbar .map-search-area-btn{grid-column:1/-1}
+ #radarMap{height:58vh!important;min-height:360px!important}
+}
 </style>
 </head>
 <body>
@@ -1870,7 +1880,7 @@ header.top.scrolled .tagline{max-height:0}
   </div>
   <div class="results-tools" id="resultsTools">
     <button type="button" class="tool-pill" id="favoritesViewBtn" aria-pressed="false">♡ Favoritos <span id="favoriteCount">0</span></button>
-    <button type="button" class="tool-pill" id="mapViewBtn" aria-pressed="false">⌖ Ver mapa</button>
+    <button type="button" class="tool-pill" id="mapViewBtn" aria-pressed="true">▦ Ocultar mapa</button>
     <button type="button" class="tool-pill surprise-pill" id="surpriseBtn">✦ Sorpréndeme</button>
   </div>
   <div class="search-filter-bar" id="searchFilterBar">
@@ -1893,7 +1903,7 @@ header.top.scrolled .tagline{max-height:0}
       </select>
     </div>
   </div>
-  <div class="map-shell" id="mapShell" hidden>
+  <div class="map-shell" id="mapShell">
     <div class="map-topline map-topline-v9">
       <div><span class="map-kicker">RADAR / EXPLORAR</span><strong>Encuentra sitios a tu alrededor</strong><span id="mapStatus">Activa tu ubicación para ver qué tienes cerca.</span></div>
       <div class="map-toolbar">
@@ -4389,25 +4399,64 @@ async function fetchNearbyMapPlaces(center, radius){
     if(status)status.textContent=`${DATA.filter(d=>d.locationVerified&&!d.osm).length} de tus sitios en el mapa · ${mapPlaces.length} lugares más en esta zona. Pulsa un pin para ver su ficha.`;
     
   }catch(e){
-    if(status)status.textContent='No se ha podido cargar la búsqueda de lugares. Puedes mover el mapa y volver a intentarlo.';
-    const list=document.getElementById('nearbyPlaces');if(list&&!mapPlaces.length)list.innerHTML='<div class="nearby-empty">No se pudo consultar el servicio cartográfico. Comprueba la conexión e inténtalo de nuevo.</div>';
+    if(status)status.textContent='El mapa abierto está saturado ahora mismo y no he podido traer sitios extra. Tus sitios siguen en el mapa; prueba «Buscar en esta zona» en un rato.';
+    updateNearbyList();
   }finally{
     mapSearchBusy=false;
     if(searchBtn){searchBtn.disabled=false;searchBtn.textContent='Buscar en esta zona';}
   }
 }
+// Tipo concreto de cada sitio a partir de su categoría, descripción y cocina de OpenStreetMap
+const RADAR_GROUPS=[['all','Todo'],['esp','🥘 Española'],['ita','🍕 Italiana'],['asia','🍣 Asiática'],['burger','🍔 Burger'],['mex','🌮 Mexicana'],['carne','🥩 Carnes'],
+  ['mundo','🍛 Del mundo'],['otros','🍽️ Otros'],['copas','🍸 Copas'],['shisha','💨 Shisha'],['cafe','☕ Café'],['fiesta','🕺 Fiesta'],['ocio','🎡 Ocio']];
+const RADAR_GROUP_COLORS={esp:'#d4572f',ita:'#c9302c',asia:'#d1386b',burger:'#e08a12',mex:'#3f9b3a',carne:'#8c3b2a',mundo:'#b8862b',otros:'#e0583a',
+  copas:'#7357d1',shisha:'#566578',cafe:'#a06a3b',fiesta:'#c43c8c',ocio:'#159080'};
+function radarFoodText(d){return (String(d.cd||'')+' '+String(d.osmCuisine||'')+' '+String(d.n||'')).toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function radarGroupOf(d){
+  const cm=String(d.cm||''),t=radarFoodText(d);
+  if(cm==='Shisha Lounge')return 'shisha';
+  if(cm==='Discoteca/Club')return 'fiesta';
+  if(/Cocteler|Bar\/Cervec|Rooftop/.test(cm))return 'copas';
+  if(/Café/.test(cm))return 'cafe';
+  if(/Ocio|Hotel|Otros/.test(cm))return 'ocio';
+  if(cm==='Española/Mediterránea')return 'esp';
+  if(cm==='Italiana/Pizza')return 'ita';
+  if(cm==='Asiática')return 'asia';
+  if(cm==='Hamburguesas')return 'burger';
+  if(cm==='Mexicana')return 'mex';
+  if(cm==='Carnes/Parrilla')return 'carne';
+  if(/sushi|japon|ramen|chin|asia|thai|tailand|vietnam|corea|wok|dumpling|poke/.test(t))return 'asia';
+  if(/pizza|italian|pasta|trattoria/.test(t))return 'ita';
+  if(/burger|hamburgues/.test(t))return 'burger';
+  if(/mexic|taco|tex-mex/.test(t))return 'mex';
+  if(/parrilla|carne|asador|steak|grill|argentin|brasa/.test(t))return 'carne';
+  if(/tapas|espan|spanish|mediterr|arroz|paella|castiz|taberna/.test(t))return 'esp';
+  if(/indi|peru|nikkei|liban|arab|turk|kebab|griego|greek|marroq|venezol|colombi|african|etiop|fusion/.test(t))return 'mundo';
+  return 'otros';
+}
+function radarFoodIcon(d){
+  const t=radarFoodText(d),g=radarGroupOf(d);
+  if(g==='asia')return /ramen|corea|thai|tailand|vietnam|wok/.test(t)?'🍜':/chin|dumpling|dim sum/.test(t)?'🥟':'🍣';
+  if(g==='ita')return /pasta|trattoria/.test(t)&&!/pizza/.test(t)?'🍝':'🍕';
+  if(g==='mundo')return /peru|nikkei|ceviche/.test(t)?'🐟':/liban|arab|turk|kebab|falafel|griego|greek|marroq/.test(t)?'🧆':'🍛';
+  if(g==='esp')return /marisc|pescad|seafood/.test(t)?'🦐':/arroz|paella/.test(t)?'🥘':/mediterr/.test(t)?'🫒':'🥘';
+  if(g==='otros')return /vegan|vegetar/.test(t)?'🥗':/marisc|pescad|seafood/.test(t)?'🦐':/postre|helad|dulce|pastel/.test(t)?'🍰':'🍽️';
+  if(g==='cafe')return /helad|ice/.test(t)?'🍦':/postre|pastel|dulce|reposter|tarta/.test(t)?'🍰':/brunch/.test(t)?'🥞':'☕';
+  if(g==='copas')return /rooftop|terraza/.test(t)?'🌇':/cervec|beer|pub|irish/.test(t)?'🍺':/vino|wine|vinoteca/.test(t)?'🍷':'🍸';
+  return ({burger:'🍔',mex:'🌮',carne:'🥩',shisha:'💨',fiesta:'🕺'})[g]||CAT_ICONS[d.cm]||'🎡';
+}
 const RADAR_PIN_COLORS={"Coctelería":"#7357d1","Bar/Cervecería":"#c47a12","Shisha Lounge":"#566578","Discoteca/Club":"#d0417a","Rooftop/Terraza":"#ea7a1c",
   "Café/Brunch/Postres":"#a06a3b","Hotel":"#3a6fc4","Ocio/Espacios no gastronómicos":"#159080","Otros":"#6b7280"};
-function radarPinColor(cm){return RADAR_PIN_COLORS[cm]||'#e0583a';}
+function radarPinColor(cm,d){return d?RADAR_GROUP_COLORS[radarGroupOf(d)]||'#e0583a':RADAR_PIN_COLORS[cm]||'#e0583a';}
 let radarCatalogOnMap=[];
 function radarPinIcon(d){
-  const color=radarPinColor(d.cm), mine=!d.osm, emoji=escapeMapText(CAT_ICONS[d.cm]||'✦');
+  const color=radarPinColor(d.cm,d), mine=!d.osm, emoji=escapeMapText(radarFoodIcon(d));
   const fill=mine?color:'#ffffff', ring=mine?'#ffffff':color;
   const svg=`<svg class="radar-pin-svg" viewBox="0 0 34 44" width="34" height="44" aria-hidden="true"><path d="M17 43C17 43 3 27.6 3 16.5 3 8.5 9.3 2 17 2s14 6.5 14 14.5C31 27.6 17 43 17 43Z" fill="${fill}" stroke="${ring}" stroke-width="2.5"/></svg>`;
   return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm'),html:`<div class="radar-pin2" style="--pin:${color}" title="${escapeMapText(d.n)}">${svg}<span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
 }
 function radarOpenNow(d){
-  const periods=d.hours||d.osmTags&&window.RentaFreeSearch&&window.RentaFreeSearch.parseOsmHours(d.osmTags.opening_hours);
+  const raw=d.oh||(d.osmTags&&d.osmTags.opening_hours);const periods=d.hours||(raw&&window.RentaFreeSearch&&(d.hours=window.RentaFreeSearch.parseOsmHours(raw)));
   if(!periods||!periods.length)return null;
   const now=new Date(), day=now.getDay(), t=now.getHours()*60+now.getMinutes();
   for(const p of periods){
@@ -4445,7 +4494,8 @@ function updateNearbyList(){
   const title=document.getElementById('nearbyTitle');const subtitle=document.getElementById('nearbySubtitle');const count=document.getElementById('nearbyCount');
   if(title)title.textContent=userCoords?'Los más cercanos a ti':'Los más cercanos a esta zona';
   if(subtitle)subtitle.textContent=userCoords?'Ordenados por distancia desde tu ubicación GPS.':'Ordenados desde el centro del mapa; activa el GPS para calcular la distancia real desde ti.';
-  const items=(mapPlaces||[]).filter(p=>p.locationVerified&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>({...p,_distance:center?haversine(center.lat,center.lon,p.lat,p.lon):null})).sort((a,b)=>(a._distance??Infinity)-(b._distance??Infinity)).slice(0,8);
+  const pool=[...(radarCatalogOnMap||[]).filter(p=>p.locationVerified&&!p.osm),...(mapPlaces||[])];
+  const items=pool.filter(p=>p.locationVerified&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&(!window.radarMapGroupOk||window.radarMapGroupOk(p))).map(p=>({...p,_distance:center?haversine(center.lat,center.lon,p.lat,p.lon):null})).sort((a,b)=>(a._distance??Infinity)-(b._distance??Infinity)).slice(0,8);
   if(count)count.textContent=String(items.length);
   if(!items.length){list.innerHTML='<div class="nearby-empty">Todavía no hay resultados en esta zona. Pulsa “Buscar en esta zona” para cargar lugares con coordenadas reales.</div>';return;}
   list.innerHTML=items.map(p=>`<button type="button" class="nearby-place" data-nearby-place="${escapeMapText(p.n)}"><span class="nearby-place-icon">${escapeMapText(CAT_ICONS[p.cm]||'✦')}</span><span class="nearby-place-copy"><strong>${escapeMapText(p.n)}</strong><span>${escapeMapText(p.cd||p.cm||'Establecimiento')} · ${escapeMapText(p.z||'Madrid')}</span></span><span class="nearby-distance">${mapDistanceLabel(p._distance)}</span></button>`).join('');
@@ -4475,7 +4525,7 @@ function toggleMapView(){
   const shell=document.getElementById('mapShell'),btn=document.getElementById('mapViewBtn');
   const opening=shell.hidden;shell.hidden=!opening;btn.setAttribute('aria-pressed',opening?'true':'false');btn.textContent=opening?'▦ Ocultar mapa':'⌖ Ver mapa';
   if(opening){
-    if(ensureRadarMap())setTimeout(async()=>{radarMap.invalidateSize();if(userCoords){radarMap.setView([userCoords.lat,userCoords.lon],15);addUserMarker();}await fetchNearbyMapPlaces(userCoords||(radarMap?{lat:radarMap.getCenter().lat,lon:radarMap.getCenter().lng}:{lat:40.4168,lon:-3.7038}),document.getElementById('mapRadiusSelect')?.value||2500);},100);
+    if(ensureRadarMap())setTimeout(()=>{radarMap.invalidateSize();if(userCoords){radarMap.setView([userCoords.lat,userCoords.lon],15);addUserMarker();}renderMapMarkers(radarCatalogOnMap);},100);
     else document.getElementById('radarMap').innerHTML='<div class="emptystate" style="margin:18px">No se ha podido cargar el mapa. Comprueba tu conexión e inténtalo de nuevo.</div>';
   }
 }
@@ -4821,7 +4871,7 @@ document.getElementById('headerMapBtn').addEventListener('click',()=>{
   shell.hidden=false;
   btn.setAttribute('aria-pressed','true');
   btn.textContent='▦ Ocultar mapa';
-  if(ensureRadarMap()) setTimeout(async()=>{radarMap.invalidateSize();const center=userCoords||{lat:radarMap.getCenter().lat,lon:radarMap.getCenter().lng};await fetchNearbyMapPlaces(center,document.getElementById('mapRadiusSelect')?.value||2500);},100);
+  if(ensureRadarMap()) setTimeout(()=>{radarMap.invalidateSize();renderMapMarkers(radarCatalogOnMap);},100);
   else document.getElementById('radarMap').innerHTML='<div class="emptystate" style="margin:18px">No se ha podido cargar el mapa. Comprueba la conexión e inténtalo de nuevo.</div>';
   setTimeout(()=>window.scrollTo({top:shell.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'}),120);
 });
@@ -5561,6 +5611,12 @@ const RENTA_FOOD_CATEGORIES=[{"name": "Española y tapas", "icon": "🥘", "term
 })();
 </script>
 
+<script id="renta-map-open">
+// Abre el mapa de Explorar nada más cargar, con tus sitios ya pintados
+// El mapa sube justo debajo del selector Cerca de mí / Por zona para verse nada más entrar
+(function(){const sh=document.getElementById('mapShell'),sw=document.getElementById('exploreSwitch'),hero=document.getElementById('searchHero');if(sh&&sw&&hero){hero.before(sw);sw.after(sh);}})();
+window.addEventListener('load',()=>{setTimeout(()=>{try{if(document.getElementById('mapShell').hidden)return;if(ensureRadarMap()){radarMap.invalidateSize();renderMapMarkers(radarCatalogOnMap);}}catch(e){}},60);});
+</script>
 <script id="renta-map-theme">
 // El mapa sigue al tema de la app (claro/oscuro)
 new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMap!=='undefined'&&radarMap)setMapStyle(document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');}catch(e){}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
@@ -5599,6 +5655,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     if(running)return running;
     const pending=DATA.filter(d=>!d.locationVerified&&d.n);
     if(!pending.length)return 0;
+    if(DATA.some(d=>d.locationVerified&&!d.osm&&!d.autoLocated)){refresh(0,true);return 0;}  // ya vienen ubicados de fábrica
     const cached=readCache();
     if(cached){const n=apply(cached.map);refresh(n,true);return n;}
     running=(async()=>{
@@ -5630,20 +5687,21 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   function status(t){const el=document.getElementById('mapStatus');if(el)el.textContent=t;}
   function refresh(n,fromCache){
     const total=DATA.length, located=DATA.filter(d=>d.locationVerified&&!d.osm).length;
-    status(`${located} de tus ${total} sitios ubicados en el mapa${fromCache?'':' (guardado en este navegador)'}. Los que faltan no aparecen en el mapa abierto con ese nombre.`);
+    status(`${located} de tus ${total} sitios en el mapa. Pulsa un pin para ver su ficha o «Buscar en esta zona» para descubrir más.`);
     try{renderResults();}catch(e){try{renderMapMarkers(radarCatalogOnMap);}catch(e2){}}
   }
   window.RentaAutoLocate={run};
 
   // ---- Filtros de categoría dentro del mapa ----
-  const GROUPS=[['all','Todo'],['food','🍽️ Comer'],['drinks','🍸 Copas'],['shisha','💨 Shisha'],['coffee','☕ Café'],['night','🕺 Fiesta'],['fun','🎡 Ocio']];
-  const groupOf=d=>{const c=String(d.cm||'');if(c==='Shisha Lounge')return 'shisha';if(c==='Discoteca/Club')return 'night';if(/Cocteler|Bar\/|Rooftop/.test(c))return 'drinks';if(/Café/.test(c))return 'coffee';if(/Ocio|Hotel|Otros/.test(c))return 'fun';return 'food';};
+  const GROUPS=RADAR_GROUPS;
+  const groupOf=radarGroupOf;
   window.radarMapGroup='all';
   window.radarMapGroupOk=d=>window.radarMapGroup==='all'||groupOf(d)===window.radarMapGroup;
   function addFilterControl(){
     if(!window.radarMap||document.getElementById('mapGroupChips'))return;
     const C=L.Control.extend({options:{position:'topleft'},onAdd(){const el=L.DomUtil.create('div','map-group-chips');el.id='mapGroupChips';
-      el.innerHTML=GROUPS.map(([k,l])=>`<button type="button" data-g="${k}" class="${k==='all'?'active':''}">${l}</button>`).join('');
+      const counts={};(DATA||[]).forEach(d=>{if(d.locationVerified&&!d.osm){const g=groupOf(d);counts[g]=(counts[g]||0)+1;}});
+      el.innerHTML=GROUPS.filter(([k])=>k==='all'||counts[k]).map(([k,l])=>`<button type="button" data-g="${k}" class="${k==='all'?'active':''}">${l}${k!=='all'?` <small>${counts[k]}</small>`:''}</button>`).join('');
       L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);
       el.addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;window.radarMapGroup=b.dataset.g;el.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderMapMarkers(radarCatalogOnMap);});
       return el;}});

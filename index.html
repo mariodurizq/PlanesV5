@@ -1421,6 +1421,24 @@ button:disabled{opacity:.45;cursor:not-allowed}
 :root:not([data-theme="dark"]) #planLabOverlay .lab-head{background:#101929!important;border-color:rgba(255,255,255,.08)!important}
 header.top .tagline{max-height:44px}
 header.top.scrolled .tagline{max-height:0}
+#radarMap{background:#f2f1ec!important}
+#radarMap.is-dark{background:#1b1d22!important}
+#radarMap .leaflet-tile-pane{filter:saturate(1.05) contrast(1.02)}
+.leaflet-marker-icon.radar-map-marker{background:transparent!important;border:0!important}
+.radar-pin2{position:relative;width:34px;height:44px;transform-origin:17px 43px;transition:transform .15s ease;filter:drop-shadow(0 4px 6px rgba(20,24,30,.28))}
+.radar-pin2 .radar-pin-svg{position:absolute;inset:0;display:block}
+.radar-pin2-emoji{position:absolute;left:0;right:0;top:7px;text-align:center;font-size:15px;line-height:19px}
+.radar-map-marker.is-osm .radar-pin2{transform:scale(.82)}
+.radar-map-marker:hover .radar-pin2,.radar-pin2.active{transform:scale(1.18)}
+.radar-map-marker.is-osm:hover .radar-pin2{transform:scale(1)}
+.radar-popup-chip.is-open{background:#e3f4e4!important;color:#1e6b2d!important}
+.radar-popup-chip.is-closed{background:#fbe6e2!important;color:#a3321f!important}
+#radarMap .leaflet-control-zoom a{border-radius:12px!important;width:38px!important;height:38px!important;line-height:38px!important;border:0!important;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+#radarMap .leaflet-control-zoom{border:0!important;box-shadow:none!important;display:flex;flex-direction:column;gap:6px}
+#radarMap .leaflet-control-attribution{font-size:9px;background:rgba(255,255,255,.7)!important;border-radius:8px 0 0 0}
+.radar-cluster{background:transparent!important}
+.radar-cluster span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#26332b;color:#fff;font:800 13px/1 Inter,system-ui,sans-serif;border:3px solid #fff;box-shadow:0 6px 16px rgba(20,30,25,.3)}
+#radarMap.is-dark .radar-cluster span{background:#b9d995;color:#152015;border-color:#1b1d22}
 </style>
 </head>
 <body>
@@ -4218,19 +4236,27 @@ function toggleFavoriteView(){
 // CARTO Basemaps API key (clave pública de teselas del mapa base).
 const RADAR_CARTO_API_KEY = "cb1_4lmn_1_2aac24edf7da67a8627f2599";
 function radarCartoTilesUrl(path) {
-  return `https://{s}.basemaps.cartocdn.com/rastertiles/${path}/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(RADAR_CARTO_API_KEY)}`;
+  // Estilos modernos de CARTO: light_all (claro y limpio) y dark_all (noche). Gratis para uso moderado.
+  const style = path==='dark_all' ? 'dark_all' : 'light_all';
+  return `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`;
 }
+function radarThemeIsDark(){ return document.documentElement.getAttribute('data-theme')==='dark'; }
 function ensureRadarMap(){
   if(radarMap || !window.L) return !!radarMap;
   const el=document.getElementById('radarMap');
   if(!el) return false;
   radarMap=L.map(el,{scrollWheelZoom:false,preferCanvas:true,zoomControl:false}).setView([40.4168,-3.7038],13);
   L.control.zoom({position:'bottomright'}).addTo(radarMap);
-  radarTileLayer=L.tileLayer(radarCartoTilesUrl('voyager'),{
-    subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
+  mapStyleMode=radarThemeIsDark()?'dark':'light';
+  radarTileLayer=L.tileLayer(radarCartoTilesUrl(mapStyleMode==='dark'?'dark_all':'light_all'),{
+    subdomains:'abcd',maxZoom:20,detectRetina:false,attribution:'&copy; OpenStreetMap &copy; CARTO'
   }).addTo(radarMap);
+  document.getElementById('radarMap')?.classList.toggle('is-dark',mapStyleMode==='dark');
+  { const btn=document.getElementById('mapStyleBtn'); if(btn) btn.textContent=mapStyleMode==='dark'?'☀ Modo claro':'☾ Modo noche'; }
   // No agrupamos por barrios ni por clúster: cada marcador corresponde a una coordenada cartografiada.
-  radarMarkers=L.layerGroup().addTo(radarMap);
+  // Con cientos de ubicaciones reales, se agrupan al alejar y se separan al acercar
+  radarMarkers=(L.markerClusterGroup?L.markerClusterGroup({maxClusterRadius:46,disableClusteringAtZoom:16,showCoverageOnHover:false,spiderfyOnMaxZoom:true,chunkedLoading:true,
+    iconCreateFunction:c=>{const n=c.getChildCount();const sz=n<10?36:n<50?42:50;return L.divIcon({className:'radar-cluster',html:`<span>${n}</span>`,iconSize:[sz,sz]});}}):L.layerGroup()).addTo(radarMap);
   radarMap.on('moveend',()=>{if(mapSearchAutoRefresh && mapPlaces.length) updateNearbyList();});
   return true;
 }
@@ -4246,10 +4272,11 @@ function setMapStyle(mode){
   if(!radarMap || !radarTileLayer) return;
   mapStyleMode=mode==='dark'?'dark':'light';
   radarMap.removeLayer(radarTileLayer);
-  const path=mapStyleMode==='dark'?'dark_all':'voyager';
+  const path=mapStyleMode==='dark'?'dark_all':'light_all';
   radarTileLayer=L.tileLayer(radarCartoTilesUrl(path),{
-    subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
+    subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'
   }).addTo(radarMap);
+  document.getElementById('radarMap')?.classList.toggle('is-dark',mapStyleMode==='dark');
   radarTileLayer.bringToBack();
   const btn=document.getElementById('mapStyleBtn');
   if(btn) btn.textContent=mapStyleMode==='dark'?'☀ Modo claro':'☾ Modo noche';
@@ -4326,7 +4353,7 @@ async function fetchNearbyMapPlaces(center, radius){
     renderMapMarkers(mapPlaces);
     updateNearbyList();
     if(status)status.textContent=`${mapPlaces.length} establecimientos con coordenadas cartografiadas en esta zona. Pulsa un marcador para abrir su ficha.`;
-    const legend=document.querySelector('.map-legend');if(legend)legend.textContent=`${mapPlaces.length} ubicaciones reales`;
+    
   }catch(e){
     if(status)status.textContent='No se ha podido cargar la búsqueda de lugares. Puedes mover el mapa y volver a intentarlo.';
     const list=document.getElementById('nearbyPlaces');if(list&&!mapPlaces.length)list.innerHTML='<div class="nearby-empty">No se pudo consultar el servicio cartográfico. Comprueba la conexión e inténtalo de nuevo.</div>';
@@ -4335,20 +4362,46 @@ async function fetchNearbyMapPlaces(center, radius){
     if(searchBtn){searchBtn.disabled=false;searchBtn.textContent='Buscar en esta zona';}
   }
 }
+const RADAR_PIN_COLORS={"Coctelería":"#7357d1","Bar/Cervecería":"#c47a12","Shisha Lounge":"#566578","Discoteca/Club":"#d0417a","Rooftop/Terraza":"#ea7a1c",
+  "Café/Brunch/Postres":"#a06a3b","Hotel":"#3a6fc4","Ocio/Espacios no gastronómicos":"#159080","Otros":"#6b7280"};
+function radarPinColor(cm){return RADAR_PIN_COLORS[cm]||'#e0583a';}
+let radarCatalogOnMap=[];
+function radarPinIcon(d){
+  const color=radarPinColor(d.cm), mine=!d.osm, emoji=escapeMapText(CAT_ICONS[d.cm]||'✦');
+  const fill=mine?color:'#ffffff', ring=mine?'#ffffff':color;
+  const svg=`<svg class="radar-pin-svg" viewBox="0 0 34 44" width="34" height="44" aria-hidden="true"><path d="M17 43C17 43 3 27.6 3 16.5 3 8.5 9.3 2 17 2s14 6.5 14 14.5C31 27.6 17 43 17 43Z" fill="${fill}" stroke="${ring}" stroke-width="2.5"/></svg>`;
+  return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm'),html:`<div class="radar-pin2" style="--pin:${color}" title="${escapeMapText(d.n)}">${svg}<span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
+}
+function radarOpenNow(d){
+  const periods=d.hours||d.osmTags&&window.RentaFreeSearch&&window.RentaFreeSearch.parseOsmHours(d.osmTags.opening_hours);
+  if(!periods||!periods.length)return null;
+  const now=new Date(), day=now.getDay(), t=now.getHours()*60+now.getMinutes();
+  for(const p of periods){
+    if(!p.open)continue;
+    const o=p.open.hour*60+(p.open.minute||0), cd=p.close?p.close.day:p.open.day, c=p.close?p.close.hour*60+(p.close.minute||0):1440;
+    if(p.open.day===day&&(cd===day?(t>=o&&t<c):t>=o))return true;
+    if(cd===day&&p.open.day!==day&&t<c)return true;
+  }
+  return false;
+}
 function renderMapMarkers(list){
+  if(Array.isArray(list)&&list!==mapPlaces)radarCatalogOnMap=list;
   if(!radarMap||!radarMarkers)return;
   radarMarkers.clearLayers();mapMarkersByName=new Map();
-  // Only draw positions returned by cartographic records. Do not plot old neighborhood-centroid coordinates.
-  const located=(mapPlaces||[]).filter(d=>d&&d.locationVerified===true&&Number.isFinite(d.lat)&&Number.isFinite(d.lon)).slice(0,180);
+  // Solo coordenadas reales: los centros de barrio antiguos no se pintan.
+  const ok=d=>d&&d.locationVerified===true&&Number.isFinite(d.lat)&&Number.isFinite(d.lon);
+  const mine=(radarCatalogOnMap||[]).filter(ok);
+  const seen=new Set(mine.map(d=>normMapName(d.n)));
+  const discovered=(mapPlaces||[]).filter(d=>ok(d)&&!seen.has(normMapName(d.n))).slice(0,180);
+  const located=[...discovered,...mine];
   located.forEach(d=>{
-    const iconText=CAT_ICONS[d.cm]||'✦';
-    const icon=L.divIcon({className:'radar-map-marker',html:`<div class="radar-map-pin" title="${escapeMapText(d.n)}"><span>${escapeMapText(iconText)}</span></div>`,iconSize:[35,39],iconAnchor:[17,35],popupAnchor:[0,-31]});
-    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup'}).addTo(radarMarkers);
+    const icon=radarPinIcon(d);
+    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup'}).addTo(radarMarkers);
     bindRadarPopup(marker,d);mapMarkersByName.set(normMapName(d.n),marker);
   });
   addUserMarker();
   if(userCoords&&located.length===0)radarMap.setView([userCoords.lat,userCoords.lon],15);
-  const legend=document.querySelector('.map-legend');if(legend)legend.textContent=`${located.length} ubicaciones reales`;
+  const legend=document.querySelector('.map-legend');if(legend)legend.textContent=`${mine.length} de tu lista · ${discovered.length} descubiertos`;
   updateNearbyList();
 }
 function updateNearbyList(){
@@ -4407,7 +4460,10 @@ function radarPopupHtml(d){
   const rating=d.v ? `★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones`:''}` : 'Valoración no disponible';
   const category=CAT_ICONS[d.cm]||'✦';
   const zone=d.z || 'Madrid';
-  const desc=d.osm ? 'Lugar encontrado en OpenStreetMap. Comprueba su ficha antes de ir.' : 'Fotografía ilustrativa. Comprueba la ubicación y los datos antes de desplazarte.';
+  const desc=d.osm ? 'Lugar encontrado en OpenStreetMap. Comprueba su ficha antes de ir.' : (d.verifiedAt ? 'Ubicación verificada en el mapa.' : 'Fotografía ilustrativa. Comprueba la ubicación y los datos antes de desplazarte.');
+  const openState=radarOpenNow(d);
+  const openChip=openState===null?'':`<span class="radar-popup-chip ${openState?'is-open':'is-closed'}">${openState?'● Abierto ahora':'● Cerrado ahora'}</span>`;
+  if(Number.isFinite(d.lat)&&d.locationVerified){links.gmapsView=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.n)}%20${d.lat},${d.lon}`;}
   return `<article class="radar-popup-card" data-place-name="${escapeMapText(d.n)}">
     <div class="radar-popup-photo" style="background-image:url('${(realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm)}')">
       <span class="radar-popup-photo-label">${escapeMapText(category+' '+(d.cd||d.cm||'Lugar'))}</span>
@@ -4417,6 +4473,7 @@ function radarPopupHtml(d){
       <div class="radar-popup-meta">
         <span class="radar-popup-chip">${escapeMapText(radarBudget(d))}</span>
         <span class="radar-popup-chip">${escapeMapText(rating)}</span>
+        ${openChip}
       </div>
       <p class="radar-popup-desc">${escapeMapText(zone)} · ${escapeMapText(desc)}</p>
       <div class="radar-popup-actions">
@@ -5431,5 +5488,9 @@ const RENTA_FOOD_CATEGORIES=[{"name": "Española y tapas", "icon": "🥘", "term
 })();
 </script>
 
+<script id="renta-map-theme">
+// El mapa sigue al tema de la app (claro/oscuro)
+new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMap!=='undefined'&&radarMap)setMapStyle(document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');}catch(e){}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
 </body>
 </html>

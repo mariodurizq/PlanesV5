@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>RENTA · Verificar catálogo</title>
+<style>
+:root{--bg:#f6f5f0;--card:#fff;--ink:#1d2320;--muted:#6b716c;--line:#e3e1d8;--ok:#1f7a3a;--warn:#b86b00;--bad:#b2321f;--accent:#35452e}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+main{max-width:1000px;margin:0 auto;padding:24px 16px 60px}h1{margin:0 0 4px;font-size:26px}p{margin:6px 0}.muted{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}
+.card h2{margin:0 0 8px;font-size:17px}button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:11px 16px;background:var(--accent);color:#fff;cursor:pointer}
+button.secondary{background:#e9e7df;color:var(--ink)}button:disabled{opacity:.45;cursor:default}
+input[type=password],input[type=text]{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+label{display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0}
+.bar{height:10px;background:#ecebe4;border-radius:99px;overflow:hidden;margin:10px 0 4px}.bar>div{height:100%;width:0;background:var(--accent);transition:width .2s}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:10px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:10px}.stat b{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}.t-ok{background:#e2f3e6;color:var(--ok)}.t-closed{background:#fbe5e1;color:var(--bad)}
+.t-temp{background:#fff1d9;color:var(--warn)}.t-none{background:#eeeeea;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.filters button{padding:6px 10px;font-size:12px}
+.log{font-family:ui-monospace,monospace;font-size:12px;color:var(--muted);white-space:pre-wrap;max-height:140px;overflow:auto}
+</style>
+</head>
+<body>
+<main>
+  <h1>Verificar catálogo</h1>
+  <p class="muted">Cruza tus sitios con el mapa abierto (OpenStreetMap) para obtener la <b>ubicación exacta</b>, el <b>horario</b> y detectar <b>cierres</b>. Opcionalmente, confirma cierres definitivos con Google. Al terminar descargas <code>verificacion.json</code> y se lo pasas a Claude para limpiar la app.</p>
+
+  <div class="card">
+    <h2>1 · Mapa abierto (gratis)</h2>
+    <p class="muted">Descarga de una vez todos los bares, restaurantes, cafeterías y locales de ocio de la Comunidad de Madrid y los compara con tu lista. Tarda 1–3 minutos.</p>
+    <label><input type="checkbox" id="incOffline" checked> Incluir también el catálogo «Dónde comer» (1.920 entradas)</label>
+    <button id="runOsm">Empezar verificación</button>
+    <div class="bar"><div id="prog"></div></div><div class="muted" id="status">Listo para empezar.</div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Confirmar cierres con Google (opcional)</h2>
+    <p class="muted">Google sabe mejor que nadie si un local ha cerrado. Se usa tu clave de Google Places <b>solo en esta página y solo esta vez</b>: no se guarda en ningún sitio. Revisa únicamente los sitios de tu lista principal que el mapa abierto no ha confirmado (o todos, si lo marcas). Unas pocas cientos de consultas suelen entrar en el uso gratuito mensual de Google; compruébalo en tu consola de Google Cloud.</p>
+    <input type="password" id="gkey" placeholder="Clave de Google Places API (opcional)" autocomplete="off">
+    <label><input type="checkbox" id="gAll"> Revisar también los que ya confirmó el mapa abierto (detecta más cierres, más consultas)</label>
+    <button id="runGoogle" class="secondary" disabled>Confirmar con Google</button>
+    <div class="muted" id="gstatus"></div>
+  </div>
+
+  <div class="card">
+    <h2>3 · Resultado</h2>
+    <div class="stats" id="stats"></div>
+    <p style="margin-top:14px"><button id="download" disabled>Descargar verificacion.json</button></p>
+    <div class="filters" id="filters"></div>
+    <div style="overflow:auto"><table><thead><tr><th>Sitio</th><th>Zona</th><th>Estado</th><th>Detalle</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="log" id="log"></div>
+  </div>
+</main>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+const BBOX='39.88,-4.58,41.17,-3.05'; // Comunidad de Madrid
+const MADRID={lat:40.4168,lon:-3.7038};
+let catalog=[], offline=[], pois=[], index=new Map(), results=new Map(), filter='all';
+const log=m=>{$('log').textContent+=m+'\n';$('log').scrollTop=1e9;};
+const strip=s=>String(s||'').toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g,'');
+const STOP=new Set(['restaurante','restaurant','bar','cafe','cafeteria','taberna','madrid','the','el','la','los','las','de','del','y','and','sl','s','l','by','en','al','meson','cerveceria','coctel','cocteleria','pizzeria','club','lounge','shisha']);
+function norm(n){return strip(String(n).split(/\s[-–|·]\s/)[0]).replace(/&/g,' y ').replace(/['’`´]/g,'').replace(/[^a-z0-9ñ]+/g,' ').trim();}
+function tokens(n){const t=norm(n).split(' ').filter(Boolean);const core=t.filter(w=>!STOP.has(w));return core.length?core:t;}
+function bigrams(s){const b=new Map();s=' '+s+' ';for(let i=0;i<s.length-1;i++){const g=s.slice(i,i+2);b.set(g,(b.get(g)||0)+1);}return b;}
+function dice(a,b){if(a===b)return 1;const A=bigrams(a),B=bigrams(b);let inter=0,na=0,nb=0;A.forEach((v,k)=>{na+=v;if(B.has(k))inter+=Math.min(v,B.get(k));});B.forEach(v=>nb+=v);return na+nb?2*inter/(na+nb):0;}
+function branch(n){const m=String(n).split(/\s[-–|·]\s/);return m.length>1?norm(m.slice(1).join(' ')):'';}
+function sim(a,b){const ba=branch(a),bb=branch(b);if(ba&&bb&&dice(ba,bb)<.6)return .5; // misma cadena, otro local
+  return simCore(a,b);}
+function simCore(a,b){const ta=tokens(a),tb=tokens(b),ja=ta.join(' '),jb=tb.join(' ');if(!ja||!jb)return 0;if(ja===jb)return 1;
+  const [sh,lo]=ta.length<=tb.length?[ta,tb]:[tb,ta];const contained=sh.every(w=>lo.includes(w));
+  // "Casa Lucio" ⊂ "Casa Lucio Taberna": vale si la parte corta es suficientemente distintiva
+  if(contained&&(sh.length>=2||sh[0].length>=7))return Math.max(.88-0.04*(lo.length-sh.length),.8);
+  return Math.min(dice(ja,jb),dice(norm(a),norm(b))+.05);}
+function dist(a,b,c,d){const R=6371,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,h=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+const DAY={su:0,mo:1,tu:2,we:3,th:4,fr:5,sa:6};
+function expandDays(spec){const days=new Set();for(const part of spec.split(',')){const m=part.trim().toLowerCase().match(/^(mo|tu|we|th|fr|sa|su)(?:\s*-\s*(mo|tu|we|th|fr|sa|su))?$/);if(!m)return null;const a=DAY[m[1]],b=m[2]!=null?DAY[m[2]]:a;for(let i=0;i<7;i++){const d=(a+i)%7;days.add(d);if(d===b)break;}}return [...days];}
+function parseOsmHours(str){if(!str)return null;const s=String(str).trim();if(/^24\/7$/.test(s))return [0,1,2,3,4,5,6].map(day=>({open:{day,hour:0,minute:0},close:{day:(day+1)%7,hour:0,minute:0}}));
+  const byDay=new Map();for(const ruleRaw of s.split(';')){const rule=ruleRaw.trim();if(!rule||/^ph\b/i.test(rule))continue;const m=rule.match(/^((?:(?:mo|tu|we|th|fr|sa|su)(?:\s*-\s*(?:mo|tu|we|th|fr|sa|su))?\s*,?\s*)+)?\s*(.*)$/i);if(!m)return null;
+  const days=m[1]?expandDays(m[1].replace(/,\s*$/,'')):[0,1,2,3,4,5,6];if(!days)return null;const times=m[2].trim();if(/^(off|closed)$/i.test(times)){days.forEach(d=>byDay.set(d,[]));continue;}
+  const ranges=[];for(const r of times.split(',')){const t=r.trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\+?$/);if(!t)return null;ranges.push([+t[1],+t[2],+t[3],+t[4]]);}if(!ranges.length)return null;days.forEach(d=>byDay.set(d,ranges));}
+  const periods=[];byDay.forEach((ranges,day)=>{for(const [oh,om,ch,cm] of ranges){const crosses=ch*60+cm<=oh*60+om||ch>=24;periods.push({open:{day,hour:oh,minute:om},close:{day:crosses?(day+1)%7:day,hour:ch>=24?ch-24:ch,minute:cm}});}});return periods.length?periods:null;}
+
+async function loadCatalog(){
+  const html=await (await fetch('./index.html',{cache:'no-cache'})).text();
+  const line=html.split('\n').find(l=>l.trim().startsWith('const DATA = ['));
+  if(!line)throw new Error('No encuentro la lista DATA en index.html');
+  catalog=JSON.parse(line.trim().replace(/^const DATA = /,'').replace(/;\s*$/,''));
+  if($('incOffline').checked){try{offline=await (await fetch('./comer-offline.json',{cache:'no-cache'})).json();}catch(e){offline=[];log('Aviso: no se pudo cargar comer-offline.json');}}
+}
+async function overpass(q){let last;for(const ep of OVERPASS){try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(q)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}catch(e){last=e;log('Servidor '+ep.split('/')[2]+' falló: '+e.message);}}throw last;}
+async function loadPois(){
+  const sel='["name"]';
+  const q=`[out:csv(::type,::id,::lat,::lon,name,amenity,tourism,leisure,shop,cuisine,opening_hours,website,"contact:website","addr:street","addr:housenumber","addr:city","disused:amenity","was:amenity";true;"\\t")][timeout:180][bbox:${BBOX}];
+(nwr${sel}["amenity"~"^(restaurant|bar|pub|cafe|fast_food|nightclub|hookah_lounge|ice_cream|biergarten|food_court|karaoke_box|cinema|theatre)$"];
+ nwr${sel}["tourism"~"^(hotel|attraction|museum)$"];
+ nwr${sel}["leisure"~"^(escape_game|bowling_alley|amusement_arcade)$"];
+ nwr${sel}["shop"~"^(pastry|bakery|confectionery)$"];
+ nwr${sel}["disused:amenity"~"^(restaurant|bar|pub|cafe|fast_food|nightclub)$"];
+ nwr${sel}["was:amenity"~"^(restaurant|bar|pub|cafe|fast_food|nightclub)$"];);
+out center;`;
+  const txt=await overpass(q);
+  const lines=txt.split('\n');const head=lines.shift().split('\t');const col=k=>head.indexOf(k);
+  pois=[];for(const l of lines){if(!l.trim())continue;const c=l.split('\t');const g=k=>c[col(k)]||'';
+    const lat=parseFloat(g('@lat')),lon=parseFloat(g('@lon'));if(!g('name')||!isFinite(lat)||!isFinite(lon))continue;
+    pois.push({type:g('@type'),id:g('@id'),lat,lon,name:g('name'),kind:g('amenity')||g('tourism')||g('leisure')||g('shop')||'',cuisine:g('cuisine'),hours:g('opening_hours'),web:g('website')||g('contact:website'),
+      addr:[g('addr:street')&&(g('addr:street')+(g('addr:housenumber')?' '+g('addr:housenumber'):'')),g('addr:city')].filter(Boolean).join(', '),closed:!!(g('disused:amenity')||g('was:amenity'))||/^closed$/i.test(g('opening_hours'))});}
+  index=new Map();pois.forEach((p,i)=>{for(const t of new Set(tokens(p.name)))if(t.length>=3){if(!index.has(t))index.set(t,[]);index.get(t).push(i);}});
+}
+// Centro aproximado de cada zona = mediana de los sitios encontrados con ese nombre de zona (sin llamar a geocodificadores)
+const zoneCenters=new Map();
+function centerFor(zone){const z=strip(zone).trim();if(!z)return null;return zoneCenters.get(z)||null;}
+function bestMatch(name,zone){
+  const cand=new Set();for(const t of tokens(name))if(index.has(t))index.get(t).forEach(i=>cand.add(i));
+  const center=centerFor(zone);let best=null;
+  cand.forEach(i=>{const p=pois[i];const s=sim(name,p.name);if(s<.78)return;
+    const d=center?dist(center.lat,center.lon,p.lat,p.lon):null;
+    if(d!=null&&d>(center.radius||8))return;               // demasiado lejos de su zona
+    if(d==null&&s<.95)return;                               // sin zona: solo coincidencias casi exactas
+    const score=s-(d!=null?d/40:0);if(!best||score>best.score)best={p,s,d,score};});
+  return best;
+}
+function setProg(done,total){$('prog').style.width=(total?Math.round(done/total*100):0)+'%';}
+
+async function runOsm(){
+  $('runOsm').disabled=true;results=new Map();$('log').textContent='';
+  try{
+    $('status').textContent='Cargando tu catálogo…';await loadCatalog();
+    $('status').textContent='Descargando el mapa de la Comunidad de Madrid (puede tardar 1–3 min)…';setProg(1,10);
+    await loadPois();log(`${pois.length.toLocaleString('es-ES')} locales descargados del mapa abierto.`);setProg(4,10);
+    // 1ª pasada: coincidencias exactas para calcular el centro real de cada zona
+    const byZone=new Map();
+    const all=[...catalog.map(d=>({name:d.n,zone:d.z})),...offline.map(o=>({name:o.name,zone:o.area}))];
+    for(const it of all){const z=strip(it.zone).trim();if(!z)continue;const k=norm(it.name);const hits=[];for(const t of tokens(it.name))(index.get(t)||[]).forEach(i=>{if(norm(pois[i].name)===k)hits.push(pois[i]);});if(hits.length===1){if(!byZone.has(z))byZone.set(z,[]);byZone.get(z).push(hits[0]);}}
+    byZone.forEach((ps,z)=>{if(ps.length<2)return;const med=a=>a.slice().sort((x,y)=>x-y)[a.length>>1];const lat=med(ps.map(p=>p.lat)),lon=med(ps.map(p=>p.lon));const r=Math.min(15,Math.max(3,med(ps.map(p=>dist(lat,lon,p.lat,p.lon)))*3));zoneCenters.set(z,{lat,lon,radius:r});});
+    log(`Centros de zona calculados: ${zoneCenters.size}.`);
+    let done=0;const total=all.length;
+    const check=(key,name,zone,list,extra)=>{const m=bestMatch(name,zone);let r;
+      if(!m)r={status:'sin_confirmar',src:'osm'};
+      else if(m.p.closed)r={status:'cerrado',src:'osm',lat:m.p.lat,lon:m.p.lon,osm:m.p.type+'/'+m.p.id,match:m.p.name,detail:'Marcado como cerrado en el mapa'};
+      else r={status:'ok',src:'osm',lat:+m.p.lat.toFixed(6),lon:+m.p.lon.toFixed(6),osm:m.p.type+'/'+m.p.id,match:m.p.name,sim:+m.s.toFixed(2),hours:m.p.hours||undefined,periods:parseOsmHours(m.p.hours)||undefined,web:m.p.web||undefined,addr:m.p.addr||undefined};
+      results.set(key,{list,name,zone,...extra,...r});done++;};
+    catalog.forEach(d=>check('c|'+d.n,d.n,d.z,'catalogo',{}));
+    offline.forEach(o=>check('o|'+o.name+'|'+o.area,o.name,o.area,'comer',{candidato:!o.verified}));
+    setProg(10,10);$('status').textContent=`Hecho: ${total.toLocaleString('es-ES')} sitios revisados contra el mapa abierto.`;
+    $('runGoogle').disabled=false;$('download').disabled=false;render();
+  }catch(e){$('status').textContent='Error: '+e.message+'. Vuelve a intentarlo en un rato (los servidores del mapa a veces están saturados).';}
+  finally{$('runOsm').disabled=false;}
+}
+
+async function runGoogle(){
+  const key=$('gkey').value.trim();if(!key){$('gstatus').textContent='Pega primero tu clave.';return;}
+  const todo=[...results.entries()].filter(([k,r])=>r.list==='catalogo'&&($('gAll').checked||r.status==='sin_confirmar'));
+  if(!todo.length){$('gstatus').textContent='No hay nada que revisar.';return;}
+  if(!confirm(`Se harán ${todo.length} consultas a Google Places con tu clave. ¿Seguimos?`))return;
+  $('runGoogle').disabled=true;let done=0,closed=0,notFound=0,errors=0;
+  const worker=async()=>{while(todo.length){const [k,r]=todo.shift();
+    try{const resp=await fetch('https://places.googleapis.com/v1/places:searchText',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':key,
+        'X-Goog-FieldMask':'places.displayName,places.businessStatus,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.regularOpeningHours.periods'},
+        body:JSON.stringify({textQuery:`${r.name} ${r.zone||''} Madrid`,maxResultCount:3,languageCode:'es',locationBias:{circle:{center:{latitude:MADRID.lat,longitude:MADRID.lon},radius:50000}}})});
+      if(!resp.ok){errors++;if(resp.status===403||resp.status===400){const t=await resp.text();throw new Error('Google rechaza la clave: '+t.slice(0,160));}continue;}
+      const data=await resp.json();const best=(data.places||[]).map(p=>({p,s:sim(r.name,p.displayName?.text||'')})).sort((a,b)=>b.s-a.s)[0];
+      if(!best||best.s<.7){if(r.status!=='ok'){r.status='no_existe';r.src='google';r.detail='Ni el mapa abierto ni Google lo encuentran';notFound++;}}
+      else{const p=best.p,st=p.businessStatus;r.gstatus=st;r.rating=p.rating;r.nr=p.userRatingCount;
+        if(st==='CLOSED_PERMANENTLY'){r.status='cerrado';r.src='google';r.detail='Google: cerrado definitivamente';closed++;}
+        else if(st==='CLOSED_TEMPORARILY'){r.status='cerrado_temp';r.src='google';r.detail='Google: cerrado temporalmente';}
+        else{if(r.status!=='ok'&&p.location){r.status='ok';r.src='google';r.lat=+p.location.latitude.toFixed(6);r.lon=+p.location.longitude.toFixed(6);r.addr=p.formattedAddress;r.match=p.displayName?.text;r.periods=p.regularOpeningHours?.periods;}}}
+    }catch(e){$('gstatus').textContent=e.message;todo.length=0;break;}
+    done++;$('gstatus').textContent=`Google: ${done} revisados · ${closed} cerrados · ${notFound} inexistentes${errors?` · ${errors} errores`:''}`;render(true);}};
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  $('runGoogle').disabled=false;render();
+}
+
+const LABEL={ok:['Verificado','t-ok'],cerrado:['Cerrado','t-closed'],cerrado_temp:['Cerrado temporal','t-temp'],no_existe:['No existe','t-closed'],sin_confirmar:['Sin confirmar','t-none']};
+function render(light){
+  const all=[...results.values()];const cnt=(list,st)=>all.filter(r=>(!list||r.list===list)&&(!st||r.status===st)).length;
+  $('stats').innerHTML=[['Tu lista',cnt('catalogo')],['Verificados',cnt('catalogo','ok')],['Cerrados',cnt('catalogo','cerrado')+cnt('catalogo','no_existe')],['Sin confirmar',cnt('catalogo','sin_confirmar')],
+    ['«Dónde comer»',cnt('comer')],['…verificados',cnt('comer','ok')],['…a eliminar',all.filter(r=>r.list==='comer'&&(r.status==='cerrado'||(r.candidato&&r.status==='sin_confirmar'))).length]]
+    .map(([l,v])=>`<div class="stat"><b>${v.toLocaleString('es-ES')}</b><span>${l}</span></div>`).join('');
+  if(light)return;
+  const F=[['all','Todo'],['cerrado','Cerrados'],['sin_confirmar','Sin confirmar'],['ok','Verificados']];
+  $('filters').innerHTML=F.map(([k,l])=>`<button class="${filter===k?'':'secondary'}" data-f="${k}">${l}</button>`).join('');
+  const rows=all.filter(r=>filter==='all'||r.status===filter||(filter==='cerrado'&&(r.status==='no_existe'||r.status==='cerrado_temp'))).slice(0,400);
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  $('rows').innerHTML=rows.map(r=>{const [l,c]=LABEL[r.status];return `<tr><td>${esc(r.name)}<br><span class="muted">${r.list==='comer'?'Dónde comer':'Tu lista'}</span></td><td>${esc(r.zone)}</td><td><span class="tag ${c}">${l}</span></td><td class="muted">${esc(r.detail||(r.match?`= ${r.match}${r.addr?' · '+r.addr:''}${r.hours?' · '+r.hours:''}`:''))}</td></tr>`;}).join('')+(rows.length===400?'<tr><td colspan="4" class="muted">Mostrando 400 filas. El archivo descargado las incluye todas.</td></tr>':'');
+}
+$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(b){filter=b.dataset.f;render();}});
+$('runOsm').addEventListener('click',runOsm);$('runGoogle').addEventListener('click',runGoogle);
+$('download').addEventListener('click',()=>{
+  const out={generado:new Date().toISOString(),fuente:'OpenStreetMap'+([...results.values()].some(r=>r.src==='google')?' + Google Places':''),sitios:[...results.values()].map(r=>{const o={...r};Object.keys(o).forEach(k=>o[k]===undefined&&delete o[k]);return o;})};
+  const blob=new Blob([JSON.stringify(out)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='verificacion.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+});
+})();
+</script>
+</body>
+</html>

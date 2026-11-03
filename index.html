@@ -1450,6 +1450,13 @@ header.top.scrolled .tagline{max-height:0}
 .match-place-card.match-out-left{transform:translateX(-60%) rotate(-8deg);opacity:0}
 @keyframes matchIn{from{transform:scale(.96) translateY(8px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.match-place-card{animation:none;transition:none}}
+#radarMap .leaflet-top,#radarMap .leaflet-bottom{z-index:1100}
+.map-group-chips{display:flex;gap:6px;max-width:calc(100vw - 90px);overflow-x:auto;padding:2px;scrollbar-width:none}
+.map-group-chips::-webkit-scrollbar{display:none}
+.map-group-chips button{flex:none;border:0;border-radius:999px;padding:8px 12px;font:700 12px/1 Inter,system-ui,sans-serif;background:rgba(255,255,255,.95);color:#2a302b;box-shadow:0 3px 10px rgba(0,0,0,.14);cursor:pointer}
+.map-group-chips button.active{background:#26332b;color:#fff}
+#radarMap.is-dark .map-group-chips button{background:rgba(30,34,38,.95);color:#e8ece6}
+#radarMap.is-dark .map-group-chips button.active{background:#b9d995;color:#172016}
 </style>
 </head>
 <body>
@@ -4379,7 +4386,7 @@ async function fetchNearbyMapPlaces(center, radius){
     try{localStorage.setItem('radar-osm-cache',JSON.stringify(osmDiscovered));}catch(e){}
     renderMapMarkers(mapPlaces);
     updateNearbyList();
-    if(status)status.textContent=`${mapPlaces.length} establecimientos con coordenadas cartografiadas en esta zona. Pulsa un marcador para abrir su ficha.`;
+    if(status)status.textContent=`${DATA.filter(d=>d.locationVerified&&!d.osm).length} de tus sitios en el mapa · ${mapPlaces.length} lugares más en esta zona. Pulsa un pin para ver su ficha.`;
     
   }catch(e){
     if(status)status.textContent='No se ha podido cargar la búsqueda de lugares. Puedes mover el mapa y volver a intentarlo.';
@@ -4417,9 +4424,10 @@ function renderMapMarkers(list){
   radarMarkers.clearLayers();mapMarkersByName=new Map();
   // Solo coordenadas reales: los centros de barrio antiguos no se pintan.
   const ok=d=>d&&d.locationVerified===true&&Number.isFinite(d.lat)&&Number.isFinite(d.lon);
-  const mine=(radarCatalogOnMap||[]).filter(ok);
-  const seen=new Set(mine.map(d=>normMapName(d.n)));
-  const discovered=(mapPlaces||[]).filter(d=>ok(d)&&!seen.has(normMapName(d.n))).slice(0,180);
+  const gOk=window.radarMapGroupOk||(()=>true);
+  const mine=(radarCatalogOnMap||[]).filter(d=>ok(d)&&gOk(d));
+  const seen=new Set((radarCatalogOnMap||[]).map(d=>normMapName(d.n)));
+  const discovered=(mapPlaces||[]).filter(d=>ok(d)&&gOk(d)&&!seen.has(normMapName(d.n))&&!DATA.some(x=>x.locationVerified&&!x.osm&&normMapName(x.n)===normMapName(d.n))).slice(0,180);
   const located=[...discovered,...mine];
   located.forEach(d=>{
     const icon=radarPinIcon(d);
@@ -4887,7 +4895,7 @@ document.getElementById('tabRadarLab').onclick = ()=>switchTab('radarlab');
 document.getElementById('tabMatch').onclick = ()=>switchTab('match');
 
 
-window.addEventListener('scroll', ()=>{ document.querySelector('header.top').classList.toggle('scrolled', window.scrollY>24); }, {passive:true});
+/* La cabecera ya no se compacta al hacer scroll: cambiaba de altura y provocaba un temblor en bucle. */
 document.addEventListener('click', e=>{ if(e.target.closest('.chip')){ try{ navigator.vibrate && navigator.vibrate(6); }catch(_){} } });
 
 
@@ -5231,13 +5239,14 @@ renderResults();
   const tasteWeight=d=>{
     const P=profile(),v=allVotes()[d.n];let s=0;
     if(v==='like')s+=28;if(v==='pass')s-=20;
-    s+=(P.cm[d.cm]||0)*6+(P.type[type(d)]||0)*3+(P.zone[zoneKey(d)]||0)*2.5+(P.price[priceKey(d)]||0)*1.5;
+    s+=Math.max(-12,Math.min(18,(P.cm[d.cm]||0)*5))+(P.type[type(d)]||0)*1.5+(P.zone[zoneKey(d)]||0)*2+(P.price[priceKey(d)]||0)*1.2;
     return s;
   };
   // Pequeña dosis de variedad (estable por sitio y voto) para que no salga siempre lo mismo
   const jitter=(name,seed)=>{let h=2166136261;const str=name+'|'+seed;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return ((h>>>0)%1000)/1000;};
   const budgetOk=d=>{const max=$('matchBudget').value;if(max==='any')return true;const p=pMid(d);return p===null||p<=Number(max)};
   const selectedCat=()=> $('matchCategory').value;
+  const recentShown=[];
   const matchPool=()=>{
     const zone=norm($('matchZone').value),cat=selectedCat(),P=profile(),seed=Object.keys(matchState.votes||{}).length;
     const likes=new Set(matchState.likes||[]),passes=new Set(matchState.passes||[]);
@@ -5250,7 +5259,12 @@ renderResults();
       if(cat!=='mixed'&&type(d)!==cat)return false;
       if(cat==='rooftop'&&type(d)!=='rooftop')return false;
       return true;
-    }).map(d=>{const t=tasteWeight(d);return {d,s:t+Number(d.v||0)*2+jitter(d.n,seed)*(P.n<3?9:4)};}).sort((a,b)=>b.s-a.s).map(x=>x.d);
+    }).map(d=>{
+      const t=tasteWeight(d), rating=d.v?Math.max(-3,(Number(d.v)-4.2)*4):0;
+      // Penaliza repetir la misma categoría que acabas de ver para que la baraja sea variada
+      const sameCm=recentShown.slice(-6).filter(x=>x.cm===d.cm).length, sameType=recentShown.slice(-3).filter(x=>x.type===type(d)).length;
+      return {d,s:t+rating-sameCm*7-sameType*2.5+jitter(d.n,seed)*(P.n<3?10:5)};
+    }).sort((a,b)=>b.s-a.s).map(x=>x.d);
   };
   const imageFor=d=>d.photoUrl||d.photo||venuePhoto(d.cm);
   const mapUrl=d=>d.googleMapsUri||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.n+' '+(d.address||d.z||'Madrid'))}`;
@@ -5272,6 +5286,7 @@ renderResults();
     return parts.length?` · Aprendiendo: más ${parts.join(' ')}`:'';
   }
   function renderMatchCard(d){
+    if(!recentShown.length||recentShown[recentShown.length-1].n!==d.n){recentShown.push({n:d.n,cm:d.cm,type:type(d)});if(recentShown.length>12)recentShown.shift();}
     const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?' · '+Number(d.nr).toLocaleString('es-ES')+' opiniones':''}`:(d.rating?`★ ${Number(d.rating).toFixed(1)}`:'Valoración no disponible');
     const address=d.address||d.z||'Madrid';
     const status=d.e||d.businessStatus||'Horario por confirmar';
@@ -5549,6 +5564,94 @@ const RENTA_FOOD_CATEGORIES=[{"name": "Española y tapas", "icon": "🥘", "term
 <script id="renta-map-theme">
 // El mapa sigue al tema de la app (claro/oscuro)
 new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMap!=='undefined'&&radarMap)setMapStyle(document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');}catch(e){}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+<script id="renta-auto-locate">
+// Ubica en el mapa los sitios de tu lista: descarga una vez los locales del mapa abierto (OpenStreetMap)
+// de la zona que cubre tu catálogo, los empareja por nombre cerca de su barrio y guarda el resultado
+// en este navegador durante 30 días. Así los pines salen en su sitio real y se pueden filtrar.
+(function(){
+  const CACHE='renta-ubicaciones-v1', TTL=30*24*3600*1000;
+  const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+  const strip=s=>String(s||'').toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const STOP=new Set(['restaurante','restaurant','bar','cafe','cafeteria','taberna','madrid','the','el','la','los','las','de','del','y','and','sl','by','en','al','meson','cerveceria','coctel','cocteleria','pizzeria','club','lounge','shisha']);
+  const norm=n=>strip(String(n).split(/\s[-–|·]\s/)[0]).replace(/&/g,' y ').replace(/['’`´]/g,'').replace(/[^a-z0-9ñ]+/g,' ').trim();
+  const tokens=n=>{const t=norm(n).split(' ').filter(Boolean);const c=t.filter(w=>!STOP.has(w));return c.length?c:t;};
+  const branch=n=>{const m=String(n).split(/\s[-–|·]\s/);return m.length>1?norm(m.slice(1).join(' ')):'';};
+  function bigrams(s){const b=new Map();s=' '+s+' ';for(let i=0;i<s.length-1;i++){const g=s.slice(i,i+2);b.set(g,(b.get(g)||0)+1);}return b;}
+  function dice(a,b){if(a===b)return 1;const A=bigrams(a),B=bigrams(b);let x=0,na=0,nb=0;A.forEach((v,k)=>{na+=v;if(B.has(k))x+=Math.min(v,B.get(k));});B.forEach(v=>nb+=v);return na+nb?2*x/(na+nb):0;}
+  function sim(a,b){const ba=branch(a),bb=branch(b);if(ba&&bb&&dice(ba,bb)<.6)return .5;
+    const ta=tokens(a),tb=tokens(b),ja=ta.join(' '),jb=tb.join(' ');if(!ja||!jb)return 0;if(ja===jb)return 1;
+    const [sh,lo]=ta.length<=tb.length?[ta,tb]:[tb,ta];if(sh.every(w=>lo.includes(w))&&(sh.length>=2||sh[0].length>=7))return Math.max(.88-.04*(lo.length-sh.length),.8);
+    return Math.min(dice(ja,jb),dice(norm(a),norm(b))+.05);}
+  const km=(a,b,c,d)=>{const R=6371,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,h=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
+  const readCache=()=>{try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');return c&&Date.now()-c.ts<TTL?c:null;}catch(e){return null;}};
+  function apply(map){
+    let n=0;
+    DATA.forEach(d=>{const v=map[d.n];if(!v||d.verifiedAt)return;
+      if(!d._zoneLat&&Number.isFinite(d.lat)){d._zoneLat=d.lat;d._zoneLon=d.lon;}
+      d.lat=v[0];d.lon=v[1];d.locationVerified=true;d.autoLocated=true;
+      if(v[2]){const p=window.RentaFreeSearch&&RentaFreeSearch.parseOsmHours(v[2]);if(p)d.hours=p;}
+      if(v[3])d.e='Revisar (posible cierre)';n++;});
+    return n;
+  }
+  let running=null;
+  async function run(){
+    if(running)return running;
+    const pending=DATA.filter(d=>!d.locationVerified&&d.n);
+    if(!pending.length)return 0;
+    const cached=readCache();
+    if(cached){const n=apply(cached.map);refresh(n,true);return n;}
+    running=(async()=>{
+      status('Ubicando tus sitios en el mapa… (solo la primera vez, unos segundos)');
+      const pts=DATA.filter(d=>Number.isFinite(d.lat));
+      const pad=.04,s=Math.min(...pts.map(d=>d.lat))-pad,n=Math.max(...pts.map(d=>d.lat))+pad,w=Math.min(...pts.map(d=>d.lon))-pad,e=Math.max(...pts.map(d=>d.lon))+pad;
+      const q=`[out:csv(::lat,::lon,name,opening_hours,"disused:amenity","was:amenity";true;"\t")][timeout:90][bbox:${s.toFixed(3)},${w.toFixed(3)},${n.toFixed(3)},${e.toFixed(3)}];(nwr["name"]["amenity"~"^(restaurant|bar|pub|cafe|fast_food|nightclub|hookah_lounge|ice_cream|biergarten|food_court|karaoke_box)$"];nwr["name"]["tourism"~"^(hotel|attraction)$"];nwr["name"]["leisure"~"^(escape_game|bowling_alley|amusement_arcade)$"];nwr["name"]["disused:amenity"];);out center;`;
+      let txt=null;
+      for(const ep of OVERPASS){try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(q)});if(r.ok){txt=await r.text();break;}}catch(e){}}
+      if(!txt){status('No he podido descargar el mapa ahora. Lo intentaré la próxima vez que abras el mapa.');return 0;}
+      const lines=txt.split('\n');lines.shift();
+      const pois=[];for(const l of lines){const c=l.split('\t');const lat=+c[0],lon=+c[1];if(!c[2]||!isFinite(lat))continue;pois.push({lat,lon,name:c[2],h:c[3]||'',closed:!!(c[4]||c[5])});}
+      const idx=new Map();pois.forEach((p,i)=>{for(const t of new Set(tokens(p.name)))if(t.length>=3){if(!idx.has(t))idx.set(t,[]);idx.get(t).push(i);}});
+      // Cuántos sitios comparten la misma coordenada aproximada → radio de búsqueda de su barrio
+      const shared={};DATA.forEach(d=>{if(Number.isFinite(d.lat)){const k=d.lat.toFixed(3)+','+d.lon.toFixed(3);shared[k]=(shared[k]||0)+1;}});
+      const map={};
+      pending.forEach(d=>{
+        const cand=new Set();for(const t of tokens(d.n))(idx.get(t)||[]).forEach(i=>cand.add(i));
+        const hasC=Number.isFinite(d.lat), radius=hasC?(shared[d.lat.toFixed(3)+','+d.lon.toFixed(3)]>3?4.5:2.5):null;
+        let best=null;cand.forEach(i=>{const p=pois[i],sc=sim(d.n,p.name);if(sc<.8)return;const dk=hasC?km(d.lat,d.lon,p.lat,p.lon):null;
+          if(dk!=null&&dk>radius)return;if(dk==null&&sc<.95)return;const score=sc-(dk||0)/30;if(!best||score>best.score)best={p,score};});
+        if(best)map[d.n]=[+best.p.lat.toFixed(6),+best.p.lon.toFixed(6),best.p.h,best.p.closed?1:0];
+      });
+      try{localStorage.setItem(CACHE,JSON.stringify({ts:Date.now(),map}));}catch(e){}
+      const found=apply(map);refresh(found,false);return found;
+    })().finally(()=>{running=null;});
+    return running;
+  }
+  function status(t){const el=document.getElementById('mapStatus');if(el)el.textContent=t;}
+  function refresh(n,fromCache){
+    const total=DATA.length, located=DATA.filter(d=>d.locationVerified&&!d.osm).length;
+    status(`${located} de tus ${total} sitios ubicados en el mapa${fromCache?'':' (guardado en este navegador)'}. Los que faltan no aparecen en el mapa abierto con ese nombre.`);
+    try{renderResults();}catch(e){try{renderMapMarkers(radarCatalogOnMap);}catch(e2){}}
+  }
+  window.RentaAutoLocate={run};
+
+  // ---- Filtros de categoría dentro del mapa ----
+  const GROUPS=[['all','Todo'],['food','🍽️ Comer'],['drinks','🍸 Copas'],['shisha','💨 Shisha'],['coffee','☕ Café'],['night','🕺 Fiesta'],['fun','🎡 Ocio']];
+  const groupOf=d=>{const c=String(d.cm||'');if(c==='Shisha Lounge')return 'shisha';if(c==='Discoteca/Club')return 'night';if(/Cocteler|Bar\/|Rooftop/.test(c))return 'drinks';if(/Café/.test(c))return 'coffee';if(/Ocio|Hotel|Otros/.test(c))return 'fun';return 'food';};
+  window.radarMapGroup='all';
+  window.radarMapGroupOk=d=>window.radarMapGroup==='all'||groupOf(d)===window.radarMapGroup;
+  function addFilterControl(){
+    if(!window.radarMap||document.getElementById('mapGroupChips'))return;
+    const C=L.Control.extend({options:{position:'topleft'},onAdd(){const el=L.DomUtil.create('div','map-group-chips');el.id='mapGroupChips';
+      el.innerHTML=GROUPS.map(([k,l])=>`<button type="button" data-g="${k}" class="${k==='all'?'active':''}">${l}</button>`).join('');
+      L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);
+      el.addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;window.radarMapGroup=b.dataset.g;el.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderMapMarkers(radarCatalogOnMap);});
+      return el;}});
+    radarMap.addControl(new C());
+  }
+  const origEnsure=ensureRadarMap;
+  ensureRadarMap=function(){const ok=origEnsure.apply(this,arguments);if(ok){addFilterControl();run();}return ok;};
+})();
 </script>
 </body>
 </html>

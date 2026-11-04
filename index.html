@@ -1454,6 +1454,7 @@ header.top.scrolled .tagline{max-height:0}
 .map-group-chips{display:flex;gap:6px;max-width:calc(100vw - 90px);overflow-x:auto;padding:2px;scrollbar-width:none;cursor:grab;user-select:none}
 @media (min-width:900px){.map-group-chips{flex-wrap:wrap;max-width:calc(100% - 20px);overflow:visible;cursor:default}#radarMap .leaflet-top.leaflet-left{right:60px}}
 .map-group-chips::-webkit-scrollbar{display:none}
+@media (min-width:900px){.map-group-chips{pointer-events:none}.map-group-chips button{pointer-events:auto}}
 .map-group-chips button{flex:none;border:0;border-radius:999px;padding:8px 12px;font:700 12px/1 Inter,system-ui,sans-serif;background:rgba(255,255,255,.95);color:#2a302b;box-shadow:0 3px 10px rgba(0,0,0,.14);cursor:pointer}
 .map-group-chips button.active{background:#26332b;color:#fff}
 #radarMap.is-dark .map-group-chips button{background:rgba(30,34,38,.95);color:#e8ece6}
@@ -4451,7 +4452,7 @@ function ensureRadarMap(){
   { const btn=document.getElementById('mapStyleBtn'); if(btn) btn.textContent=mapStyleMode==='dark'?'☀ Modo claro':'☾ Modo noche'; }
   // No agrupamos por barrios ni por clúster: cada marcador corresponde a una coordenada cartografiada.
   // Con cientos de ubicaciones reales, se agrupan al alejar y se separan al acercar
-  radarMarkers=(L.markerClusterGroup?L.markerClusterGroup({maxClusterRadius:46,disableClusteringAtZoom:16,showCoverageOnHover:false,spiderfyOnMaxZoom:true,chunkedLoading:true,
+  radarMarkers=(L.markerClusterGroup?L.markerClusterGroup({maxClusterRadius:46,disableClusteringAtZoom:16,showCoverageOnHover:false,spiderfyOnMaxZoom:true,chunkedLoading:true,removeOutsideVisibleBounds:false,
     iconCreateFunction:c=>{const n=c.getChildCount();const sz=n<10?36:n<50?42:50;return L.divIcon({className:'radar-cluster',html:`<span>${n}</span>`,iconSize:[sz,sz]});}}):L.layerGroup()).addTo(radarMap);
   radarMap.on('moveend',()=>{if(mapSearchAutoRefresh && mapPlaces.length) updateNearbyList();});
   return true;
@@ -4633,7 +4634,7 @@ function renderMapMarkers(list){
   const located=[...discovered,...mine];
   located.forEach(d=>{
     const icon=radarPinIcon(d);
-    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(radarMarkers);
+    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,autoPanOnFocus:false,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(radarMarkers);
     bindRadarPopup(marker,d);mapMarkersByName.set(normMapName(d.n),marker);
   });
   addUserMarker();
@@ -5931,7 +5932,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     if(!show)return;
     mercados.forEach(m=>{
       const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin"><span>🏪</span><b>${m.puestos.length}</b></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
-      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(marketLayer);
+      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n,autoPanOnFocus:false}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(marketLayer);
       marketMarkers.set(m.n,mk);
     });
   }

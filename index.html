@@ -1489,7 +1489,9 @@ header.top.scrolled .tagline{max-height:0}
 .market-pin b{position:absolute;right:-7px;top:-7px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:#e0583a;color:#fff;font:800 9px/15px Inter,sans-serif;text-align:center}
 .market-popup h3{margin:0 0 2px;font-size:16px}.market-popup p{margin:0 0 8px;font-size:12px;color:#6b716c}
 .mk-tipos{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.mk-tipos span{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.06)}
-.mk-stalls{display:grid;gap:6px;max-height:220px;overflow:auto;margin:6px 0 10px}.mk-group{font-size:12px;line-height:1.4}.mk-group b{display:block;font-size:12px}
+.mk-stalls{display:grid;gap:6px;max-height:220px;overflow:auto;margin:6px 0 10px}
+.market-popup .mk-stalls{max-height:150px}
+.market-popup .mk-tipos{display:none}.mk-group{font-size:12px;line-height:1.4}.mk-group b{display:block;font-size:12px}
 .mk-group span{color:#6b716c}
 .market-panel{padding:16px;border-top:1px solid var(--line,#e3e1d8)}
 .market-list{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
@@ -4592,7 +4594,7 @@ function renderMapMarkers(list){
   const located=[...discovered,...mine];
   located.forEach(d=>{
     const icon=radarPinIcon(d);
-    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,90)}).addTo(radarMarkers);
+    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(radarMarkers);
     bindRadarPopup(marker,d);mapMarkersByName.set(normMapName(d.n),marker);
   });
   addUserMarker();
@@ -5890,7 +5892,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     if(!show)return;
     mercados.forEach(m=>{
       const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin"><span>🏪</span><b>${m.puestos.length}</b></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
-      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,90)}).addTo(marketLayer);
+      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(marketLayer);
       marketMarkers.set(m.n,mk);
     });
   }

@@ -1501,7 +1501,9 @@ header.top.scrolled .tagline{max-height:0}
 .mk-stall{display:inline-block;padding:3px 8px;border-radius:99px;border:1px solid var(--line,#e3e1d8);color:inherit!important;text-decoration:none;font-size:12px;background:var(--surface,#fffefa)}
 .mk-stall:hover{background:#26332b;color:#fff!important}
 .mk-stall::after{content:" ↗";opacity:.5;font-size:10px}
-.radar-nav-row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;width:100%}
+.radar-nav-row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;width:100%;margin-top:4px}
+.radar-nav-row .radar-popup-btn{flex:1 1 0;min-width:0;min-height:0!important;padding:7px 6px!important;font-size:12px!important;text-align:center;white-space:nowrap;border-radius:10px!important}
+.radar-nav-row .radar-nav-label{flex:none}
 .radar-nav-label{font-size:11px;font-weight:700;opacity:.7;margin-right:2px}
 .agenda-links .radar-nav-row{width:auto}.agenda-nav{color:inherit;font-weight:700}
 :root[data-theme="dark"] .mk-stall{background:#141a16;border-color:#2b362e}
@@ -4590,7 +4592,7 @@ function renderMapMarkers(list){
   const located=[...discovered,...mine];
   located.forEach(d=>{
     const icon=radarPinIcon(d);
-    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup'}).addTo(radarMarkers);
+    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,90)}).addTo(radarMarkers);
     bindRadarPopup(marker,d);mapMarkersByName.set(normMapName(d.n),marker);
   });
   addUserMarker();
@@ -5888,7 +5890,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     if(!show)return;
     mercados.forEach(m=>{
       const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin"><span>🏪</span><b>${m.puestos.length}</b></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
-      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup'}).addTo(marketLayer);
+      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,90)}).addTo(marketLayer);
       marketMarkers.set(m.n,mk);
     });
   }

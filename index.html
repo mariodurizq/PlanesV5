@@ -1409,8 +1409,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #tabbar.tabbar button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap!important;font-size:inherit!important}
 #tabbar.tabbar button.active{color:#fff!important;font-weight:800!important}
 #tabbar.tabbar button.active i{transform:translateY(-1px) scale(1.08)!important}
-#tabbar.tabbar .tabind{position:absolute!important;top:5px!important;bottom:5px!important;left:calc(5px + var(--i,0) * ((100% - 10px) / 6))!important;
-  width:calc((100% - 10px) / 6)!important;border-radius:17px!important;transition:left .35s cubic-bezier(.2,.8,.2,1)!important}
+#tabbar.tabbar .tabind{position:absolute!important;top:5px!important;bottom:5px!important;left:calc(5px + var(--i,0) * ((100% - 10px) / 4))!important;
+  width:calc((100% - 10px) / 4)!important;border-radius:17px!important;transition:left .35s cubic-bezier(.2,.8,.2,1)!important}
 .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}
 :root[data-theme="dark"] #tabbar.segctl.tabbar{background:rgba(9,13,10,.96)!important;border-color:#263229!important;box-shadow:0 14px 42px rgba(0,0,0,.55)!important}
 :root[data-theme="dark"] #tabbar.tabbar button{color:#9ca99e!important}
@@ -1510,6 +1510,30 @@ header.top.scrolled .tagline{max-height:0}
 .radar-nav-label{font-size:11px;font-weight:700;opacity:.7;margin-right:2px}
 .agenda-links .radar-nav-row{width:auto}.agenda-nav{color:inherit;font-weight:700}
 :root[data-theme="dark"] .mk-stall{background:#141a16;border-color:#2b362e}
+.pide-modes{display:flex;gap:4px;padding:4px;margin:0 0 14px;border-radius:14px;background:var(--surface-2,#efede6);border:1px solid var(--line,#e3e1d8);overflow-x:auto;scrollbar-width:none}
+.pide-mode{flex:1 0 auto;border:0;border-radius:10px;padding:9px 10px;font:700 13px/1 Inter,system-ui,sans-serif;background:transparent;color:var(--muted,#6b716c);cursor:pointer;white-space:nowrap}
+.pide-mode.active{background:var(--r-olive,#35452e);color:#fff}
+:root[data-theme="dark"] .pide-modes{background:#141a16;border-color:#263229}:root[data-theme="dark"] .pide-mode.active{background:#b9d995;color:#172016}
+#openNowBtn[aria-pressed="true"]{background:#1f7a3a;color:#fff;border-color:#1f7a3a}
+.renta-toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#1d2320;color:#fff;padding:10px 16px;border-radius:12px;font:700 13px Inter,sans-serif;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.vote-overlay{position:fixed;inset:0;background:rgba(10,14,12,.55);z-index:2500;display:grid;place-items:center;padding:16px}
+.vote-dialog{position:relative;width:min(520px,100%);max-height:86vh;overflow:auto;background:var(--surface,#fffefa);color:inherit;border-radius:22px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+:root[data-theme="dark"] .vote-dialog{background:#111712}
+.vote-dialog h3{margin:0 0 6px;font-size:20px;padding-right:30px}.vote-dialog p{margin:0 0 12px;font-size:13px;color:var(--muted,#6b716c)}
+.vote-close{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.08);font-size:18px;cursor:pointer;color:inherit}
+.vote-name{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#e3e1d8);margin-bottom:10px;font:inherit;background:transparent;color:inherit}
+.vote-list{display:grid;gap:8px}
+.vote-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line,#e3e1d8);border-radius:14px;cursor:pointer}
+.vote-item.on{border-color:#1f7a3a;background:rgba(31,122,58,.08)}
+.vote-item input{width:20px;height:20px;accent-color:#1f7a3a}.vote-main{flex:1;display:flex;flex-direction:column}.vote-main small{color:var(--muted,#6b716c);font-size:12px}
+.vote-map{font-size:12px;font-weight:700;color:inherit}
+.vote-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.vote-btn{flex:1 1 auto;text-align:center;border:1px solid var(--line,#e3e1d8);background:transparent;color:inherit;border-radius:12px;padding:11px 12px;font:700 13px Inter,sans-serif;cursor:pointer;text-decoration:none}
+.vote-btn.primary{background:#26332b;color:#fff;border-color:#26332b}
+.vote-results{display:grid;gap:10px}.vote-row-top{display:flex;justify-content:space-between;font-size:14px}.vote-row small{color:var(--muted,#6b716c);font-size:11px}
+.vote-bar{height:8px;border-radius:99px;background:rgba(0,0,0,.07);overflow:hidden;margin:4px 0}.vote-bar i{display:block;height:100%;background:#e0583a;border-radius:99px}
+.vote-row.win .vote-bar i{background:#1f7a3a}
+.my-votes{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:14px;font-size:13px}
 </style>
 </head>
 <body>
@@ -1535,9 +1559,9 @@ header.top.scrolled .tagline{max-height:0}
     <button id="tabGuiado" class="active" aria-label="Explorar"><i>📍</i><span>Explorar</span></button>
     <button id="tabDirecto" hidden aria-hidden="true" tabindex="-1"><i>🗺️</i><span>Directo</span></button>
     <button id="tabPide"><i>✨</i><span>Pídeme</span></button>
-    <button id="tabAutoplan"><i>🧭</i><span>Autoplan</span></button>
+    <button id="tabAutoplan" hidden aria-hidden="true" tabindex="-1"><i>🧭</i><span>Autoplan</span></button>
     <button id="tabEventos"><i>📅</i><span>Eventos</span></button>
-    <button id="tabRadarLab" aria-label="RENTA Lab"><i>✦</i><span>Lab</span></button>
+    <button id="tabRadarLab" hidden aria-hidden="true" tabindex="-1" aria-label="RENTA Lab"><i>✦</i><span>Lab</span></button>
     <button id="tabMatch" aria-label="Match: desliza y vota"><i>♥</i><span>Match</span></button>
   </nav>
 
@@ -1591,6 +1615,7 @@ header.top.scrolled .tagline{max-height:0}
 
 
 <section id="radarLabTabPanel" class="radar-lab-tab-panel" style="display:none" aria-label="RADAR Lab">
+  <div class="pide-modes"><button type="button" class="pide-mode" data-go-tab="pide">✨ Pídeme</button><button type="button" class="pide-mode" data-go-tab="autoplan">🧭 Plan paso a paso</button><button type="button" class="pide-mode active">✦ Herramientas</button></div>
 <section class="radar-lab-launcher" id="radarLabLauncher" aria-label="Herramientas RADAR">
   <div class="radar-lab-head"><div><span class="radar-lab-kicker">RADAR LAB · NUEVO</span><h2>De una idea a un plan.</h2><p>Herramientas para decidir, descubrir y organizarte.</p></div><span class="radar-lab-orb">✦</span></div>
   <div class="radar-lab-grid">
@@ -1767,13 +1792,14 @@ header.top.scrolled .tagline{max-height:0}
   </div>
   <div class="rf-cats" id="rfCats"></div>
   <div class="rf-list" id="rfList"></div>
-  <p class="rf-note">Catálogo de prueba a gran escala: 60 entradas por categoría en cada selección. Las fichas con datos comprobados se distinguen de candidatos de búsqueda que deben confirmarse en Google Maps. No se han inventado puntuaciones ni cantidades de reseñas. “Calidad-precio” es una clasificación orientativa por rango de precio, no una puntuación oficial. Los candidatos sin verificar pueden ser búsquedas de descubrimiento y no fichas de negocio confirmadas.</p>
+  <p class="rf-note">Solo sitios cuya existencia y ubicación se han comprobado en el mapa abierto (OpenStreetMap). Confirma el horario antes de ir.</p>
 </section>
 
 
   </div>
 
   <div class="aiBox" id="pideBox" style="display:none;">
+    <div class="pide-modes"><button type="button" class="pide-mode active">✨ Pídeme</button><button type="button" class="pide-mode" data-go-tab="autoplan">🧭 Plan paso a paso</button><button type="button" class="pide-mode" data-go-tab="radarlab">✦ Herramientas</button></div>
     <div class="label">✨ Pídeme lo que quieras</div>
     <div class="aiHint">Escríbelo como se lo dirías a un amigo. Si pides varias opciones de una cosa te doy una lista; si pides varias cosas seguidas (cena + copas…) te monto el plan con horarios.</div>
     <textarea id="pideText" rows="3" placeholder='Ej: "10 opciones para cenar japonés en Chamberí" o "plan para sábado noche: cena italiana a las 21:30 y luego copas"'></textarea>
@@ -1791,6 +1817,7 @@ header.top.scrolled .tagline{max-height:0}
   </div>
 
   <div class="aiBox" id="autoplanBox" style="display:none;">
+    <div class="pide-modes"><button type="button" class="pide-mode" data-go-tab="pide">✨ Pídeme</button><button type="button" class="pide-mode active">🧭 Plan paso a paso</button><button type="button" class="pide-mode" data-go-tab="radarlab">✦ Herramientas</button></div>
     <div class="label">🧭 Autoplan</div>
     <div class="aiHint">Contesta un par de cosas y te armo un plan con horarios, encadenando paradas cercanas entre sí.</div>
 
@@ -1934,6 +1961,7 @@ header.top.scrolled .tagline{max-height:0}
   <div class="results-tools" id="resultsTools">
     <button type="button" class="tool-pill" id="favoritesViewBtn" aria-pressed="false">♡ Favoritos <span id="favoriteCount">0</span></button>
     <button type="button" class="tool-pill" id="mapViewBtn" aria-pressed="true">▦ Ocultar mapa</button>
+    <button type="button" class="tool-pill" id="openNowBtn" aria-pressed="false">🟢 Abierto ahora</button>
     <button type="button" class="tool-pill surprise-pill" id="surpriseBtn">✦ Sorpréndeme</button>
   </div>
   <div class="search-filter-bar" id="searchFilterBar">
@@ -1950,6 +1978,7 @@ header.top.scrolled .tagline{max-height:0}
       <label class="sr-only" for="quickFilter">Filtrar resultados</label>
       <select id="quickFilter" aria-label="Filtrar resultados">
         <option value="all">Todos los sitios</option>
+        <option value="now">🟢 Abierto ahora</option>
         <option value="open">Abiertos según los datos</option>
         <option value="top">Valoración 4,5 o más</option>
         <option value="budget">Hasta 20 € aprox.</option>
@@ -2648,6 +2677,7 @@ function getFiltered(){
     list = list.filter(d => [d.n,d.z,d.cm,d.cd,d.no].filter(Boolean).join(' ').toLocaleLowerCase('es').includes(query));
   }
   if(quickFilterBy==='open') list = list.filter(d=>d.e==='Abierto');
+  if(quickFilterBy==='now') list = list.filter(d=>typeof radarOpenNow==='function' && radarOpenNow(d)===true);
   if(quickFilterBy==='top') list = list.filter(d=>Number(d.v||0)>=4.5);
   if(quickFilterBy==='budget') list = list.filter(d=>{
     const nums=String(d.p||'').match(/\d+/g);
@@ -4368,7 +4398,8 @@ async function pdRun(shuffle){
         else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por valoración${p.near&&userCoords?' y cercanía':''}</small></div>`;
         html += s.items.length ? s.items.map(d=>pdCard(d)).join('') : `<div class="emptystate">Nada con esos filtros 😕</div>`;
       });
-      if(out.sections.some(s=>s.items.length)) html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🎲 Otras opciones</button></div>`;
+      pdRun._items = out.sections.flatMap(s=>s.items);
+      if(out.sections.some(s=>s.items.length)) html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🎲 Otras opciones</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><button class="ghostBtn" data-group-vote>👥 Votar en grupo</button></div>`;
     } else {
       const out = await pdBuildPlan(p);
       notes.push(...out.notes);
@@ -4376,7 +4407,8 @@ async function pdRun(shuffle){
         const title = `Plan${p.dayLabel?' de '+p.dayLabel:''}${p.zoneLabels.length?' · '+p.zoneLabels.join(', '):''}`;
         html += `<div class="secTitle">🧭 ${pdEsc(title)} <small>${pdFmt(out.stops[0]._start)} → ${pdFmt(out.stops[out.stops.length-1]._end)}</small></div>`;
         html += `<div class="timeline">` + out.stops.map(s=>pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`})).join('') + `</div>`;
-        html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
+        pdRun._items = out.stops;
+        html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
     }
     const uniq = Array.from(new Set(notes));
@@ -4718,6 +4750,7 @@ function radarPopupHtml(d){
       <div class="radar-popup-actions">
         <button type="button" class="radar-popup-btn ${isFav?'is-favorite':''}" data-popup-fav="${escapeMapText(d.n)}">${isFav?'♥ Guardado':'♡ Guardar'}</button>
         <button type="button" class="radar-popup-btn map-popup-plan" data-popup-plan="${escapeMapText(d.n)}">＋ Mi plan</button>
+        <button type="button" class="radar-popup-btn" onclick="rentaShareSite(${escapeMapText(JSON.stringify(d.n))})">🔗 Compartir</button>
         <a class="radar-popup-btn primary" href="${links.gmapsView}" target="_blank" rel="noopener">Ver lugar ↗</a>
         ${radarNavHtml(d.n, d.z, d.locationVerified?d.lat:NaN, d.locationVerified?d.lon:NaN)}
         <button type="button" class="radar-popup-btn" data-popup-details="${escapeMapText(d.n)}">Ver ficha</button>
@@ -5037,7 +5070,8 @@ document.getElementById('venueSearch').addEventListener('input',e=>{
   venueSearchDebounceTimer=setTimeout(()=>renderResults(),100);
 });
 document.getElementById('sortResults').addEventListener('change',e=>{sortResultsBy=e.target.value;visibleCount=20;renderResults();});
-document.getElementById('quickFilter').addEventListener('change',e=>{quickFilterBy=e.target.value;visibleCount=20;renderResults();});
+document.getElementById('quickFilter').addEventListener('change',e=>{quickFilterBy=e.target.value;visibleCount=20;document.getElementById('openNowBtn')?.setAttribute('aria-pressed',String(quickFilterBy==='now'));renderResults();});
+document.getElementById('openNowBtn')?.addEventListener('click',e=>{const on=quickFilterBy!=='now';quickFilterBy=on?'now':'all';document.getElementById('quickFilter').value=quickFilterBy;e.currentTarget.setAttribute('aria-pressed',String(on));visibleCount=20;renderResults();});
 document.getElementById('surpriseBtn').addEventListener('click',showSurprise);
 document.getElementById('heroSurprise').addEventListener('click',showSurprise);
 document.getElementById('surpriseAgain').addEventListener('click',showSurprise);
@@ -5051,13 +5085,13 @@ const tabButtons = {guiado:'tabGuiado', directo:'tabDirecto', pide:'tabPide', au
 const tabOrder = ['guiado','directo','pide','autoplan','eventos','radarlab','match'];
 const searchSections = ['catCard','guiadoPanel','directoPanel','resultsHead','resultsList','loadMoreBtn','toggleSuggested','liveMapsBox'];
 
-document.addEventListener('click',e=>{const b=e.target.closest('#exploreSwitch [data-explore]');if(b)switchTab(b.dataset.explore);});
+document.addEventListener('click',e=>{const b=e.target.closest('#exploreSwitch [data-explore]');if(b)switchTab(b.dataset.explore);const g=e.target.closest('[data-go-tab]');if(g)switchTab(g.dataset.goTab);});
 function switchTab(tab){
   activeTab = tab;
   if(tab==='guiado' || tab==='directo') mode = tab;
 
   Object.entries(tabButtons).forEach(([key, id])=>{
-    document.getElementById(id).classList.toggle('active', key===tab || (key==='guiado' && tab==='directo'));
+    document.getElementById(id).classList.toggle('active', key===tab || (key==='guiado' && tab==='directo') || (key==='pide' && (tab==='autoplan'||tab==='radarlab')));
   });
   document.querySelectorAll('#exploreSwitch [data-explore]').forEach(b=>b.classList.toggle('active', b.dataset.explore===tab));
   { const sw=document.getElementById('exploreSwitch'); if(sw) sw.style.display=(tab==='guiado'||tab==='directo')?'flex':'none'; }
@@ -5083,7 +5117,7 @@ function switchTab(tab){
   document.getElementById('radarLabTabPanel').style.display = (tab==='radarlab') ? 'block' : 'none';
   document.getElementById('matchTabPanel').style.display = (tab==='match') ? 'block' : 'none';
   if(tab!=='radarlab') document.getElementById('radarLivePanel').hidden = true;
-  document.getElementById('tabbar').style.setProperty('--i', ['guiado','pide','autoplan','eventos','radarlab','match'].indexOf(tab==='directo'?'guiado':tab));
+  document.getElementById('tabbar').style.setProperty('--i', ['guiado','pide','eventos','match'].indexOf(tab==='directo'?'guiado':(tab==='autoplan'||tab==='radarlab')?'pide':tab));
   try{ navigator.vibrate && navigator.vibrate(8); }catch(e){}
 
   if(isSearch){ visibleCount=20; renderResults(); }
@@ -5958,6 +5992,100 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     const have=new Set(DATA.map(d=>d.n.toLocaleLowerCase('es')));
     j.sitios.forEach(x=>{if(!have.has(x.n.toLocaleLowerCase('es')))DATA.push(x);});
     try{renderResults();}catch(e){}}).catch(()=>{});
+})();
+</script>
+<script id="renta-share-vote">
+// Enlaces para compartir y votación en grupo, sin servidor: todo viaja dentro del enlace.
+(function(){
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const dec=t=>JSON.parse(decodeURIComponent(escape(atob(t.replace(/-/g,'+').replace(/_/g,'/')))));
+  const base=()=>location.origin+location.pathname;
+  const VOTES='renta-votaciones-v1';
+  const readVotes=()=>{try{return JSON.parse(localStorage.getItem(VOTES)||'{}')}catch(e){return {}}};
+  const saveVotes=v=>{try{localStorage.setItem(VOTES,JSON.stringify(v))}catch(e){}};
+  const find=n=>(DATA||[]).find(d=>d.n===n)||null;
+  async function share(title,text,url){
+    if(navigator.share){try{await navigator.share({title,text,url});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+    try{await navigator.clipboard.writeText(url);toast('Enlace copiado ✓');}catch(e){prompt('Copia este enlace:',url);}
+  }
+  function toast(t){const el=document.createElement('div');el.className='renta-toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2200);}
+  function overlay(html){
+    let o=document.getElementById('rentaVoteOverlay');
+    if(!o){o=document.createElement('div');o.id='rentaVoteOverlay';o.className='vote-overlay';document.body.appendChild(o);
+      o.addEventListener('click',e=>{if(e.target===o||e.target.closest('[data-vote-close]'))o.remove();});}
+    o.innerHTML=`<div class="vote-dialog"><button type="button" class="vote-close" data-vote-close aria-label="Cerrar">×</button>${html}</div>`;
+    return o;
+  }
+  const card=(n,i,sel)=>{const d=find(n)||{};const g=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(n+' '+(d.z||'Madrid'))}`;
+    return `<label class="vote-item ${sel?'on':''}"><input type="checkbox" data-vi="${i}" ${sel?'checked':''}><span class="vote-main"><b>${esc(n)}</b><small>${esc([d.cd||d.cm,d.z,d.p?d.p+' €':'',d.v?'★ '+d.v:''].filter(Boolean).join(' · '))}</small></span><a href="${g}" target="_blank" rel="noopener" class="vote-map">Maps ↗</a></label>`;};
+
+  // Compartir búsqueda de Pídeme
+  document.addEventListener('click',e=>{
+    if(e.target.closest('[data-share-query]')){
+      const q=document.getElementById('pideText').value.trim();if(!q)return;
+      share('Plan RENTA',`Mira lo que he encontrado: «${q}»`,`${base()}?pide=${encodeURIComponent(q)}`);
+    }
+    if(e.target.closest('[data-group-vote]')){
+      const names=[...new Set((pdRun._items||[]).map(d=>d.n))].slice(0,10);
+      if(names.length<2){toast('Necesito al menos 2 opciones');return;}
+      const t=document.getElementById('pideText').value.trim()||'¿Dónde vamos?';
+      const id=Date.now().toString(36);
+      const v=readVotes();v[id]={t,names,res:{}};saveVotes(v);
+      const url=`${base()}?votar=${enc({id,t,names})}`;
+      overlay(`<h3>👥 Votación creada</h3><p>Manda este enlace a tu grupo. Cada uno marca los sitios que le gustan y te devuelve su voto con otro enlace; al abrirlo aquí se suma al recuento.</p>
+        <div class="vote-actions"><a class="vote-btn primary" href="https://wa.me/?text=${encodeURIComponent('¿Dónde vamos? Vota aquí 👉 '+url)}" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a><button class="vote-btn" data-copy="${esc(url)}">🔗 Copiar enlace</button><button class="vote-btn" data-open-vote="${esc(url)}">🗳 Votar yo también</button></div>`);
+    }
+    const c=e.target.closest('[data-copy]');if(c){navigator.clipboard?.writeText(c.dataset.copy).then(()=>toast('Enlace copiado ✓'),()=>prompt('Copia este enlace:',c.dataset.copy));}
+    const ov=e.target.closest('[data-open-vote]');if(ov){const u=new URL(ov.dataset.openVote);showBallot(dec(u.searchParams.get('votar')),true);}
+    const r=e.target.closest('[data-show-results]');if(r)showResults(r.dataset.showResults);
+  });
+
+  // Papeleta: lo que ve cada amigo
+  function showBallot(poll,own){
+    const o=overlay(`<h3>🗳 ${esc(poll.t)}</h3><p>Marca todos los sitios que te apetezcan.</p><input class="vote-name" id="voteName" placeholder="Tu nombre" maxlength="24">
+      <div class="vote-list">${poll.names.map((n,i)=>card(n,i,false)).join('')}</div>
+      <div class="vote-actions"><button class="vote-btn primary" id="voteSend">${own?'✓ Guardar mi voto':'💬 Enviar mi voto'}</button></div>`);
+    o.querySelectorAll('[data-vi]').forEach(x=>x.addEventListener('change',()=>x.closest('.vote-item').classList.toggle('on',x.checked)));
+    o.querySelector('#voteSend').addEventListener('click',()=>{
+      const v=[...o.querySelectorAll('[data-vi]:checked')].map(x=>+x.dataset.vi);
+      if(!v.length){toast('Marca al menos un sitio');return;}
+      const who=(o.querySelector('#voteName').value.trim()||'Anónimo').slice(0,24);
+      if(own){addResult(poll,who,v);showResults(poll.id);return;}
+      const url=`${base()}?voto=${enc({id:poll.id,t:poll.t,names:poll.names,who,v})}`;
+      overlay(`<h3>¡Gracias, ${esc(who)}!</h3><p>Envía tu voto a quien creó la votación:</p><div class="vote-actions"><a class="vote-btn primary" href="https://wa.me/?text=${encodeURIComponent('Mi voto 👉 '+url)}" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a><button class="vote-btn" data-copy="${esc(url)}">🔗 Copiar enlace</button></div>`);
+    });
+  }
+  function addResult(poll,who,v){const all=readVotes();const p=all[poll.id]||(all[poll.id]={t:poll.t,names:poll.names,res:{}});p.res[who]=v;saveVotes(all);}
+  function showResults(id){
+    const p=readVotes()[id];if(!p)return;
+    const voters=Object.keys(p.res);const count=p.names.map((n,i)=>({n,c:voters.filter(w=>p.res[w].includes(i)).length,who:voters.filter(w=>p.res[w].includes(i))})).sort((a,b)=>b.c-a.c);
+    const max=Math.max(1,...count.map(x=>x.c));
+    overlay(`<h3>📊 ${esc(p.t)}</h3><p>${voters.length} voto${voters.length===1?'':'s'}: ${esc(voters.join(', ')||'todavía ninguno')}</p>
+      <div class="vote-results">${count.map((x,i)=>`<div class="vote-row ${i===0&&x.c?'win':''}"><div class="vote-row-top"><b>${i===0&&x.c?'🏆 ':''}${esc(x.n)}</b><span>${x.c}</span></div><div class="vote-bar"><i style="width:${x.c/max*100}%"></i></div><small>${esc(x.who.join(', '))}</small></div>`).join('')}</div>
+      <div class="vote-actions"><a class="vote-btn primary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(count[0].n+' Madrid')}" target="_blank" rel="noopener">📍 Ir al ganador</a></div>`);
+  }
+
+  // Al abrir la web con un enlace
+  const q=new URLSearchParams(location.search);
+  const clean=()=>history.replaceState(null,'',location.pathname);
+  window.addEventListener('load',()=>setTimeout(()=>{
+    try{
+      if(q.get('pide')){switchTab('pide');document.getElementById('pideText').value=q.get('pide');clean();pdRun(false);}
+      else if(q.get('votar')){const poll=dec(q.get('votar'));clean();showBallot(poll,false);}
+      else if(q.get('voto')){const r=dec(q.get('voto'));clean();addResult(r,r.who,r.v);showResults(r.id);toast(`Voto de ${r.who} añadido`);}
+      else if(q.get('sitio')){const n=q.get('sitio');clean();switchTab('guiado');const d=find(n);
+        if(d&&d.locationVerified&&window.radarMap){document.getElementById('mapShell').scrollIntoView({block:'start'});radarMap.setView([d.lat,d.lon],18);setTimeout(()=>{if(radarMarkers.zoomToShowLayer){radarMarkers.eachLayer(l=>{if(l.options.title===n)radarMarkers.zoomToShowLayer(l,()=>l.openPopup());});}},500);}
+        else{const s=document.getElementById('venueSearch');if(s){s.value=n;s.dispatchEvent(new Event('input'));}}}
+    }catch(e){clean();}
+    // Votaciones abiertas → acceso en Pídeme
+    const v=readVotes(),ids=Object.keys(v).slice(-3).reverse();
+    const box=document.getElementById('pideBox');
+    if(ids.length&&box&&!document.getElementById('myVotes')){box.insertAdjacentHTML('beforeend',`<div id="myVotes" class="my-votes"><b>👥 Tus votaciones</b>${ids.map(id=>`<button class="ghostBtn" data-show-results="${id}">${esc(v[id].t)} · ${Object.keys(v[id].res).length} votos</button>`).join('')}</div>`);}
+  },400));
+
+  // Compartir un sitio concreto desde su ficha del mapa
+  window.rentaShareSite=n=>share(n,`Mira este sitio: ${n}`,`${base()}?sitio=${encodeURIComponent(n)}`);
 })();
 </script>
 </body>

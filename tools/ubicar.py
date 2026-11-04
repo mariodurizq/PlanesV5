@@ -137,8 +137,11 @@ def google_pass(data):
         d['gcheck'] = today.isoformat()
         if not best: continue
         pl = best[1]; st = pl.get('businessStatus')
+        gname = (pl.get('displayName') or {}).get('text', '')
         if st == 'CLOSED_PERMANENTLY':
-            d['_remove'] = True; removed.append(f"{d['n']} ({d.get('z') or 'sin zona'})"); continue
+            if best[0] >= .88:   # solo se borra si el nombre coincide casi exactamente
+                d['_remove'] = True; removed.append(f"{d['n']} ({d.get('z') or 'sin zona'}) = Google: «{gname}»"); print('CERRADO', d['n'], '=', gname, round(best[0], 2)); continue
+            d['e'] = 'Revisar (posible cierre)'; print('DUDOSO', d['n'], '~', gname, round(best[0], 2)); continue
         if st == 'CLOSED_TEMPORARILY': d['e'] = 'Cerrado temporalmente'
         elif d.get('e') in ('Revisar (posible cierre)', 'Sin confirmar'): d['e'] = 'Abierto'
         if not d.get('locationVerified'):

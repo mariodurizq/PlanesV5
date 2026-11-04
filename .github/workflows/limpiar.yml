@@ -1,0 +1,28 @@
+# Verifica «Dónde comer» contra OpenStreetMap (a mano desde Actions o al cambiar el script)
+name: Limpiar Dónde comer
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/limpiar_comer.py']
+concurrency:
+  group: escribir-repo
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/limpiar_comer.py
+      - name: Guardar cambios
+        run: |
+          for f in comer-offline.json tools/comer_eliminados.json; do if [ -e "$f" ]; then git add "$f"; fi; done
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "renta-bot"
+          git config user.email "renta-bot@users.noreply.github.com"
+          git commit -m "Dónde comer verificado contra OpenStreetMap"
+          git pull --rebase -q origin main
+          git push

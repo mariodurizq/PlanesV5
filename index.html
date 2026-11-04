@@ -2149,7 +2149,9 @@ header.top.scrolled .tagline{max-height:0}
       if(wait) await new Promise(r=>setTimeout(r, wait));
       nomLast = Date.now();
       const qs = new URLSearchParams({format:'jsonv2', limit:'5', addressdetails:'1', extratags:'1', 'accept-language':'es', countrycodes:'es', ...params});
-      const resp = await fetch(NOMINATIM+'?'+qs.toString(), {headers:{'Accept':'application/json'}});
+      const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 6000);
+      const resp = await fetch(NOMINATIM+'?'+qs.toString(), {headers:{'Accept':'application/json'}, signal:ctrl.signal});
+      clearTimeout(timer);
       if(!resp.ok) throw new Error('HTTP '+resp.status);
       return resp.json();
     };
@@ -2158,17 +2160,20 @@ header.top.scrolled .tagline{max-height:0}
     return p;
   }
 
+  let downUntil = 0;   // si el mapa abierto falla, no se vuelve a intentar durante 60 s
   async function overpass(query){
+    if(Date.now() < downUntil) throw new Error('mapa abierto saturado');
     let lastError = null;
-    for(const endpoint of OVERPASS){
+    for(const endpoint of OVERPASS.slice(0,2)){
       try{
-        const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 25000);
+        const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 7000);
         const resp = await fetch(endpoint, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body:'data='+encodeURIComponent(query), signal:ctrl.signal});
         clearTimeout(timer);
         if(!resp.ok) throw new Error('HTTP '+resp.status);
         return await resp.json();
       }catch(e){ lastError = e; }
     }
+    downUntil = Date.now() + 60000;
     throw lastError || new Error('Sin respuesta');
   }
 
@@ -4141,6 +4146,10 @@ function pdPlaceToItem(pl, cm, city){
     priceLevel:pls[pl.priceLevel]||'', link:pl.googleMapsUri||null, city:city||'', _places:pl};
 }
 async function pdLive(want, p, cityName, limit){
+  const timeout = new Promise(res=>setTimeout(()=>res({items:[], error:'el mapa abierto tarda demasiado; te enseño lo que ya tengo'}), 6000));
+  return Promise.race([pdLiveCore(want, p, cityName, limit), timeout]);
+}
+async function pdLiveCore(want, p, cityName, limit){
   const rel = p.subs.filter(x=> x.on ? x.on===want.id : !!want.meal); const sub = rel.length ? rel[0].label : '';
   const zone = p.zoneLabels[0] || '';
   const place = cityName ? cityName : (zone ? zone+' Madrid' : 'Madrid');
@@ -4152,19 +4161,22 @@ async function pdLive(want, p, cityName, limit){
 
 // ---- construcción de lista ----
 async function pdBuildList(p, shuffle){
-  const out = await pdBuildListCore(p, shuffle);
+  return pdBuildListCore(p, shuffle);
+}
+// Sitios nuevos que no tienes guardados: se calculan después de pintar la respuesta y se añaden al final
+async function pdNewSection(p, out){
   // Siempre propone sitios nuevos que no tienes guardados (con reseñas si vienen de nuevos.json)
   try{
-    const w = p.wants[0]; if(!w || p.city) return out;
+    const w = p.wants[0]; if(!w || p.city) return null;
     const shown = new Set(out.sections.flatMap(s=>s.items.map(i=>pdNorm(i.n))));
     const known = new Set(DATA.filter(d=>!d.nuevo).map(d=>pdNorm(d.n)));
     const fits = new Set(pdFilter(w, p, new Set(), 9999, false).items.filter(x=>!p.zones.length||x._tier<2).map(x=>x.n));
     let fresh = DATA.filter(d=>d.nuevo && !shown.has(pdNorm(d.n)) && fits.has(d.n)).sort((a,b)=>(b.v||0)-(a.v||0));
     if(fresh.length<3){ const r = await pdLive(w, p, null, 10); fresh = fresh.concat((r.items||[]).filter(i=>!known.has(pdNorm(i.n)) && !shown.has(pdNorm(i.n)))); }
     const seen=new Set(); fresh = fresh.filter(i=>{const k=pdNorm(i.n);if(seen.has(k))return false;seen.add(k);return true;}).slice(0,4);
-    if(fresh.length) out.sections.push({want:{...w, label:'✨ Sitios nuevos que no tienes guardados'}, items:fresh.map(i=>Object.assign({},i,{nuevo:true}))});
+    if(fresh.length) return {want:{...w, label:'✨ Sitios nuevos que no tienes guardados'}, items:fresh.map(i=>Object.assign({},i,{nuevo:true}))};
   }catch(e){}
-  return out;
+  return null;
 }
 async function pdBuildListCore(p, shuffle){
   const out = {sections:[], notes:[]};
@@ -4184,7 +4196,7 @@ async function pdBuildListCore(p, shuffle){
         // Respetar la zona pedida: solo lo que está en ella (tiers 0-1) + sitios reales del mapa de esa zona
         const inZone = f.items.filter(d=>d._tier<2);
         items = pdShuffleTop(pdSort(inZone, p), qty, shuffle);
-        if(items.length<qty){
+        if(items.length<Math.min(3,qty)){
           const r = await pdLive(w, p, null, qty*2);
           const have = new Set(items.map(i=>pdNorm(i.n)));
           const extra = (r.items||[]).filter(i=>!have.has(pdNorm(i.n)));
@@ -4192,7 +4204,15 @@ async function pdBuildListCore(p, shuffle){
           else if(r.error) out.notes.push('Mapa: '+r.error);
           items = items.concat(extra).slice(0,qty);
         }
-        if(!items.length) out.notes.push(`No he encontrado "${w.label}" en ${p.zoneLabels.join(', ')}. Prueba con otra zona cercana.`);
+        if(!items.length){
+          // Sin conexión con el mapa: lo más cercano de tu lista a esa zona
+          const zp = DATA.filter(d=>p.zones.some(z=>pdNorm(d.z).includes(z))).map(d=>[d.zlat??d.lat, d.zlon??d.lon]).find(c=>Number.isFinite(c[0]));
+          if(zp){
+            items = f.items.filter(d=>Number.isFinite(d.lat)).map(d=>Object.assign({},d,{_d:haversine(zp[0],zp[1],d.lat,d.lon)})).sort((a,b)=>a._d-b._d).slice(0,qty);
+            if(items.length) out.notes.push(`No tengo "${w.label}" en ${p.zoneLabels.join(', ')}; te dejo los más cercanos de tu lista (con la distancia).`);
+          }
+          if(!items.length) out.notes.push(`No he encontrado "${w.label}" en ${p.zoneLabels.join(', ')}. Prueba con otra zona cercana.`);
+        }
         out.sections.push({want:w, items});
         continue;
       }
@@ -4319,6 +4339,14 @@ async function pdRun(shuffle){
       resEl.innerHTML = named.map(d=>pdCard(Object.assign({src:d.info?'sug':'lista'},d))).join('');
       return;
     }
+    // Sin categoría clara: decide sola según el contexto (bebida → copas; resto → comer)
+    const t = pdNorm(raw);
+    const guess = /\b(beber|copa|copas|tomar algo|salir de noche|fiesta|bailar)\b/.test(t) ? 'cock' : /\b(cafe|merendar|desayun|dulce)\b/.test(t) ? 'cafe' : /\b(hacer algo|ocio|actividad|aburrido|tranquilo|plan)\b/.test(t) && !/\b(comer|cenar|cena|comida)\b/.test(t) ? 'ocio' : 'food';
+    p.wants = [PD_CATS.find(c=>c.id===guess)];
+    p.notes.push(`No me dijiste el tipo de sitio, así que interpreto que buscas: ${p.wants[0].label}. Si no es eso, dime por ejemplo "cena italiana", "copas" o "brunch".`);
+    p.modeHint = p.modeHint || 'lista';
+  }
+  if(false){
     uEl.innerHTML = '';
     resEl.innerHTML = `<div class="pideNote">No he pillado qué tipo de sitio buscas 🤔 Dime categoría (cena, copas, rooftop, japonés, hamburguesa, discoteca, brunch…), y si quieres zona, hora o cuántas opciones. ${pdEsc(PD_EXAMPLES_FAIL)}</div>`;
     return;
@@ -4353,6 +4381,17 @@ async function pdRun(shuffle){
     const uniq = Array.from(new Set(notes));
     resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + html;
     const sh = document.getElementById('pideShuffle'); if(sh) sh.onclick = ()=>pdRun(true);
+    // Después, sin bloquear: sitios nuevos que no tienes guardados
+    if(mode==='lista'){
+      const token = (pdRun._token = (pdRun._token||0)+1);
+      const holder = document.createElement('div'); holder.className='pideNewHolder';
+      holder.innerHTML = `<div class="pideNote">🔎 Buscando sitios nuevos que no tienes guardados…</div>`;
+      const actions = resEl.querySelector('.actionsRow'); if(actions) actions.before(holder); else resEl.appendChild(holder);
+      pdNewSection(p, null).then(sec=>{
+        if(pdRun._token!==token || !holder.isConnected) return;
+        holder.innerHTML = sec ? `<div class="secTitle">${sec.want.label} <small>${sec.items.length} opciones</small></div>` + sec.items.map(d=>pdCard(d)).join('') : '';
+      }).catch(()=>{ holder.remove(); });
+    }
   } catch(e){
     resEl.innerHTML = `<div class="pideNote">⚠ Algo falló: ${pdEsc(e.message)}</div>`;
   } finally {

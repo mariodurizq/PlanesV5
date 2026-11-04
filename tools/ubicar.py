@@ -126,6 +126,7 @@ def google_pass(data):
             s = sim(d['n'], (pl.get('displayName') or {}).get('text', ''))
             loc = pl.get('location') or {}
             if s < .7 or 'latitude' not in loc: continue
+            if km(40.4168, -3.7038, loc['latitude'], loc['longitude']) > 60: continue   # fuera de la Comunidad de Madrid
             dk = km(zlat, zlon, loc['latitude'], loc['longitude']) if zlat is not None else None
             if dk is not None and dk > 8: continue
             if not best or s > best[0]: best = (s, pl)
@@ -243,7 +244,7 @@ def main():
                 s = sim(d['n'], r.get('name') or r.get('display_name', '').split(',')[0])
                 lat, lon = float(r['lat']), float(r['lon'])
                 zlat, zlon = d.get('zlat'), d.get('zlon')
-                if s < .75 or (zlat is not None and km(zlat, zlon, lat, lon) > 8): continue
+                if s < .75 or (zlat is not None and km(zlat, zlon, lat, lon) > 8) or km(40.4168, -3.7038, lat, lon) > 60: continue
                 ex = r.get('extratags') or {}; a = r.get('address') or {}
                 d['lat'], d['lon'] = round(lat, 6), round(lon, 6); d['locationVerified'] = True
                 if ex.get('opening_hours'): d['oh'] = ex['opening_hours']

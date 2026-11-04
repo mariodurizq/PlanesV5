@@ -79,7 +79,9 @@ def main():
         for p in res:
             name = (p.get('displayName') or {}).get('text', '')
             if not name or p.get('businessStatus') not in (None, 'OPERATIONAL') or sim(name, m['n']) > .8 or basura(name, m['n']): continue
-            puestos.append({'n': re.sub(r'\s*[-–|·]\s*(mercado|market).*$', '', name, flags=re.I).strip(), 'tipo': tipo(p)})
+            loc = p.get('location') or {}
+            puestos.append({'n': re.sub(r'\s*[-–|·]\s*(mercado|market).*$', '', name, flags=re.I).strip(), 'tipo': tipo(p),
+                            'lat': round(loc.get('latitude', 0), 6) or None, 'lon': round(loc.get('longitude', 0), 6) or None})
         if len(puestos) >= 3:
             m['puestos'] = sorted(puestos, key=lambda x: (x['tipo'], x['n']))
             m['tipos'] = sorted({x['tipo'] for x in puestos})

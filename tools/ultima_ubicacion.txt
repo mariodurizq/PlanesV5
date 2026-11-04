@@ -1,297 +1,144 @@
-Ubicación del 2026-11-03
-339 de 699 sitios con coordenadas reales (316 por mapa abierto, 20 por búsqueda individual).
+Ubicación del 2026-11-04
+538 de 622 sitios con coordenadas reales (320 por mapa abierto, 19 por búsqueda individual).
 3 marcados como posible cierre en el mapa.
+77 eliminados por estar cerrados definitivamente según Google.
+170 con foto de su web oficial.
+
+Eliminados:
+- Quadrato Pizzeria (sin zona) = Google: «Quadrato Pizzeria»
+- Tetehookah 火咖 (Usera) = Google: «Tetehookah 火咖»
+- Rhudo (Salamanca) = Google: «Rhudo»
+- Chun-Li Dumplings - Ópera (Centro) = Google: «Chun-Li Dumplings - Ópera»
+- Yeite (Centro) = Google: «Yeite»
+- Food Hall Galería Canalejas (Centro) = Google: «Food Hall Galería Canalejas»
+- Cardinale Food & Spritz (Centro) = Google: «Cardinale Food & Spritz»
+- Las carnes de Martín (Centro) = Google: «Las carnes de Martín»
+- SyMental Rojas Madrid (Chamberí) = Google: «SyMental Rojas Madrid»
+- Saoko Club Lounge (Las Rozas) = Google: «Saoko Club Lounge»
+- La Carlota Restaurante (Centro) = Google: «La Carlota»
+- BDP Burger Getafe (Getafe) = Google: «BDP Burger Getafe»
+- Pastrami Rolls (Salamanca) = Google: «Pastrami Rolls»
+- MAMBA LUXE (Puente de Vallecas) = Google: «MAMBA LUXE»
+- Ocean Shisha Lounge (Puente de Vallecas) = Google: «Ocean Shisha Lounge»
+- My Lounge (Tetuán) = Google: «My Lounge Madrid»
+- Iztac (Chamartín) = Google: «Restaurante Iztac»
+- Can chan chán (Salamanca) = Google: «Can chan chán»
+- ImPasta Santa Engracia (Chamberí) = Google: «ImPasta Santa Engracia»
+- Hijos de Tomás (Centro) = Google: «Hijos de Tomás»
+- Burghetto (Chamberí) = Google: «Burghetto»
+- Döggo (Chamberí) = Google: «Döggo»
+- Makitake Goya (Salamanca) = Google: «Makitake Goya»
+- Barhop Madrid (Centro) = Google: «Bar Barhop Madrid»
+- RED PROJECT SUSHI MADRID (Salamanca) = Google: «RED PROJECT SUSHI RESTAURANTE MADRID»
+- Chihuahua Tacos y Tragos La Moraleja (Alcobendas) = Google: «Chihuahua Tacos y Tragos La Moraleja»
+- Lobo Club (Las Rozas) = Google: «Lobo Club»
+- MR HOOKAH LOUNGE (Vicálvaro) = Google: «Mr. Hookah»
+- Napoli Gang - Ópera (Centro) = Google: «Napoli Gang - Ópera»
+- BiBi Burger (Chamartín) = Google: «BiBi Burger»
+- Big Cow (Getafe) = Google: «Big Cow»
+- PlayBack Madrid (Centro) = Google: «PlayBack Madrid»
+- Luxury Monkey (Las Rozas) = Google: «Luxury Monkey»
+- The Dacri's Hookah (Getafe) = Google: «The Dacri's Hookah»
+- Fasfú burgers (Centro) = Google: «Fasfú Burgers»
+- Martinica Madrid (Salamanca) = Google: «Martinica Madrid»
+- Sushitokyo (Centro) = Google: «Sushitokyo»
+- Rua Street Burger (Centro) = Google: «Rua Street Burger»
+- Jersey Amarillo (Fuencarral-El Pardo) = Google: «Restaurante Jersey Amarillo»
+- La Cocina Bar (Chamartín) = Google: «La Cocina Bar»
+- LOYALTY - RESTAURANT & CLUB (Chamartín) = Google: «LOYALTY - RESTAURANT & CLUB»
+- La Pica Lounge Bar (Ciudad Lineal) = Google: «La Pica Lounge Bar»
+- Restaurante El Gallo Campo de las Naciones (Hortaleza) = Google: «Restaurante El Gallo Campo de las Naciones»
+- That's Amore (Centro) = Google: «That’s Amore»
+- Monkey Lounge Pub (Centro) = Google: «Monkey Lounge Pub»
+- E-teon Lounge (sin zona) = Google: «E-teon Lounge»
+- Kamado Asian Food (Centro) = Google: «Kamado Asian Food»
+- El Cuento Bar (Salamanca) = Google: «El Cuento Bar»
+- The Eight Burger (Centro) = Google: «The Eight Burger»
+- Knowmad Madrid - Príncipe de Vergara (Salamanca) = Google: «Knowmad Madrid - Príncipe de Vergara»
+- WELKHOMEclub (Chamberí) = Google: «WELKHOMEclub»
+- Miss Sushi Serrano (Salamanca) = Google: «Miss Sushi Serrano»
+- Nitty Gritty (Chamartín) = Google: «Nitty Gritty»
+- ILUSHION HOOKAH (sin zona) = Google: «ILUSHION HOOKAH»
+- Zento Gastro-Birreria (Alcorcón) = Google: «Zento Gastro-Birreria»
+- Revival Cafe Madrid (Moncloa-Aravaca) = Google: «Revival Cafe Madrid»
+- Maddock Madrid (Chamberí) = Google: «Restaurante Maddock»
+- TAKOMAMA (Centro) = Google: «TAKOMAMA»
+- Pepe taco (Chamberí) = Google: «Pepe Taco»
+- Rude Burger (Salamanca) = Google: «Rude Burger»
+- Amargo place to be (Centro) = Google: «Amargo place to be»
+- Maricastaña (Centro) = Google: «Maricastaña»
+- KENZO RESTAURANTE CLUB&LOUNGE (Arroyomolinos) = Google: «Kenzo Restaurante Club&Lounge»
+- The Stuyck Co (Centro) = Google: «The Stuyck Co»
+- FAMOUS SHISHAS 2 (Retiro) = Google: «FAMOUS SHISHAS 2»
+- Sotto Club - Discoteca y sala de eventos en Bernabéu (Chamartín) = Google: «Sotto - Discoteca y sala de eventos en Bernabéu»
+- Los Costilla (Salamanca) = Google: «Los Costilla - Burgers & Ribs»
+- Taxi a Manhattan (Tetuán) = Google: «Taxi a Manhattan»
+- Black Diamond (San Blas-Canillejas) = Google: «Black Diamond»
+- Angelita Madrid Sky Bar (Retiro) = Google: «Angelita Madrid Sky Bar»
+- Vacaciones Cocktail Bar (Centro) = Google: «Vacaciones Cocktail Bar»
+- My Way Madrid Sky Bar (Centro) = Google: «My Way Sky Bar»
+- Ático 11 (Centro) = Google: «Ático 11»
+- Pointer Madrid (Centro) = Google: «Pointer Madrid»
+- Gustami italia (Centro) = Google: «Gustami italia»
+- MY Hookah Room - Shisha / Cachimba Madrid (Retiro) = Google: «MY Hookah Room»
+- Etnico Madrid (Centro) = Google: «Etnico Madrid»
 
 Sin ubicar:
-- Ni-Fu Ni-Fa
-- Gaston Wine Bar Madrid
-- Snake Bar
-- Biri Biri
-- UBA Wine Bar
-- Lolli Gelato
-- Restaurante Fino Bar - Alcalá de Henares
-- Florentine Madrid - Rooftop Italian Restaurant
-- Primo Restaurante Taquería
-- Only YOU Boutique Hotel Madrid
-- TAKAMI SUSHI (buffet libre)
-- Marciano
-- Fat Cats Cocktail House
-- SUSHI MOCHI
-- LA CANTERA DEL TINTERILLO
-- TalCual
-- Issei Nikkei Restaurante
-- Yantar Sidrería Gastronómica
-- Baoyilong
-- Sidrería El Texu
-- El Texu de Getafe
-- Bizzo Canalla
-- Casa Mùi
-- Restaurante Allegra
-- El Patio de Triana. Taberna andaluza en Retiro
-- Tangiers Lounge Madrid
-- TKO Tacos Lavapies
-- Giulietta | Restaurante Italiano Madrid
-- Hamburguesas | QW Foodtruck Sol
-- High Bar Shisha Lounge - 嗨吧
-- Mojito´s Cocktail bar
-- Quadrato Pizzeria
-- Restaurante Santancha
-- La Nave Burger
-- La Parrilla de Salamanca
-- SLVJ Moraleja
-- Bolus Burger Gran vía - Callao
-- Madame Sushita
-- Makkila Almagro
-- Chicago Style Pizza
-- Quinto elemento Restaurante
-- Restaurante Mala mía
-- Mercado de la Reina 10
-- Makáá (Centro)
-- Francesco's - Alcalá de Henares (Alcalá de Henares)
-- LLORERIA CLUB (Centro)
-- 61.sixtyone (Chamberí)
-- Rocker Pozuelo (Pozuelo de Alarcón)
-- Gabo's (Centro)
-- Fendi lounge (Villa de Vallecas)
-- Four Elements Shisha Lounge Madrid (Tetuán)
-- Bonjuk y bibimbap (Salamanca)
-- Celestial Urban Burgers (Getafe)
-- Street Food Burger Madrid (Tetuán)
-- Wimi Sushi (Salamanca)
-- Restaurante Llauna (Chamberí)
-- DevorArte (Villaviciosa de Odón)
-- Tetehookah 火咖 (Usera)
-- Nox Aurea (Moratalaz)
-- Harmony Lounge & Bar (Chamartín)
-- Abacería La Pastelería | Vinos Naturales (Centro)
-- Okio Asian Street Market (Hortaleza)
-- Skyrland (Chamberí)
-- Rhudo (Salamanca)
-- DALÙ BURGER (Chamberí)
-- Boa Lounge (Salamanca)
-- Chuck Chuck Chicken (Tetuán)
-- HOST - Coffee & Wine (Chamberí)
-- Ki-Jote Restaurante Fusiòn (Alcalá de Henares)
-- Restaurante Eximio (Alcalá de Henares)
-- Ebano Gastro Experience (Alcalá de Henares)
-- Akiro Hand Roll Bar (Salamanca)
-- Kokó Classic (Moncloa-Aravaca)
-- Restaurante PAROLE - Pizzería Italiana (Chamberí)
+- El Canalla - Irish Pub & Sports Bar
 - SAM'S (Chamartín)
-- Chun-Li Dumplings - Ópera (Centro)
-- Osaka Ramen (Moratalaz)
-- Kippu (Salamanca)
-- La Milanese Madrid (Salamanca)
-- Parking Pizza MONTE ESQUINZA (Chamberí)
-- Pizzería da Michele Madrid (Salamanca)
-- Sushi Shoo Buffet Madrid (Salamanca)
-- MAMA UMA MARKET (Centro)
 - Lynch - Food and Cocktails (Centro)
-- Manteca Burgers (Salamanca)
-- Le Chinois Restaurante (Salamanca)
-- LA REVOLUCIÓN BURGER (Salamanca)
-- Relleno (Salamanca)
-- Humo Smoke & Grill (ahora Aumo Smoke & Grill) (Chamartín)
-- Campogrande La Cuna Del Buey (Chamberí)
-- Yeite (Centro)
-- Munchies by foodgoddess (Centro)
 - Jenkin's - Orense (Tetuán)
 - Élkar - Restaurante en la Castellana (Fuencarral-El Pardo)
-- MATEO HONTEN (Centro)
-- Monaco preparty lounge (Villaverde)
-- Circolo Popolare Madrid (Tetuán)
-- Pabblo (Tetuán)
-- ENKAI (Centro)
 - GOAT MADRID (Centro)
-- SyMental Rojas Madrid (Chamberí)
 - Loca obsesión Restaurante/ brunch (Centro)
-- Parking Pizza (Chamberí)
-- Saoko Club Lounge (Las Rozas)
-- La Carlota Restaurante (Centro)
-- Ferretería Restaurante (Centro)
-- El cielo de calima (Villaviciosa de Odón)
-- TRAMO (Chamartín)
 - Zen asian supper club (ZEN Velázquez) (Salamanca)
-- Yes! Hamburgers (Arganzuela)
-- JEKES - Kebabs pero bien (Tetuán)
-- Simba Lounge (Puente de Vallecas)
 - Kilda Food (Chamberí)
 - On Sushi San Sebastián De Los Reyes (San Sebastián de los Reyes)
-- BDP Burger Getafe (Getafe)
-- Pastrami Rolls (Salamanca)
-- Tetería Cryptoshisha Lounge (Fuencarral-El Pardo)
-- MAMBA LUXE (Puente de Vallecas)
-- Ocean Shisha Lounge (Puente de Vallecas)
-- My Lounge (Tetuán)
-- 400 Grados Pizza (Salamanca)
-- BRICKELL Majadahonda (Majadahonda)
 - LA PÉCORA Gastrobar & Terraza (Arroyomolinos)
-- Iztac (Chamartín)
-- Bonhomia Lounge (Puente de Vallecas)
-- Restaurante Japonés Inari (Salamanca)
 - Ostinato
 - MY Hookah Da Club (Chamartín)
-- HUNDRED (Moncloa-Aravaca)
-- The Kyoto Lounge (Chamberí)
-- Can chan chán (Salamanca)
-- Frankie Burgers Espronceda (Chamberí)
-- Burger Jazz (Centro)
-- Ginza Restaurante (Ginza Food Hall) (Centro)
-- XOLO Cocktails & Nikkei Food (Centro)
-- EL PUERTITO (Chamberí)
-- La Tomata Eguilaz (Chamberí)
-- BANDIDOS BURGER (Fuencarral-El Pardo)
-- Sinvergüenza (Arroyomolinos)
-- Hijos de Tomás (Centro)
-- Yama Sushi (Fuencarral-El Pardo)
-- Burghetto (Chamberí)
-- Club Financiero Génova (Centro)
-- Makitake Goya (Salamanca)
-- HAM! Fresh Burger Madrid (Carabanchel)
-- El Rancho de Santa África (Majadahonda) (Majadahonda)
-- Robata Madrid (Salamanca)
-- Oharas Irish Club & Restaurant (Pozuelo de Alarcón)
 - Zozou Club
-- Chihuahua Tacos y Tragos La Moraleja (Alcobendas)
-- Bunker Cocktail Bar (Centro)
-- Restaurante Argentino The Knife (Ciudad Lineal)
-- Planta Z Food Truck & Terrace (Tetuán)
 - Taberna Murciana
-- ívora restaurante (Chamberí)
-- Sushiaoi (Salamanca)
-- Tennessee BBQ (Ciudad Lineal)
-- La Cerda de Chueca (Centro)
-- Lobo Club (Las Rozas)
 - Restaurante Wanderlust CC Plaza Río 2
-- MR HOOKAH LOUNGE (Vicálvaro)
-- Arrogante Restaurante Madrid (Salamanca)
-- Napoli Gang - Ópera (Centro)
 - Burro Canaglia Bar&Resto - Manuel Becerra (Salamanca)
 - Peppe Fusco The Italian (Chamberí)
-- BiBi Burger (Chamartín)
-- PlayBack Madrid (Centro)
-- Restaurante Nokoribi (Chamberí)
-- MUERDO (Chamberí)
-- Hambrientos hasta el amanecer (Las Rozas)
-- Jack's Library (Centro)
-- Lolina Vintage Café (Centro)
 - Tiki Taco Princesa
-- Maldita Gioconda (Centro)
-- LA FONTANA GASTRO (Barajas)
-- Luxury Monkey (Las Rozas)
-- La Prensa Burgers & Beers (Centro)
-- Cesar's burgers (Arganzuela)
 - Occhiali Restaurante (Ottica) (Chamartín)
 - El Japo Carranza (Chamberí)
-- Yakiniku Shōgun (Chamberí)
-- NAP Malasaña (Centro)
 - Q78 (Salamanca)
-- VANDIDO (Salamanca)
-- Estando Contigo (Centro)
-- Kaos Madrid (Centro)
 - Baku Nights
 - Restaurante Wanderlust C.C X MADRID (Getafe)
-- The Dacri's Hookah (Getafe)
-- Cachimbón (Moncloa-Aravaca)
-- Oroya Madrid (Centro)
 - Serendipia La Caza Endulzada (Centro)
 - SLVJ VELÁZQUEZ (Salamanca)
-- Negroni 18 Arturo Soria bar musical (Ciudad Lineal)
-- Sushitokyo (Centro)
-- Rua Street Burger (Centro)
-- MOKAI BEACH CLUB (Rivas-Vaciamadrid)
 - Saona (Salamanca-Madrid)
-- Saona Pozuelo (Pozuelo de Alarcón)
-- Saona Las Rozas (Las Rozas)
-- Jersey Amarillo (Fuencarral-El Pardo)
 - Horizon Madrld (Tetuán)
-- Camino (Chamartín)
 - Bar Malos
 - Osadía Restaurante & Sky Bar (Centro)
 - LIMBO | Tribunal (Centro)
-- Envy Hookah (Chamartín)
 - Yasemin&Tuncel Café (Chamberí)
-- La Cocina Bar (Chamartín)
 - Ignis Cocktail Lounge (Fuenlabrada)
-- ELBACKSTAGE CLUB ROCK&ROLL (Centro)
 - El 11 Resto-Brunch
-- Tropicana Beach Club Madrid (Centro)
-- Puzles Madrid (Retiro)
 - Zoko Retiro (Retiro)
-- Teteria Afnan (Villa de Vallecas)
-- LOYALTY - RESTAURANT & CLUB (Chamartín)
-- La Pica Lounge Bar (Ciudad Lineal)
 - Babels (Centro)
 - Naguara hookah (Centro)
-- Restaurante El Gallo Campo de las Naciones (Hortaleza)
 - Glück Cervecería - Madrid
 - LA CHORIPANERIA (Centro)
-- Ficus Bar (Centro)
-- Vulcano Grill (Torrejón de Ardoz)
-- That's Amore (Centro)
-- Shambala Lounge Cocktail | Bar & Cócteles (Centro)
-- MAWEY Taco Bar - Gran Vía (Centro)
-- MAWEY Taco Bar - Olid (Chamberí)
-- Pizzart Villa Fuencarral (Centro)
-- Camerino Cocktail Bar (ComerDCine) (Salamanca)
-- Monkey Lounge Pub (Centro)
-- E-teon Lounge
 - Lovo Bar Madrid (Centro)
-- Kamado Asian Food (Centro)
-- La burlona bar (Centro)
 - redbar Madrid | Plaza España (Centro)
-- Beer Pong Madrid (Malasaña31) (Centro)
-- Restaurante Salitre (Taberna Salitre) (Salamanca)
-- Bule Bule Madrid (Centro)
-- La Carne x Castigo Delivery (Navalcarnero)
-- Altitude Trampoline Park Leganés (Leganés)
 - BARAKA drinks & Pool
-- The Eight Burger (Centro)
-- Meneo (Chamberí)
 - Santita (Chamartín)
-- Knowmad Madrid - Príncipe de Vergara (Salamanca)
-- Knowmad Madrid - Goya (Salamanca)
 - Red Roo Australian Restaurant
-- Pizza Natura (Centro)
-- WELKHOMEclub (Chamberí)
-- Smoked Room. Fire Omakase (Chamberí)
-- Puntarena (Chamberí)
 - Jaguar Hookah Lounge (Puente de Vallecas)
-- Restaurante La Ancha Zorrilla (Centro)
 - Bloom (Chamberí)
 - NoLiTa Club-Bar | Majadahonda | Eventos (Majadahonda)
-- Ovoxo Hookah (Fuenlabrada)
 - Sushi YAKUZA
 - Cor e Cor (Centro)
 - The Chapel by Sin Sombrero (Salamanca)
 - Hemingway Cocktail Bar
-- Room Mate Macarena - Gran Via Hotel (Centro)
-- El Social (Centro)
-- Bonamara Madrid (Móstoles)
-- Pintxaki (Pozuelo de Alarcón)
 - El Rayo Verde
-- Restaurante Botania (Centro)
-- El Jardín de Diana (Centro)
-- Nitty Gritty (Chamartín)
-- Mamá Chicó (Hortaleza)
-- BiBo Dani García (Salamanca)
 - Panoramic Bar
-- BAM Karaoke Box Recoletos (Salamanca)
-- Alboroto Experience
-- Bambú (Bambú Garden) (Ciudad Lineal)
-- Oashis - Cocktails & Shishas
 - Restaurantes - El Jardín de La Máquina (Moncloa-Aravaca)
-- Caramba (Centro)
-- ILUSHION HOOKAH
-- Le Bombay Cafe (Móstoles)
-- Tayrona (Salamanca)
 - PANDORA Cocktail and Shisha - SUNSET Chill Out Terraza Fuenlabrada (Fuenlabrada)
-- La Diavla "Mexican&Wild" (Retiro)
-- Anubis coctelería & coffee (Caleido) (Fuencarral-El Pardo)
-- Zento Gastro-Birreria (Alcorcón)
-- Cachopo's by YuGa (Villa de Vallecas)
-- Restaurante Arrocería La Proa (Fuenlabrada)
-- Ohana Coctails (Moratalaz)
 - Wings 4 You
 - Manawa Hookah (Móstoles)
 - Yukatán Hookah Lounge
@@ -299,67 +146,25 @@ Sin ubicar:
 - ZEST (Chamberí)
 - Copos Aventura13 (Pinto)
 - Figaro Pizza Bar (Centro)
-- Hibou Shishas & Cocktails (Villa de Vallecas)
-- Mulandarah shishas y cocteles (Villa de Vallecas)
 - El Edén Hawaiano (El Edén) (Rivas-Vaciamadrid)
-- Bosco de Lobos (Centro)
-- Terraza de Sabatini (Moncloa-Aravaca)
-- Dingo Restaurante
 - Paperboy
-- Hotel Indigo Madrid - Gran Vía (Centro)
 - KOKÓ URBAN
-- Botánica Lounge Concept
-- Habana Lounge (San Blas-Canillejas)
-- Bentleys Burger (Velilla de San Antonio)
 - Bacoa Burger
-- Doña Tecla (Tetuán)
 - Euphoria Hookah Lounge (Puente de Vallecas)
-- Zenith Brunch & Cocktails - Madrid (Centro)
-- Saona Balboa (Salamanca)
-- Maddock Madrid (Chamberí)
-- Rude Burger (Salamanca)
-- Drakarys Club (Boadilla del Monte)
-- La Realidad (Centro)
-- Gorila Malasaña (Centro)
-- KENZO RESTAURANTE CLUB&LOUNGE (Arroyomolinos)
-- KÜCHE (ahora Restaurante Memories) (Centro)
 - Mela Hookah
 - Bavylon shisha&cocktails
 - KIMBALA LOUNGE CLUB
 - Massart Pizza - Goya (Salamanca)
-- FAMOUS SHISHAS 2 (Retiro)
-- Palacio de Arena
 - Teteria Darkom (Centro)
 - Tetería Ben Barek, Shisha,hooka, narguile (Centro)
 - Haroko Lounge (Pozuelo de Alarcón)
-- El Gordo y El Flaco (Chamberí)
 - White Moon Shisha club
-- Sotto Club - Discoteca y sala de eventos en Bernabéu (Chamartín)
-- Morao Tapas (Alcobendas)
-- Taxi a Manhattan (Tetuán)
-- Black Diamond (San Blas-Canillejas)
 - Shisha's Lounge
 - Anubis Cócteleria Plaza Mayor
-- Salón de Té Al Yabal (Tearoom Al Jabal) (Arganzuela)
 - Teje y Maneje
 - Café del Soul
-- Vacaciones Cocktail Bar (Centro)
-- Sky 44 Madrid | Terraza - Bar (Centro)
-- My Way Madrid Sky Bar (Centro)
 - BLESS Hotel Madrid (Salamanca)
-- Ático 11 (Centro)
-- Alegrias (La Mojiteria) (Centro)
 - Kambarah Alcocer
-- Serendipia Lounge (Villa de Vallecas)
-- 7 Islas Hotel Madrid (Centro)
-- Gustami italia (Centro)
-- Bowling Chamartín - bolera en madrid (Chamartín)
-- Picalagartos Sky Bar (Centro)
-- Parque Juan Carlos I (Barajas)
-- Zielou (Chamartín)
 - GYMAGE Lounge Resort
-- MY Hookah Room - Shisha / Cachimba Madrid (Retiro)
-- Etnico Madrid (Centro)
-- Radio Rooftop Bar Madrid (Centro)
 - Dime K Sí (Chamberí)
 - Cocteleria Anubis (Chamberí)

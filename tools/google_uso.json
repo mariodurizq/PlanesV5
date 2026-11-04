@@ -1,1 +1,7 @@
-{"2026-11": {"enterprise": 1400, "pro": 0, "nota": "Noviembre: tarifa Enterprise ya consumida por la primera revisión"}}
+{
+ "2026-11": {
+  "enterprise": 1400,
+  "pro": 62,
+  "nota": "Noviembre: tarifa Enterprise ya consumida por la primera revisión"
+ }
+}

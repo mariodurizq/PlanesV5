@@ -28,11 +28,16 @@ TIPO = {'japanese_restaurant': 'Japonesa', 'sushi_restaurant': 'Sushi', 'ramen_r
         'bakery': 'Panadería y dulces', 'dessert_shop': 'Postres', 'confectionery': 'Dulces', 'ice_cream_shop': 'Helados', 'wine_bar': 'Vinos',
         'bar': 'Bar', 'pub': 'Bar', 'cocktail_bar': 'Cócteles', 'fast_food_restaurant': 'Comida rápida', 'meal_takeaway': 'Para llevar',
         'deli': 'Charcutería y gourmet', 'asian_restaurant': 'Asiática', 'african_restaurant': 'Africana', 'restaurant': 'Restaurante'}
-PALABRAS = [(r'ostra|marisc|pescad|pulpo|boquer', 'Marisco y pescado'), (r'jam[oó]n|ib[eé]ric|embutid|charcut', 'Charcutería y gourmet'),
+PALABRAS = [(r'ostra|marisc|pescad|pulpo|boquer|crab|cangrej|gamba|lobster|bacalao|anchoa', 'Marisco y pescado'), (r'spritz|cocktail|c[oó]ctel', 'Cócteles'), (r'jam[oó]n|ib[eé]ric|embutid|charcut', 'Charcutería y gourmet'),
             (r'queso|quesos|fromag', 'Quesos'), (r'croquet', 'Croquetas'), (r'sushi|japo|nikkei|izakaya', 'Japonesa'), (r'pizza', 'Pizza'),
             (r'pasta|trattoria', 'Italiana'), (r'taco|mexic', 'Mexicana'), (r'burger|hamburg', 'Hamburguesas'), (r'vino|vermut|bodega', 'Vinos'),
             (r'cervez|beer', 'Cervezas'), (r'empanad|argentin', 'Argentina'), (r'ceviche|peru', 'Peruana'), (r'dulce|pastel|chocolat|churr|postre', 'Dulces'),
             (r'caf[eé]|coffee', 'Café'), (r'paella|arroz', 'Arroces'), (r'frut|verdur', 'Fruta y verdura'), (r'carne|asador|parrill|brasa', 'Carnes')]
+
+def basura(name, mercado):
+    """Fichas que no son puestos: textos raros, la propia ficha del mercado, aparcamientos…"""
+    if re.search(r'[•#]|\d{1,3}[.,]\d{3}|parking|aparcamiento|farmacia|banco|cajero', name, re.I): return True
+    return bool(re.search(r'\bmercado\b', name, re.I) and len(name) > 45)
 
 def tipo(p):
     name = (p.get('displayName') or {}).get('text', '')
@@ -73,7 +78,7 @@ def main():
         puestos = []
         for p in res:
             name = (p.get('displayName') or {}).get('text', '')
-            if not name or p.get('businessStatus') not in (None, 'OPERATIONAL') or sim(name, m['n']) > .8: continue
+            if not name or p.get('businessStatus') not in (None, 'OPERATIONAL') or sim(name, m['n']) > .8 or basura(name, m['n']): continue
             puestos.append({'n': re.sub(r'\s*[-–|·]\s*(mercado|market).*$', '', name, flags=re.I).strip(), 'tipo': tipo(p)})
         if len(puestos) >= 3:
             m['puestos'] = sorted(puestos, key=lambda x: (x['tipo'], x['n']))

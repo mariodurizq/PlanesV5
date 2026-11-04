@@ -2360,7 +2360,7 @@ header.top.scrolled .tagline{max-height:0}
     }catch(e){ return {results:null, error:'Mapa abierto no disponible ahora ('+(e.message||e)+')'}; }
   }
 
-  window.RentaFreeSearch = {textSearch: freeTextSearch, findByName: freeFindByName, parseOsmHours, filtersFor, placeFrom};
+  window.RentaFreeSearch = {textSearch: freeTextSearch, findByName: freeFindByName, parseOsmHours, filtersFor, placeFrom, resolveCenter};
   try{ localStorage.removeItem('gmaps_api_key'); }catch(e){}
 })();
 
@@ -3948,6 +3948,137 @@ function pdZoneTokens(){
   return Array.from(set.entries()).sort((a,b)=>b[0].length-a[0].length);
 }
 
+// ---------- Lugares de Madrid para Pídeme: nombre → centro y radio (km) ----------
+// p:true = palabra ambigua; solo cuenta si va tras "en", "por", "cerca de", "zona", etc.
+const PD_PLACES = [
+  // Distritos
+  {n:'Centro',a:['centro','el centro'],lat:40.4165,lon:-3.7050,r:1.4,p:true},
+  {n:'Arganzuela',a:['arganzuela'],lat:40.3980,lon:-3.7000,r:1.5},
+  {n:'Retiro',a:['retiro','el retiro'],lat:40.4120,lon:-3.6800,r:1.3,p:true},
+  {n:'Salamanca',a:['barrio de salamanca','salamanca'],lat:40.4300,lon:-3.6790,r:1.4},
+  {n:'Chamartín',a:['chamartin'],lat:40.4580,lon:-3.6770,r:1.7},
+  {n:'Tetuán',a:['tetuan'],lat:40.4600,lon:-3.6990,r:1.3},
+  {n:'Chamberí',a:['chamberi'],lat:40.4360,lon:-3.7040,r:1.2},
+  {n:'Fuencarral',a:['fuencarral','fuencarral-el pardo','el pardo'],lat:40.4970,lon:-3.7160,r:3},
+  {n:'Moncloa',a:['moncloa','moncloa-aravaca','moncloa aravaca'],lat:40.4352,lon:-3.7190,r:1.2},
+  {n:'Latina',a:['distrito latina','aluche'],lat:40.3990,lon:-3.7560,r:2},
+  {n:'Carabanchel',a:['carabanchel'],lat:40.3830,lon:-3.7280,r:2},
+  {n:'Usera',a:['usera'],lat:40.3830,lon:-3.7060,r:1.5},
+  {n:'Vallecas',a:['vallecas','puente de vallecas','villa de vallecas'],lat:40.3880,lon:-3.6600,r:2.4},
+  {n:'Moratalaz',a:['moratalaz'],lat:40.4070,lon:-3.6440,r:1.5},
+  {n:'Ciudad Lineal',a:['ciudad lineal'],lat:40.4460,lon:-3.6520,r:2},
+  {n:'Hortaleza',a:['hortaleza'],lat:40.4730,lon:-3.6410,r:2},
+  {n:'Villaverde',a:['villaverde'],lat:40.3460,lon:-3.7000,r:2},
+  {n:'Vicálvaro',a:['vicalvaro'],lat:40.4040,lon:-3.6080,r:2},
+  {n:'San Blas',a:['san blas','canillejas'],lat:40.4300,lon:-3.6120,r:2},
+  {n:'Barajas',a:['barajas'],lat:40.4730,lon:-3.5800,r:2},
+  // Barrios y puntos conocidos
+  {n:'Sol',a:['puerta del sol','sol'],lat:40.4169,lon:-3.7035,r:0.7,p:true},
+  {n:'Malasaña',a:['malasana','maravillas','plaza del dos de mayo'],lat:40.4265,lon:-3.7040,r:0.8},
+  {n:'Chueca',a:['chueca','justicia'],lat:40.4228,lon:-3.6975,r:0.7},
+  {n:'La Latina',a:['la latina','cava baja'],lat:40.4110,lon:-3.7100,r:0.7},
+  {n:'Lavapiés',a:['lavapies','embajadores'],lat:40.4087,lon:-3.7010,r:0.8},
+  {n:'Huertas',a:['huertas','barrio de las letras','las letras','santa ana','plaza de santa ana'],lat:40.4140,lon:-3.6985,r:0.7},
+  {n:'Ópera',a:['opera','palacio real','austrias','los austrias','plaza mayor'],lat:40.4160,lon:-3.7110,r:0.7,p:true},
+  {n:'Gran Vía',a:['gran via','callao'],lat:40.4200,lon:-3.7050,r:0.8},
+  {n:'Plaza de España',a:['plaza de espana','plaza espana','principe pio'],lat:40.4234,lon:-3.7140,r:0.7},
+  {n:'Conde Duque',a:['conde duque'],lat:40.4275,lon:-3.7105,r:0.6},
+  {n:'Argüelles',a:['arguelles','princesa'],lat:40.4300,lon:-3.7160,r:0.8},
+  {n:'Ciudad Universitaria',a:['ciudad universitaria'],lat:40.4470,lon:-3.7270,r:1.2},
+  {n:'Tribunal',a:['tribunal','fuencarral calle'],lat:40.4262,lon:-3.7015,r:0.5,p:true},
+  {n:'Bilbao',a:['glorieta de bilbao'],lat:40.4289,lon:-3.7020,r:0.5},
+  {n:'Alonso Martínez',a:['alonso martinez'],lat:40.4276,lon:-3.6955,r:0.6},
+  {n:'Trafalgar',a:['trafalgar','olavide','plaza de olavide'],lat:40.4330,lon:-3.7010,r:0.6},
+  {n:'Ríos Rosas',a:['rios rosas','ponzano'],lat:40.4410,lon:-3.7010,r:0.7},
+  {n:'Almagro',a:['almagro'],lat:40.4320,lon:-3.6930,r:0.6},
+  {n:'Nuevos Ministerios',a:['nuevos ministerios','azca'],lat:40.4475,lon:-3.6920,r:0.8},
+  {n:'Cuatro Caminos',a:['cuatro caminos'],lat:40.4470,lon:-3.7040,r:0.7},
+  {n:'Bernabéu',a:['bernabeu','santiago bernabeu'],lat:40.4531,lon:-3.6883,r:0.8},
+  {n:'Castellana',a:['castellana','paseo de la castellana'],lat:40.4450,lon:-3.6900,r:1.5},
+  {n:'Goya',a:['goya'],lat:40.4243,lon:-3.6760,r:0.7},
+  {n:'Serrano',a:['serrano','calle serrano','jorge juan'],lat:40.4260,lon:-3.6870,r:0.8},
+  {n:'Lista',a:['lista','ortega y gasset'],lat:40.4305,lon:-3.6760,r:0.6,p:true},
+  {n:'Recoletos',a:['recoletos','colon','plaza de colon'],lat:40.4240,lon:-3.6905,r:0.6},
+  {n:'Prosperidad',a:['prosperidad'],lat:40.4440,lon:-3.6730,r:0.8},
+  {n:'El Viso',a:['el viso'],lat:40.4430,lon:-3.6840,r:0.7},
+  {n:'Diego de León',a:['diego de leon'],lat:40.4350,lon:-3.6760,r:0.6},
+  {n:'Manuel Becerra',a:['manuel becerra','ventas','las ventas'],lat:40.4290,lon:-3.6670,r:0.8,p:true},
+  {n:'Ibiza',a:['ibiza','calle ibiza','nino jesus'],lat:40.4190,lon:-3.6740,r:0.6,p:true},
+  {n:'Atocha',a:['atocha'],lat:40.4066,lon:-3.6910,r:0.8},
+  {n:'Delicias',a:['delicias','paseo de las delicias'],lat:40.3980,lon:-3.6930,r:0.8,p:true},
+  {n:'Legazpi',a:['legazpi','matadero'],lat:40.3910,lon:-3.6960,r:0.8},
+  {n:'Madrid Río',a:['madrid rio','puerta de toledo','piramides'],lat:40.4030,lon:-3.7150,r:1},
+  {n:'Tirso de Molina',a:['tirso de molina','tirso'],lat:40.4124,lon:-3.7045,r:0.5},
+  {n:'Plaza de Castilla',a:['plaza de castilla','castilla'],lat:40.4667,lon:-3.6886,r:0.8},
+  {n:'Cuzco',a:['cuzco'],lat:40.4590,lon:-3.6905,r:0.6},
+  {n:'Estrecho',a:['estrecho','bravo murillo'],lat:40.4535,lon:-3.7035,r:0.7,p:true},
+  {n:'Arturo Soria',a:['arturo soria'],lat:40.4500,lon:-3.6500,r:1.2},
+  {n:'Sanchinarro',a:['sanchinarro'],lat:40.4930,lon:-3.6510,r:1.2},
+  {n:'Las Tablas',a:['las tablas'],lat:40.5080,lon:-3.6680,r:1.2},
+  {n:'Montecarmelo',a:['montecarmelo'],lat:40.5050,lon:-3.6960,r:1},
+  {n:'Aravaca',a:['aravaca'],lat:40.4600,lon:-3.7850,r:1.5},
+  // Municipios de la Comunidad
+  {n:'Alcobendas',a:['alcobendas','la moraleja','moraleja'],lat:40.5373,lon:-3.6372,r:2.5},
+  {n:'San Sebastián de los Reyes',a:['san sebastian de los reyes','sanse'],lat:40.5473,lon:-3.6260,r:2.5},
+  {n:'Tres Cantos',a:['tres cantos'],lat:40.6007,lon:-3.7096,r:2},
+  {n:'Las Rozas',a:['las rozas'],lat:40.4930,lon:-3.8737,r:3},
+  {n:'Majadahonda',a:['majadahonda'],lat:40.4733,lon:-3.8724,r:2},
+  {n:'Pozuelo',a:['pozuelo de alarcon','pozuelo'],lat:40.4350,lon:-3.8135,r:2.5},
+  {n:'Boadilla del Monte',a:['boadilla del monte','boadilla'],lat:40.4053,lon:-3.8750,r:2.5},
+  {n:'Alcorcón',a:['alcorcon'],lat:40.3459,lon:-3.8245,r:2.5},
+  {n:'Leganés',a:['leganes'],lat:40.3283,lon:-3.7635,r:2.5},
+  {n:'Getafe',a:['getafe'],lat:40.3082,lon:-3.7324,r:2.5},
+  {n:'Fuenlabrada',a:['fuenlabrada'],lat:40.2842,lon:-3.7942,r:2.5},
+  {n:'Móstoles',a:['mostoles'],lat:40.3228,lon:-3.8650,r:2.5},
+  {n:'Parla',a:['parla'],lat:40.2378,lon:-3.7740,r:2},
+  {n:'Pinto',a:['pinto'],lat:40.2410,lon:-3.6990,r:2,p:true},
+  {n:'Valdemoro',a:['valdemoro'],lat:40.1910,lon:-3.6740,r:2},
+  {n:'Rivas-Vaciamadrid',a:['rivas vaciamadrid','rivas-vaciamadrid','rivas'],lat:40.3530,lon:-3.5390,r:2.5},
+  {n:'Coslada',a:['coslada'],lat:40.4238,lon:-3.5613,r:2},
+  {n:'San Fernando de Henares',a:['san fernando de henares'],lat:40.4240,lon:-3.5330,r:2},
+  {n:'Torrejón de Ardoz',a:['torrejon de ardoz','torrejon'],lat:40.4600,lon:-3.4800,r:2.5},
+  {n:'Alcalá de Henares',a:['alcala de henares','alcala'],lat:40.4818,lon:-3.3641,r:3},
+  {n:'Arganda del Rey',a:['arganda del rey','arganda'],lat:40.3008,lon:-3.4382,r:2.5},
+  {n:'Collado Villalba',a:['collado villalba','villalba'],lat:40.6350,lon:-4.0050,r:2.5},
+  {n:'Torrelodones',a:['torrelodones'],lat:40.5770,lon:-3.9280,r:2},
+  {n:'Galapagar',a:['galapagar'],lat:40.5780,lon:-4.0030,r:2},
+  {n:'Villaviciosa de Odón',a:['villaviciosa de odon','villaviciosa'],lat:40.3570,lon:-3.9010,r:2},
+  {n:'Navalcarnero',a:['navalcarnero'],lat:40.2870,lon:-4.0130,r:2},
+  {n:'Colmenar Viejo',a:['colmenar viejo','colmenar'],lat:40.6590,lon:-3.7660,r:2.5},
+  {n:'Aranjuez',a:['aranjuez'],lat:40.0320,lon:-3.6060,r:3},
+  {n:'Chinchón',a:['chinchon'],lat:40.1400,lon:-3.4220,r:1.5},
+  {n:'San Lorenzo de El Escorial',a:['san lorenzo de el escorial','el escorial','escorial'],lat:40.5920,lon:-4.1470,r:2},
+  {n:'Paracuellos de Jarama',a:['paracuellos de jarama','paracuellos'],lat:40.5040,lon:-3.5280,r:2},
+  {n:'Algete',a:['algete'],lat:40.5970,lon:-3.4970,r:2},
+  {n:'Mejorada del Campo',a:['mejorada del campo','mejorada'],lat:40.3940,lon:-3.4880,r:2},
+  {n:'Humanes',a:['humanes'],lat:40.2510,lon:-3.8290,r:2},
+  {n:'Ciempozuelos',a:['ciempozuelos'],lat:40.1590,lon:-3.6200,r:2},
+  {n:'Villanueva de la Cañada',a:['villanueva de la canada'],lat:40.4460,lon:-4.0040,r:2},
+  {n:'Cercedilla',a:['cercedilla'],lat:40.7400,lon:-4.0570,r:2},
+];
+const PD_PREP = '(?:en|por|cerca de|cerca del|zona de|zona|junto a|al lado de|barrio de|barrio|alrededor de|de)\\s+(?:la |el |los |las )?';
+// Devuelve el lugar mencionado en el texto (ya normalizado con pdNorm), el más largo primero
+function pdFindPlace(text){
+  const cands=[];
+  PD_PLACES.forEach(pl=>pl.a.forEach(al=>{
+    const a=pdNorm(al).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const re=new RegExp((pl.p?PD_PREP:'(?:^|[^a-z])')+a+'(?:[^a-z]|$)');
+    if(re.test(text)) cands.push({pl,len:al.length});
+  }));
+  if(!cands.length) return null;
+  cands.sort((x,y)=>y.len-x.len);
+  return cands[0].pl;
+}
+// Si no lo conocemos: lo que va tras "en/por/cerca de…", para buscarlo en el mapa
+const PD_NOT_PLACE = /^(pareja|grupo|familia|terraza|casa|coche|metro|bici|plan|serio|general|madrid|un |una |algun|cualquier|el centro comercial)/;
+function pdGuessPlace(text){
+  const m=text.match(/\b(?:en|por|cerca de|zona de|barrio de|junto a)\s+(?:la |el |los |las )?([a-zñ][a-zñ' -]{2,28}?)(?=\s+(?:para|a las|con|y|que|hoy|manana|esta|este|el sabado|el viernes|el domingo|sobre|barato|caro|de noche)\b|[,.!?]|$)/);
+  if(!m) return null;
+  const g=m[1].trim();
+  if(PD_NOT_PLACE.test(g) || g.length<3) return null;
+  return g;
+}
+
 function pdParse(raw){
   const text = pdNorm(raw);
   const p = {raw, text, wants:[], qty:null, time:null, zones:[], zoneLabels:[], city:null, price:null, near:false, newOnes:false, meal:null, dayLabel:'', modeHint:null, subs:[], notes:[]};
@@ -4028,8 +4159,12 @@ function pdParse(raw){
     if(re.test(text)){ matchedTok.push(n); p.zones.push(n); p.zoneLabels.push(orig); }
   });
 
+  // lugar con coordenadas (barrio, distrito, municipio) — manda sobre lo anterior
+  { const pl = pdFindPlace(text);
+    if(pl){ p.place = {n:pl.n, lat:pl.lat, lon:pl.lon, r:pl.r, aliases:pl.a}; p.zones=[pdNorm(pl.n)]; p.zoneLabels=[pl.n]; }
+    else if(!p.zones.length){ const g = pdGuessPlace(text); if(g && !PD_CITIES.includes(g)) p.placeGuess = g; } }
   // ciudad
-  if(!p.zones.length || /\bfuera de madrid\b/.test(text)){
+  if((!p.zones.length && !p.placeGuess) || /\bfuera de madrid\b/.test(text)){
     for(const c of PD_CITIES){
       if(new RegExp('(^|[^a-z])'+c+'([^a-z]|$)').test(text) && c!=='salamanca ciudad'){ p.city = c; break; }
     }
@@ -4085,11 +4220,21 @@ function pdFilter(want, p, used, minNeeded, includeSugg){
     const hay = pdNorm((d.cd||'')+' '+d.n+' '+(d.info||''));
     return mySubs.some(x=>x.f.some(f=>hay.includes(f)));
   };
-  const zoneFilter = d => !p.zones.length || p.zones.some(z=>pdNorm(d.z).includes(z));
+  const inRadius = (d, k) => {
+    if(d.locationVerified && Number.isFinite(d.lat)) return haversine(p.place.lat,p.place.lon,d.lat,d.lon) <= p.place.r*k;
+    const z = pdNorm((d.z||'')+' '+(d.addr||''));   // sin coordenadas exactas: por el nombre de la zona
+    return p.place.aliases.some(a=>z.includes(pdNorm(a)));
+  };
+  const zoneFilter = d => p.place ? inRadius(d,1) : (!p.zones.length || p.zones.some(z=>pdNorm(d.z).includes(z)));
   const m30Filter = d => !p.m30 || M30_ZONES.has(d.z);
   const priceFilter = d => { const pr=pdPrice(d); if(pr==null||!p.price) return true; return p.price==='low' ? pr<=25 : pr>=30; };
 
-  const steps = [
+  const steps = p.place ? [
+    {name:null, fn:d=>inCat(d)&&subFilter(d)&&inRadius(d,1)&&priceFilter(d)},
+    {name:p.price?'el precio':null, fn:d=>inCat(d)&&subFilter(d)&&inRadius(d,1)},
+    {name:'la distancia (un poco más lejos)', fn:d=>inCat(d)&&subFilter(d)&&inRadius(d,2)},
+    {name:mySubs.length?'el tipo concreto de cocina':null, fn:d=>inCat(d)&&inRadius(d,1.5)},
+  ] : [
     {name:null, fn:d=>inCat(d)&&subFilter(d)&&zoneFilter(d)&&m30Filter(d)&&priceFilter(d)},
     {name:p.price?'el precio':null, fn:d=>inCat(d)&&subFilter(d)&&zoneFilter(d)&&m30Filter(d)},
     {name:(p.zones.length||p.m30)?'la zona exacta':null, fn:d=>inCat(d)&&subFilter(d)},
@@ -4185,7 +4330,8 @@ async function pdLiveCore(want, p, cityName, limit){
   const zone = p.zoneLabels[0] || '';
   const place = cityName ? cityName : (zone ? zone+' Madrid' : 'Madrid');
   const q = `${want.q} ${p.cuisineWord||sub} ${p.price==='low'?'barato':p.price==='high'?'lujo':''} en ${place}`.replace(/\s+/g,' ').trim();
-  const r = await placesTextSearchAsync(q, null, Math.max(8,limit||8));
+  const bias = (!cityName && p.place) ? {circle:{center:{latitude:p.place.lat,longitude:p.place.lon},radius:Math.round(p.place.r*1000)}} : null;
+  const r = await placesTextSearchAsync(bias ? q.replace(/ en .*$/,'') : q, bias, Math.max(8,limit||8));
   if(!r.results) return {items:[], error:r.error};
   return {items:r.results.slice(0,limit).map(pl=>pdPlaceToItem(pl, want.cm==='FOOD'?'Restaurante (general)':want.cm, cityName?cityName:'')), error:null};
 }
@@ -4225,8 +4371,9 @@ async function pdBuildListCore(p, shuffle){
       const f = pdFilter(w, p, new Set(), qty, p.newOnes);
       if(p.zones.length){
         // Respetar la zona pedida: solo lo que está en ella (tiers 0-1) + sitios reales del mapa de esa zona
-        const inZone = f.items.filter(d=>d._tier<2);
-        items = pdShuffleTop(pdSort(inZone, p), qty, shuffle);
+        const inZone = p.place ? f.items : f.items.filter(d=>d._tier<2);
+        if(p.place && f.items.some(d=>d._tier>=2)) out.notes.push(...f.notes);
+        items = pdShuffleTop(pdSort(inZone, p, p.place?[p.place.lat,p.place.lon]:null), qty, shuffle);
         if(items.length<Math.min(3,qty)){
           const r = await pdLive(w, p, null, qty*2);
           const have = new Set(items.map(i=>pdNorm(i.n)));
@@ -4237,9 +4384,10 @@ async function pdBuildListCore(p, shuffle){
         }
         if(!items.length){
           // Sin conexión con el mapa: lo más cercano de tu lista a esa zona
-          const zp = DATA.filter(d=>p.zones.some(z=>pdNorm(d.z).includes(z))).map(d=>[d.zlat??d.lat, d.zlon??d.lon]).find(c=>Number.isFinite(c[0]));
+          const zp = p.place ? [p.place.lat,p.place.lon] : DATA.filter(d=>p.zones.some(z=>pdNorm(d.z).includes(z))).map(d=>[d.zlat??d.lat, d.zlon??d.lon]).find(c=>Number.isFinite(c[0]));
           if(zp){
-            items = f.items.filter(d=>Number.isFinite(d.lat)).map(d=>Object.assign({},d,{_d:haversine(zp[0],zp[1],d.lat,d.lon)})).sort((a,b)=>a._d-b._d).slice(0,qty);
+            const pool = pdFilter(w, Object.assign({}, p, {place:null, zones:[], zoneLabels:[], m30:false}), new Set(), 9999, false).items;
+            items = pool.filter(d=>d.locationVerified&&Number.isFinite(d.lat)).map(d=>Object.assign({},d,{_d:haversine(zp[0],zp[1],d.lat,d.lon)})).sort((a,b)=>a._d-b._d).slice(0,qty);
             if(items.length) out.notes.push(`No tengo "${w.label}" en ${p.zoneLabels.join(', ')}; te dejo los más cercanos de tu lista (con la distancia).`);
           }
           if(!items.length) out.notes.push(`No he encontrado "${w.label}" en ${p.zoneLabels.join(', ')}. Prueba con otra zona cercana.`);
@@ -4302,9 +4450,9 @@ async function pdBuildPlan(p){
       item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
     } else {
       const f = pdFilter(w, p, used, 3, false);
-      if(p.zones.length) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
+      if(p.zones.length && !p.place) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
       else out.notes.push(...f.notes);
-      const sorted = pdSort(f.items, p, prev ? pdCoord(prev) : null);
+      const sorted = pdSort(f.items, p, prev ? pdCoord(prev) : (p.place?[p.place.lat,p.place.lon]:null));
       // lo mejor valorado entre los más cercanos, con algo de azar para que "otra versión" cambie
       const top = sorted.slice(0, 6);
       item = top[Math.floor(Math.random()*Math.min(3, top.length))] || null;
@@ -4381,6 +4529,17 @@ async function pdRun(shuffle){
     uEl.innerHTML = '';
     resEl.innerHTML = `<div class="pideNote">No he pillado qué tipo de sitio buscas 🤔 Dime categoría (cena, copas, rooftop, japonés, hamburguesa, discoteca, brunch…), y si quieres zona, hora o cuántas opciones. ${pdEsc(PD_EXAMPLES_FAIL)}</div>`;
     return;
+  }
+  if(!p.place && p.placeGuess && window.RentaFreeSearch && RentaFreeSearch.resolveCenter){
+    try{
+      const c = await Promise.race([RentaFreeSearch.resolveCenter(p.placeGuess), new Promise((_,rej)=>setTimeout(()=>rej(new Error('lento')),5000))]);
+      if(c && Number.isFinite(c.lat) && haversine(40.4168,-3.7038,c.lat,c.lon)<70){
+        const label = p.placeGuess.replace(/\b\w/g,m=>m.toUpperCase());
+        p.place = {n:label, lat:c.lat, lon:c.lon, r:Math.max(0.8,Math.min(3,(c.radius||1500)/1000)), aliases:[p.placeGuess]};
+        p.zones=[pdNorm(label)]; p.zoneLabels=[label]; p.city=null;
+      }
+    }catch(e){}
+    if(!p.place && !p.city) p.notes.push(`No he localizado "${p.placeGuess}" en el mapa; te enseño opciones de todo Madrid.`);
   }
   const mode = p.modeHint;
   uEl.innerHTML = pdUnderstoodHTML(p, mode);

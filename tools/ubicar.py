@@ -102,32 +102,27 @@ def overpass_pois(data, csv_text=None):
 
 import os, concurrent.futures, html as htmlmod
 GKEY = os.environ.get('GOOGLE_PLACES_KEY', '').strip()
+import sys
 
 def google_pass(data):
-    """Google Places: ubica los que faltan y detecta cierres definitivos (una revisión cada 30 días por sitio)."""
+    """Google Places (solo tarifa básica «Pro», con tope mensual): ubica los que faltan y detecta cierres.
+    Cada sitio se revisa como mucho una vez cada 30 días."""
+    sys.path.insert(0, str(ROOT / 'tools'))
+    from google_util import places, disponible
     today = datetime.date.today(); removed = []; calls = 0
     def due(d):
         g = d.get('gcheck')
-        return not g or (today - datetime.date.fromisoformat(g)).days >= 30 or not d.get('locationVerified')
+        return not g or (today - datetime.date.fromisoformat(g)).days >= 30
     for d in data:
         if not due(d): continue
+        if not disponible('pro'): print('Tope mensual de Google alcanzado.'); break
         zlat, zlon = d.get('zlat'), d.get('zlon')
-        body = {'textQuery': f"{d['n']} {d.get('z') or ''} Madrid", 'maxResultCount': 3, 'languageCode': 'es',
-                'locationBias': {'circle': {'center': {'latitude': zlat or 40.4168, 'longitude': zlon or -3.7038}, 'radius': 8000.0 if zlat else 50000.0}}}
-        req = urllib.request.Request('https://places.googleapis.com/v1/places:searchText', data=json.dumps(body).encode(),
-            headers={'Content-Type': 'application/json', 'X-Goog-Api-Key': GKEY,
-                     'X-Goog-FieldMask': 'places.id,places.displayName,places.businessStatus,places.location,places.formattedAddress,places.websiteUri'})
-        try:
-            with urllib.request.urlopen(req, timeout=20) as r: res = json.loads(r.read().decode())
-        except urllib.error.HTTPError as ex:
-            msg = ex.read().decode()[:300]; print('Google error', ex.code, msg)
-            if ex.code in (400, 401, 403): print('Clave rechazada: se omite Google.'); break
-            continue
-        except Exception as ex:
-            print('Google falló', d['n'], ex); continue
-        calls += 1; time.sleep(0.12)
+        res = places('searchText', {'textQuery': f"{d['n']} {d.get('z') or ''} Madrid", 'maxResultCount': 3, 'languageCode': 'es',
+                     'locationBias': {'circle': {'center': {'latitude': zlat or 40.4168, 'longitude': zlon or -3.7038}, 'radius': 8000.0 if zlat else 50000.0}}},
+                     'places.id,places.displayName,places.businessStatus,places.location,places.formattedAddress')
+        calls += 1
         best = None
-        for pl in res.get('places', []):
+        for pl in res:
             s = sim(d['n'], (pl.get('displayName') or {}).get('text', ''))
             loc = pl.get('location') or {}
             if s < .7 or 'latitude' not in loc: continue
@@ -148,8 +143,7 @@ def google_pass(data):
             loc = pl['location']; d['lat'], d['lon'] = round(loc['latitude'], 6), round(loc['longitude'], 6)
             d['locationVerified'] = True; d['locSrc'] = 'google'
             if pl.get('formattedAddress'): d['addr'] = pl['formattedAddress'].split(', Madrid')[0]
-        if pl.get('websiteUri') and not d.get('web'): d['web'] = pl['websiteUri']
-    print('Consultas a Google:', calls, '· cerrados definitivos:', len(removed))
+    print('Consultas a Google (tarifa básica):', calls, '· cerrados definitivos:', len(removed))
     if removed:
         old = json.loads((ROOT / 'tools' / 'eliminados.json').read_text(encoding='utf-8')) if (ROOT / 'tools' / 'eliminados.json').exists() else []
         old += [{'fecha': today.isoformat(), **{k: v for k, v in d.items() if not k.startswith('_')}} for d in data if d.get('_remove')]

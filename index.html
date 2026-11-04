@@ -1482,6 +1482,21 @@ header.top.scrolled .tagline{max-height:0}
 .agenda-links{display:flex;gap:12px;margin-top:8px;font-size:12px;font-weight:700}.agenda-links a{color:inherit}
 :root[data-theme="dark"] .renta-agenda{background:#111712;border-color:#263229}
 :root[data-theme="dark"] .renta-agenda-filters button.active{background:#b9d995;color:#172016}
+.radar-map-marker.is-new .radar-pin2::after{content:"★";position:absolute;right:-4px;top:-4px;width:16px;height:16px;border-radius:50%;background:#f5b800;color:#fff;font:900 10px/16px Inter,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.market-marker{background:transparent!important;border:0!important}
+.market-pin{width:44px;height:44px;border-radius:14px;background:#1f2a24;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.3);display:grid;place-items:center;position:relative}
+.market-pin span{font-size:20px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.market-pin b{position:absolute;right:-8px;top:-8px;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:#e0583a;color:#fff;font:800 11px/20px Inter,sans-serif;text-align:center}
+.market-popup h3{margin:0 0 2px;font-size:16px}.market-popup p{margin:0 0 8px;font-size:12px;color:#6b716c}
+.mk-tipos{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.mk-tipos span{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.06)}
+.mk-stalls{display:grid;gap:6px;max-height:220px;overflow:auto;margin:6px 0 10px}.mk-group{font-size:12px;line-height:1.4}.mk-group b{display:block;font-size:12px}
+.mk-group span{color:#6b716c}
+.market-panel{padding:16px;border-top:1px solid var(--line,#e3e1d8)}
+.market-list{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.market-card{border:1px solid var(--line,#e3e1d8);border-radius:16px;padding:10px 14px;background:var(--surface,#fffefa)}
+.market-card summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:2px}.market-card summary::-webkit-details-marker{display:none}
+.mk-name{font-weight:800;font-size:14px}.mk-meta{font-size:12px;color:#6b716c}.mk-addr{font-size:12px;color:#6b716c;margin:6px 0}
+:root[data-theme="dark"] .market-card{background:#111712;border-color:#263229}:root[data-theme="dark"] .mk-tipos span{background:rgba(255,255,255,.08)}
 </style>
 </head>
 <body>
@@ -1940,6 +1955,10 @@ header.top.scrolled .tagline{max-height:0}
     </div>
     <div id="radarMap" role="application" aria-label="Mapa interactivo de establecimientos con ubicaciones reales"></div>
     <div class="map-data-note"><span class="map-live-dot"></span><span>Marcadores colocados con coordenadas de establecimientos cartografiados. Los sitios sin ubicación verificada no se dibujan como si fueran exactos.</span><span class="map-legend">Preparando mapa…</span></div>
+    <section class="market-panel" id="marketPanel" hidden aria-labelledby="marketTitle">
+      <div class="nearby-heading"><div><span class="map-kicker">PARA PICAR DE TODO</span><h3 id="marketTitle">Mercados gastronómicos</h3><p id="marketSubtitle">Pulsa un mercado para ver sus puestos y tipos de comida.</p></div><span class="nearby-count" id="marketCount">0</span></div>
+      <div class="market-list" id="marketList"></div>
+    </section>
     <section class="nearby-panel" aria-labelledby="nearbyTitle">
       <div class="nearby-heading"><div><span class="map-kicker">A UNOS PASOS</span><h3 id="nearbyTitle">Los más cercanos</h3><p id="nearbySubtitle">Lugares ordenados por distancia.</p></div><span class="nearby-count" id="nearbyCount">—</span></div>
       <div id="nearbyPlaces" class="nearby-list"><div class="nearby-empty">Activa tu ubicación o busca en una zona del mapa para encontrar establecimientos.</div></div>
@@ -2087,6 +2106,7 @@ header.top.scrolled .tagline{max-height:0}
     {re:/asiat|chin|thai|tailand|vietnam|corean|india/, f:['["amenity"~"^(restaurant|fast_food)$"]["cuisine"~"asian|chinese|thai|vietnamese|korean|indian|japanese",i]']},
     {re:/mexican|taco/, f:['["amenity"~"^(restaurant|fast_food)$"]["cuisine"~"mexican|tex-mex",i]']},
     {re:/parrilla|carne|asador|argentin/, f:['["amenity"="restaurant"]["cuisine"~"steak|grill|argentin|barbecue",i]']},
+    {re:/peru|venezol|colombi|liban|arabe|turc|grieg|marroqu|etiop|cuban|brasil|persa|georgian|portugues|frances|aleman|nepal|pakistan|filipin|hawaian|poke|vegan|vegetarian/, f:['["amenity"~"^(restaurant|fast_food)$"]["cuisine"~"peruvian|venezuelan|colombian|lebanese|arab|turkish|greek|moroccan|ethiopian|cuban|brazilian|persian|georgian|portuguese|french|german|nepalese|pakistani|filipino|hawaiian|poke|vegan|vegetarian",i]','["amenity"~"^(restaurant|fast_food)$"]["diet:vegan"="yes"]']},
     {re:/tapas|espanol|mediterran/, f:['["amenity"~"^(restaurant|bar)$"]["cuisine"~"tapas|spanish|mediterranean",i]']},
     {re:/brunch|desayun|cafe|cafeter/, f:['["amenity"="cafe"]']},
     {re:/pastel|dulce|postre|helad|gofre|churr/, f:['["amenity"~"^(cafe|ice_cream)$"]','["shop"~"^(pastry|confectionery|bakery)$"]']},
@@ -3822,9 +3842,10 @@ const PD_CATS = [
   {id:'asia', cm:'Asiática', label:'🥢 Asiática', role:4, meal:true, dur:90, q:'restaurante asiático', kw:['asiatic','japon','sushi','ramen','chino','thai','tailand','corean','vietnam','indio','izakaya','poke','dim sum']},
   {id:'ita', cm:'Italiana/Pizza', label:'🍕 Italiana', role:4, meal:true, dur:90, q:'restaurante italiano pizzería', kw:['italian','pizza','pasta','trattoria','risotto']},
   {id:'mex', cm:'Mexicana', label:'🌮 Mexicana', role:4, meal:true, dur:90, q:'restaurante mexicano', kw:['mexican','taco','burrito','nacho','mezcal']},
-  {id:'carne', cm:'Carnes/Parrilla', label:'🥩 Carnes', role:4, meal:true, dur:100, q:'asador parrilla carne', kw:['carne','parrilla','chulet','asador','steak','entrecot','brasa','churrasc']},
+  {id:'carne', cm:'Carnes/Parrilla', label:'🥩 Carnes', role:4, meal:true, dur:100, q:'asador parrilla carne', kw:['carne','parrilla','chulet','asador','steak','entrecot','brasa','churrasc','argentin','uruguay','parrillada']},
   {id:'burger', cm:'Hamburguesas', label:'🍔 Hamburguesa', role:4, meal:true, dur:75, q:'hamburguesería', kw:['hamburgues','burger','smash']},
   {id:'esp', cm:'Española/Mediterránea', label:'🥘 Española/Medit.', role:4, meal:true, dur:90, q:'restaurante cocina española mediterránea', kw:['espanol','mediterran','tradicional','marisc','pescado','arroz','paella','libanes','arabe','turco','griego']},
+  {id:'mundo', cm:'FOOD', label:'🌍 Cocina del mundo', role:4, meal:true, dur:90, q:'restaurante', kw:['peruan','venezol','colombian','liban','arabe','turc','grieg','marroqu','etiop','cuban','brasil','african','persa','israeli','georgian','ucranian','ruso','portugues','frances','aleman','nepal','pakistan','filipin','hawaian','poke','vegano','vegetarian']},
   {id:'food', cm:'FOOD', label:'🍽️ Comer/cenar', role:4, meal:true, dur:90, q:'restaurante', kw:['restaurante','cenar','cena','comer','comida','almuerzo','comilona','menu']},
   {id:'roof', cm:'Rooftop/Terraza', label:'🌇 Rooftop/terraza', role:5, dur:70, q:'rooftop terraza', kw:['rooftop','terraza','azotea','vistas','sky bar']},
   {id:'cock', cm:'Coctelería', label:'🍸 Copas', role:6, dur:80, q:'coctelería cócteles', kw:['cocktel','coctel','copa','copas','gintonic','gin tonic','gin-tonic','combinado','mojito','speakeasy','tomar algo','algo de beber']},
@@ -3933,6 +3954,8 @@ function pdParse(raw){
 
   // matices
   PD_SUBS.forEach(s=>{ if(pdHas(text, s.kw)) p.subs.push(s); });
+  { const m = text.match(/\b(argentin|uruguay|peruan|venezol|colombian|liban|arabe|turc|grieg|marroqu|etiop|cuban|brasil|african|persa|israeli|georgian|ucranian|ruso|portugues|frances|aleman|nepal|pakistan|filipin|hawaian|poke|vegano|vegetarian)[a-z]*/);
+    if(m){ p.cuisineWord = m[0]; if(!p.subs.some(x=>x.label===m[0])) p.subs.push({kw:[m[1]], f:[m[1].slice(0,6)], label:m[0]}); } }
 
   // zonas
   const toks = pdZoneTokens();
@@ -4061,7 +4084,7 @@ function pdCard(d, opt){
   opt = opt||{};
   const city = d.city || 'Madrid';
   const l = d.link ? Object.assign(pdLinks(d.n,d.z,city),{view:d.link}) : pdLinks(d.n, d.z || d.addr, d.addr ? '' : city);
-  const badge = d.src==='sug' ? '<span class="badge s">✨ nuevo</span>' : d.src==='google' ? '<span class="badge g">Google</span>' : '';
+  const badge = (d.src==='sug'||d.nuevo||d.src==='osm') ? '<span class="badge s">✨ nuevo</span>' : d.src==='google' ? '<span class="badge g">Google</span>' : '';
   const dist = d._d!=null ? ` · ${d._d.toFixed(1)} km` : '';
   const price = d.p ? ` · ${pdEsc(d.p)}€` : (d.priceLevel? ' · '+d.priceLevel : '');
   const meta = [d.cd||d.cm, d.z||d.addr].filter(Boolean).map(pdEsc).join(' · ');
@@ -4095,7 +4118,7 @@ async function pdLive(want, p, cityName, limit){
   const rel = p.subs.filter(x=> x.on ? x.on===want.id : !!want.meal); const sub = rel.length ? rel[0].label : '';
   const zone = p.zoneLabels[0] || '';
   const place = cityName ? cityName : (zone ? zone+' Madrid' : 'Madrid');
-  const q = `${want.q} ${sub} ${p.price==='low'?'barato':p.price==='high'?'lujo':''} en ${place}`.replace(/\s+/g,' ').trim();
+  const q = `${want.q} ${p.cuisineWord||sub} ${p.price==='low'?'barato':p.price==='high'?'lujo':''} en ${place}`.replace(/\s+/g,' ').trim();
   const r = await placesTextSearchAsync(q, null, Math.max(8,limit||8));
   if(!r.results) return {items:[], error:r.error};
   return {items:r.results.slice(0,limit).map(pl=>pdPlaceToItem(pl, want.cm==='FOOD'?'Restaurante (general)':want.cm, cityName?cityName:'')), error:null};
@@ -4103,6 +4126,21 @@ async function pdLive(want, p, cityName, limit){
 
 // ---- construcción de lista ----
 async function pdBuildList(p, shuffle){
+  const out = await pdBuildListCore(p, shuffle);
+  // Siempre propone sitios nuevos que no tienes guardados (con reseñas si vienen de nuevos.json)
+  try{
+    const w = p.wants[0]; if(!w || p.city) return out;
+    const shown = new Set(out.sections.flatMap(s=>s.items.map(i=>pdNorm(i.n))));
+    const known = new Set(DATA.filter(d=>!d.nuevo).map(d=>pdNorm(d.n)));
+    const fits = new Set(pdFilter(w, p, new Set(), 9999, false).items.filter(x=>!p.zones.length||x._tier<2).map(x=>x.n));
+    let fresh = DATA.filter(d=>d.nuevo && !shown.has(pdNorm(d.n)) && fits.has(d.n)).sort((a,b)=>(b.v||0)-(a.v||0));
+    if(fresh.length<3){ const r = await pdLive(w, p, null, 10); fresh = fresh.concat((r.items||[]).filter(i=>!known.has(pdNorm(i.n)) && !shown.has(pdNorm(i.n)))); }
+    const seen=new Set(); fresh = fresh.filter(i=>{const k=pdNorm(i.n);if(seen.has(k))return false;seen.add(k);return true;}).slice(0,4);
+    if(fresh.length) out.sections.push({want:{...w, label:'✨ Sitios nuevos que no tienes guardados'}, items:fresh.map(i=>Object.assign({},i,{nuevo:true}))});
+  }catch(e){}
+  return out;
+}
+async function pdBuildListCore(p, shuffle){
   const out = {sections:[], notes:[]};
   const wants = p.wants;
   const qty = p.qty || (wants.length>1 ? 4 : 8);
@@ -4500,10 +4538,10 @@ const RADAR_PIN_COLORS={"Coctelería":"#7357d1","Bar/Cervecería":"#c47a12","Shi
 function radarPinColor(cm,d){return d?RADAR_GROUP_COLORS[radarGroupOf(d)]||'#e0583a':RADAR_PIN_COLORS[cm]||'#e0583a';}
 let radarCatalogOnMap=[];
 function radarPinIcon(d){
-  const color=radarPinColor(d.cm,d), mine=!d.osm, emoji=escapeMapText(radarFoodIcon(d));
+  const color=radarPinColor(d.cm,d), mine=!d.osm, emoji=escapeMapText(radarFoodIcon(d)), isNew=!!d.nuevo;
   const fill=mine?color:'#ffffff', ring=mine?'#ffffff':color;
   const svg=`<svg class="radar-pin-svg" viewBox="0 0 34 44" width="34" height="44" aria-hidden="true"><path d="M17 43C17 43 3 27.6 3 16.5 3 8.5 9.3 2 17 2s14 6.5 14 14.5C31 27.6 17 43 17 43Z" fill="${fill}" stroke="${ring}" stroke-width="2.5"/></svg>`;
-  return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm'),html:`<div class="radar-pin2" style="--pin:${color}" title="${escapeMapText(d.n)}">${svg}<span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
+  return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm')+(isNew?' is-new':''),html:`<div class="radar-pin2" style="--pin:${color}" title="${escapeMapText(d.n)}">${svg}<span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
 }
 function radarOpenNow(d){
   const raw=d.oh||(d.osmTags&&d.osmTags.opening_hours);const periods=d.hours||(raw&&window.RentaFreeSearch&&(d.hours=window.RentaFreeSearch.parseOsmHours(raw)));
@@ -5746,7 +5784,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   const GROUPS=RADAR_GROUPS;
   const groupOf=radarGroupOf;
   window.radarMapGroup='all';
-  window.radarMapGroupOk=d=>window.radarMapGroup==='all'||groupOf(d)===window.radarMapGroup;
+  window.radarMapGroupOk=d=>window.radarMapGroup==='all'||(window.radarMapGroup!=='mercados'&&groupOf(d)===window.radarMapGroup);
   function addFilterControl(){
     if(!window.radarMap||document.getElementById('mapGroupChips'))return;
     const C=L.Control.extend({options:{position:'topleft'},onAdd(){const el=L.DomUtil.create('div','map-group-chips');el.id='mapGroupChips';
@@ -5800,6 +5838,59 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   $('agendaMore').addEventListener('click',()=>{shown+=12;render();});
   fetch('./eventos.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>{all=j.eventos||[];$('agendaSource').textContent=`${all.length} actividades · ${j.fuente} · actualizado ${new Date(j.actualizado+'T12:00:00').toLocaleDateString('es-ES')}`;cats();render();})
     .catch(()=>{$('agendaSource').textContent='La agenda se está preparando; vuelve en unos minutos.';});
+})();
+</script>
+<script id="renta-nuevos-mercados">
+// Sitios nuevos por reseñas (nuevos.json) y mercados gastronómicos con sus puestos (mercados.json).
+// Ambos los genera cada mes GitHub Actions; aquí solo se leen (sin claves, sin coste).
+(function(){
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const ICON={'Japonesa':'🍣','Sushi':'🍣','Ramen':'🍜','Marisco y pescado':'🦐','Española':'🥘','Tapas':'🫒','Italiana':'🍝','Pizza':'🍕','Mexicana':'🌮','Hamburguesas':'🍔','Carnes':'🥩','Brasa':'🔥','China':'🥟','Coreana':'🍜','Tailandesa':'🍜','Vietnamita':'🍜','India':'🍛','Oriente Medio':'🧆','Libanesa':'🧆','Turca':'🥙','Griega':'🫒','Mediterránea':'🫒','Francesa':'🥐','Peruana':'🐟','Argentina':'🥟','Brasileña':'🍖','Vegana':'🥗','Vegetariana':'🥗','Brunch':'🥞','Desayunos':'🥐','Bocadillos':'🥪','Café':'☕','Panadería y dulces':'🥐','Postres':'🍰','Dulces':'🍬','Helados':'🍦','Vinos':'🍷','Bar':'🍺','Cócteles':'🍸','Cervezas':'🍺','Comida rápida':'🌭','Para llevar':'🥡','Charcutería y gourmet':'🧀','Quesos':'🧀','Croquetas':'🥟','Arroces':'🥘','Fruta y verdura':'🍅','Asiática':'🥢','Africana':'🍲','Restaurante':'🍽️','Comida':'🍽️'};
+  let mercados=[], marketLayer=null, marketMarkers=new Map();
+  function stallsHtml(m){
+    const groups={};m.puestos.forEach(p=>{(groups[p.tipo]=groups[p.tipo]||[]).push(p.n);});
+    return Object.keys(groups).sort((a,b)=>groups[b].length-groups[a].length).map(t=>`<div class="mk-group"><b>${ICON[t]||'🍽️'} ${esc(t)}</b><span>${groups[t].map(esc).join(' · ')}</span></div>`).join('');
+  }
+  function popupHtml(m){
+    return `<article class="market-popup"><h3>🏪 ${esc(m.n)}</h3><p>${esc(m.addr||'')} · ${m.puestos.length} puestos</p>
+      <div class="mk-tipos">${m.tipos.map(t=>`<span>${ICON[t]||'🍽️'} ${esc(t)}</span>`).join('')}</div>
+      <div class="mk-stalls">${stallsHtml(m)}</div>
+      <a class="radar-popup-btn primary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.n)}%20${m.lat},${m.lon}" target="_blank" rel="noopener">Cómo llegar ↗</a></article>`;
+  }
+  function drawMarkets(){
+    if(!window.radarMap||!mercados.length)return;
+    const show=!window.radarMapGroup||window.radarMapGroup==='all'||window.radarMapGroup==='mercados';
+    if(!marketLayer)marketLayer=L.layerGroup().addTo(radarMap);
+    marketLayer.clearLayers();marketMarkers.clear();
+    if(!show)return;
+    mercados.forEach(m=>{
+      const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin"><span>🏪</span><b>${m.puestos.length}</b></div>`,iconSize:[44,44],iconAnchor:[22,22],popupAnchor:[0,-20]});
+      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup'}).addTo(marketLayer);
+      marketMarkers.set(m.n,mk);
+    });
+  }
+  function renderList(){
+    const panel=document.getElementById('marketPanel');if(!panel||!mercados.length)return;
+    panel.hidden=false;document.getElementById('marketCount').textContent=mercados.length;
+    document.getElementById('marketList').innerHTML=mercados.map((m,i)=>`<details class="market-card"><summary><span class="mk-name">🏪 ${esc(m.n)}</span><span class="mk-meta">${m.puestos.length} puestos · ${m.tipos.slice(0,4).map(t=>ICON[t]||'').join(' ')}</span></summary>
+      <p class="mk-addr">${esc(m.addr||'')}</p><div class="mk-tipos">${m.tipos.map(t=>`<span>${ICON[t]||'🍽️'} ${esc(t)}</span>`).join('')}</div><div class="mk-stalls">${stallsHtml(m)}</div>
+      <button type="button" class="map-control-btn" data-market="${i}">⌖ Ver en el mapa</button></details>`).join('');
+  }
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-market]');if(!b)return;const m=mercados[+b.dataset.market];
+    if(window.radarMap){document.getElementById('mapShell').scrollIntoView({behavior:'smooth',block:'start'});radarMap.setView([m.lat,m.lon],17);setTimeout(()=>marketMarkers.get(m.n)?.openPopup(),500);}});
+  // Filtro "Mercados" en el mapa
+  const addChip=()=>{const chips=document.getElementById('mapGroupChips');if(!chips)return;
+    if(!chips._mk){chips._mk=true;chips.addEventListener('click',()=>setTimeout(drawMarkets,0));}
+    if(mercados.length&&!chips.querySelector('[data-g="mercados"]'))chips.querySelector('[data-g="all"]')?.insertAdjacentHTML('afterend',`<button type="button" data-g="mercados">🏪 Mercados <small>${mercados.length}</small></button>`);};
+  const hook=addChip;
+  const origRender=renderMapMarkers;
+  renderMapMarkers=function(list){origRender.apply(this,arguments);hook();drawMarkets();};
+  // Datos
+  fetch('./mercados.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;mercados=(j.mercados||[]).filter(m=>m.puestos&&m.puestos.length);renderList();addChip();drawMarkets();}).catch(()=>{});
+  fetch('./nuevos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!Array.isArray(j.sitios))return;
+    const have=new Set(DATA.map(d=>d.n.toLocaleLowerCase('es')));
+    j.sitios.forEach(x=>{if(!have.has(x.n.toLocaleLowerCase('es')))DATA.push(x);});
+    try{renderResults();}catch(e){}}).catch(()=>{});
 })();
 </script>
 </body>

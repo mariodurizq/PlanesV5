@@ -1,91 +1,17 @@
 Ubicación del 2026-11-04
-538 de 622 sitios con coordenadas reales (320 por mapa abierto, 19 por búsqueda individual).
+530 de 622 sitios con coordenadas reales (286 por mapa abierto, 24 por búsqueda individual).
 3 marcados como posible cierre en el mapa.
-77 eliminados por estar cerrados definitivamente según Google.
+0 eliminados por estar cerrados definitivamente según Google.
 170 con foto de su web oficial.
 
 Eliminados:
-- Quadrato Pizzeria (sin zona) = Google: «Quadrato Pizzeria»
-- Tetehookah 火咖 (Usera) = Google: «Tetehookah 火咖»
-- Rhudo (Salamanca) = Google: «Rhudo»
-- Chun-Li Dumplings - Ópera (Centro) = Google: «Chun-Li Dumplings - Ópera»
-- Yeite (Centro) = Google: «Yeite»
-- Food Hall Galería Canalejas (Centro) = Google: «Food Hall Galería Canalejas»
-- Cardinale Food & Spritz (Centro) = Google: «Cardinale Food & Spritz»
-- Las carnes de Martín (Centro) = Google: «Las carnes de Martín»
-- SyMental Rojas Madrid (Chamberí) = Google: «SyMental Rojas Madrid»
-- Saoko Club Lounge (Las Rozas) = Google: «Saoko Club Lounge»
-- La Carlota Restaurante (Centro) = Google: «La Carlota»
-- BDP Burger Getafe (Getafe) = Google: «BDP Burger Getafe»
-- Pastrami Rolls (Salamanca) = Google: «Pastrami Rolls»
-- MAMBA LUXE (Puente de Vallecas) = Google: «MAMBA LUXE»
-- Ocean Shisha Lounge (Puente de Vallecas) = Google: «Ocean Shisha Lounge»
-- My Lounge (Tetuán) = Google: «My Lounge Madrid»
-- Iztac (Chamartín) = Google: «Restaurante Iztac»
-- Can chan chán (Salamanca) = Google: «Can chan chán»
-- ImPasta Santa Engracia (Chamberí) = Google: «ImPasta Santa Engracia»
-- Hijos de Tomás (Centro) = Google: «Hijos de Tomás»
-- Burghetto (Chamberí) = Google: «Burghetto»
-- Döggo (Chamberí) = Google: «Döggo»
-- Makitake Goya (Salamanca) = Google: «Makitake Goya»
-- Barhop Madrid (Centro) = Google: «Bar Barhop Madrid»
-- RED PROJECT SUSHI MADRID (Salamanca) = Google: «RED PROJECT SUSHI RESTAURANTE MADRID»
-- Chihuahua Tacos y Tragos La Moraleja (Alcobendas) = Google: «Chihuahua Tacos y Tragos La Moraleja»
-- Lobo Club (Las Rozas) = Google: «Lobo Club»
-- MR HOOKAH LOUNGE (Vicálvaro) = Google: «Mr. Hookah»
-- Napoli Gang - Ópera (Centro) = Google: «Napoli Gang - Ópera»
-- BiBi Burger (Chamartín) = Google: «BiBi Burger»
-- Big Cow (Getafe) = Google: «Big Cow»
-- PlayBack Madrid (Centro) = Google: «PlayBack Madrid»
-- Luxury Monkey (Las Rozas) = Google: «Luxury Monkey»
-- The Dacri's Hookah (Getafe) = Google: «The Dacri's Hookah»
-- Fasfú burgers (Centro) = Google: «Fasfú Burgers»
-- Martinica Madrid (Salamanca) = Google: «Martinica Madrid»
-- Sushitokyo (Centro) = Google: «Sushitokyo»
-- Rua Street Burger (Centro) = Google: «Rua Street Burger»
-- Jersey Amarillo (Fuencarral-El Pardo) = Google: «Restaurante Jersey Amarillo»
-- La Cocina Bar (Chamartín) = Google: «La Cocina Bar»
-- LOYALTY - RESTAURANT & CLUB (Chamartín) = Google: «LOYALTY - RESTAURANT & CLUB»
-- La Pica Lounge Bar (Ciudad Lineal) = Google: «La Pica Lounge Bar»
-- Restaurante El Gallo Campo de las Naciones (Hortaleza) = Google: «Restaurante El Gallo Campo de las Naciones»
-- That's Amore (Centro) = Google: «That’s Amore»
-- Monkey Lounge Pub (Centro) = Google: «Monkey Lounge Pub»
-- E-teon Lounge (sin zona) = Google: «E-teon Lounge»
-- Kamado Asian Food (Centro) = Google: «Kamado Asian Food»
-- El Cuento Bar (Salamanca) = Google: «El Cuento Bar»
-- The Eight Burger (Centro) = Google: «The Eight Burger»
-- Knowmad Madrid - Príncipe de Vergara (Salamanca) = Google: «Knowmad Madrid - Príncipe de Vergara»
-- WELKHOMEclub (Chamberí) = Google: «WELKHOMEclub»
-- Miss Sushi Serrano (Salamanca) = Google: «Miss Sushi Serrano»
-- Nitty Gritty (Chamartín) = Google: «Nitty Gritty»
-- ILUSHION HOOKAH (sin zona) = Google: «ILUSHION HOOKAH»
-- Zento Gastro-Birreria (Alcorcón) = Google: «Zento Gastro-Birreria»
-- Revival Cafe Madrid (Moncloa-Aravaca) = Google: «Revival Cafe Madrid»
-- Maddock Madrid (Chamberí) = Google: «Restaurante Maddock»
-- TAKOMAMA (Centro) = Google: «TAKOMAMA»
-- Pepe taco (Chamberí) = Google: «Pepe Taco»
-- Rude Burger (Salamanca) = Google: «Rude Burger»
-- Amargo place to be (Centro) = Google: «Amargo place to be»
-- Maricastaña (Centro) = Google: «Maricastaña»
-- KENZO RESTAURANTE CLUB&LOUNGE (Arroyomolinos) = Google: «Kenzo Restaurante Club&Lounge»
-- The Stuyck Co (Centro) = Google: «The Stuyck Co»
-- FAMOUS SHISHAS 2 (Retiro) = Google: «FAMOUS SHISHAS 2»
-- Sotto Club - Discoteca y sala de eventos en Bernabéu (Chamartín) = Google: «Sotto - Discoteca y sala de eventos en Bernabéu»
-- Los Costilla (Salamanca) = Google: «Los Costilla - Burgers & Ribs»
-- Taxi a Manhattan (Tetuán) = Google: «Taxi a Manhattan»
-- Black Diamond (San Blas-Canillejas) = Google: «Black Diamond»
-- Angelita Madrid Sky Bar (Retiro) = Google: «Angelita Madrid Sky Bar»
-- Vacaciones Cocktail Bar (Centro) = Google: «Vacaciones Cocktail Bar»
-- My Way Madrid Sky Bar (Centro) = Google: «My Way Sky Bar»
-- Ático 11 (Centro) = Google: «Ático 11»
-- Pointer Madrid (Centro) = Google: «Pointer Madrid»
-- Gustami italia (Centro) = Google: «Gustami italia»
-- MY Hookah Room - Shisha / Cachimba Madrid (Retiro) = Google: «MY Hookah Room»
-- Etnico Madrid (Centro) = Google: «Etnico Madrid»
 
 Sin ubicar:
 - El Canalla - Irish Pub & Sports Bar
+- Kokó Classic (Moncloa-Aravaca)
 - SAM'S (Chamartín)
+- La Máquina Caleido (Fuencarral-El Pardo)
+- Sushi Salvaje Pato Laqueado (Pozuelo de Alarcón)
 - Lynch - Food and Cocktails (Centro)
 - Jenkin's - Orense (Tetuán)
 - Élkar - Restaurante en la Castellana (Fuencarral-El Pardo)
@@ -94,14 +20,17 @@ Sin ubicar:
 - Zen asian supper club (ZEN Velázquez) (Salamanca)
 - Kilda Food (Chamberí)
 - On Sushi San Sebastián De Los Reyes (San Sebastián de los Reyes)
+- ALICE_LOUNGE_ (Tetuán)
 - LA PÉCORA Gastrobar & Terraza (Arroyomolinos)
 - Ostinato
 - MY Hookah Da Club (Chamartín)
+- HUNDRED (Moncloa-Aravaca)
 - Zozou Club
 - Taberna Murciana
 - Restaurante Wanderlust CC Plaza Río 2
 - Burro Canaglia Bar&Resto - Manuel Becerra (Salamanca)
 - Peppe Fusco The Italian (Chamberí)
+- Secreto Lounge (Tetuán)
 - Tiki Taco Princesa
 - Occhiali Restaurante (Ottica) (Chamartín)
 - El Japo Carranza (Chamberí)
@@ -121,6 +50,7 @@ Sin ubicar:
 - Zoko Retiro (Retiro)
 - Babels (Centro)
 - Naguara hookah (Centro)
+- Colina del Mirador Estelar (Villa de Vallecas)
 - Glück Cervecería - Madrid
 - LA CHORIPANERIA (Centro)
 - Lovo Bar Madrid (Centro)
@@ -147,6 +77,7 @@ Sin ubicar:
 - Copos Aventura13 (Pinto)
 - Figaro Pizza Bar (Centro)
 - El Edén Hawaiano (El Edén) (Rivas-Vaciamadrid)
+- Terraza de Sabatini (Moncloa-Aravaca)
 - Paperboy
 - KOKÓ URBAN
 - Bacoa Burger

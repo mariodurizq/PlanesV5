@@ -8,7 +8,7 @@ on:
     branches: [main]
     paths: ['tools/eventos.py']
 concurrency:
-  group: escribir-repo
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 permissions:
   contents: write
@@ -18,14 +18,5 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Descargar agenda
-        run: python3 tools/eventos.py
-      - name: Guardar cambios
-        run: |
-          git add eventos.json
-          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
-          git config user.name "renta-bot"
-          git config user.email "renta-bot@users.noreply.github.com"
-          git commit -m "Agenda de eventos actualizada"
-          git pull --rebase -q origin main
-          git push
+      - name: Ejecutar y guardar
+        run: tools/guardar.sh "Agenda de eventos actualizada" "python3 tools/eventos.py" eventos.json

@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: '23 4 1 * *'
 concurrency:
-  group: escribir-repo
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 permissions:
   contents: write
@@ -18,18 +18,7 @@ jobs:
       GOOGLE_PLACES_KEY: ${{ secrets.GOOGLE_PLACES_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - name: Ubicar y revisar cierres
-        continue-on-error: true
-        run: python3 tools/ubicar.py
-      - name: Mercados gastronómicos
-        continue-on-error: true
-        run: python3 tools/mercados.py
-      - name: Guardar cambios
-        run: |
-          for f in index.html nuevos.json mercados.json tools/*.json tools/*.txt; do if [ -e "$f" ]; then git add "$f"; fi; done
-          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
-          git config user.name "renta-bot"
-          git config user.email "renta-bot@users.noreply.github.com"
-          git commit -m "Revisión mensual: cierres, mercados y sitios nuevos"
-          git pull --rebase -q origin main
-          git push
+      - name: Ejecutar y guardar
+        env:
+          REPETIR: "0"
+        run: tools/guardar.sh "Revisión mensual: cierres y mercados" "python3 tools/ubicar.py; python3 tools/mercados.py || true" index.html mercados.json tools/ultima_ubicacion.txt tools/google_uso.json

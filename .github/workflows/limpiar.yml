@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths: ['tools/limpiar_comer.py']
 concurrency:
-  group: escribir-repo
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 permissions:
   contents: write
@@ -16,13 +16,5 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - run: python3 tools/limpiar_comer.py
-      - name: Guardar cambios
-        run: |
-          for f in comer-offline.json tools/comer_eliminados.json; do if [ -e "$f" ]; then git add "$f"; fi; done
-          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
-          git config user.name "renta-bot"
-          git config user.email "renta-bot@users.noreply.github.com"
-          git commit -m "Dónde comer verificado contra OpenStreetMap"
-          git pull --rebase -q origin main
-          git push
+      - name: Ejecutar y guardar
+        run: tools/guardar.sh "Dónde comer verificado contra OpenStreetMap" "python3 tools/limpiar_comer.py" comer-offline.json tools/comer_eliminados.json

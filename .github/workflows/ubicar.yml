@@ -3,11 +3,8 @@
 name: Ubicar sitios en el mapa
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: ['tools/ubicar.trigger']
 concurrency:
-  group: escribir-repo
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 permissions:
   contents: write
@@ -17,17 +14,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Ubicar
+      - name: Ejecutar y guardar
         env:
-          GOOGLE_PLACES_KEY: ${{ secrets.GOOGLE_PLACES_KEY }}
-        run: python3 tools/ubicar.py
-      - name: Guardar cambios
-        run: |
-          if git diff --quiet; then echo "Sin cambios"; exit 0; fi
-          git config user.name "renta-bot"
-          git config user.email "renta-bot@users.noreply.github.com"
-          for f in index.html tools/*.json tools/*.txt; do if [ -e "$f" ]; then git add "$f"; fi; done
-          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
-          git commit -m "Ubicaciones reales actualizadas (OpenStreetMap + Google)"
-          git pull --rebase -q origin main
-          git push
+          REPETIR: "0"
+        run: tools/guardar.sh "Ubicaciones reales actualizadas (OpenStreetMap + Google)" "python3 tools/ubicar.py" index.html tools/ultima_ubicacion.txt tools/google_uso.json

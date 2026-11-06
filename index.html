@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A0F1C">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icon-192.png"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-title" content="RENTA"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 
 <title>RENTA · Planes en Madrid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -6616,5 +6616,31 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 })();
 </script>
 
+<style id="renta-instalar-css">
+#rentaInstall{position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:3000;background:#16231e;color:#f3f1ea;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:14px 40px 14px 14px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-size:14px;line-height:1.4}
+#rentaInstall b{display:block;font-size:15px;margin-bottom:4px}
+#rentaInstall .ri-x{position:absolute;top:6px;right:8px;background:none;border:0;color:inherit;font-size:22px;padding:4px 8px;cursor:pointer}
+#rentaInstall .ri-share{display:inline-block;border:1px solid currentColor;border-radius:5px;padding:0 5px;font-size:12px}
+</style>
+<script id="renta-instalar">
+// iPhone: Safari no avisa de que la web se puede instalar, así que lo explicamos una vez.
+(function(){
+  try{
+    const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const standalone=window.navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
+    const safari=/Safari/.test(ua)&&!/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/.test(ua);
+    if(!ios||standalone||localStorage.getItem('renta-install-hint')) return;
+    setTimeout(()=>{
+      const d=document.createElement('div'); d.id='rentaInstall'; d.setAttribute('role','dialog');
+      d.innerHTML=safari
+        ? '<b>📲 Ten RENTA como app</b>Pulsa <span class="ri-share">Compartir ⬆️</span> abajo y luego <b style="display:inline;font-size:14px">«Añadir a pantalla de inicio»</b>.<button class="ri-x" aria-label="Cerrar">×</button>'
+        : '<b>📲 Ten RENTA como app</b>Abre esta página en <b style="display:inline;font-size:14px">Safari</b> y usa Compartir ⬆️ → «Añadir a pantalla de inicio».<button class="ri-x" aria-label="Cerrar">×</button>';
+      d.querySelector('.ri-x').onclick=()=>{d.remove();try{localStorage.setItem('renta-install-hint','1');}catch(e){}};
+      document.body.appendChild(d);
+      setTimeout(()=>{ if(d.isConnected){ d.remove(); try{localStorage.setItem('renta-install-hint','1');}catch(e){} } },20000);
+    },4000);
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

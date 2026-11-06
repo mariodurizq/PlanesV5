@@ -1,11 +1,12 @@
-const VERSION = 'renta-shell-v27';
+const VERSION = 'renta-shell-v28';
 const APP_FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './icon-maskable-512.png'
+  './icon-maskable-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
@@ -40,6 +41,21 @@ self.addEventListener('fetch', event => {
         return fresh;
       } catch (e) {
         return (await cache.match(req)) || (await cache.match('./index.html')) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // Datos (.json) y páginas: siempre la versión nueva si hay red; la guardada solo sin conexión.
+  if (/\.(json|html)$/.test(url.pathname)) {
+    event.respondWith((async () => {
+      const cache = await caches.open(VERSION);
+      try {
+        const fresh = await fetch(req, {cache: 'no-store'});
+        if (fresh && fresh.ok) cache.put(url.pathname, fresh.clone());
+        return fresh;
+      } catch (e) {
+        return (await cache.match(url.pathname)) || Response.error();
       }
     })());
     return;

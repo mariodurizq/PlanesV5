@@ -4193,6 +4193,26 @@ const PD_PLACES = [
 ];
 const PD_PREP = '(?:en|por|cerca de|cerca del|zona de|zona|junto a|al lado de|barrio de|barrio|alrededor de|de)\\s+(?:la |el |los |las )?';
 // Devuelve el lugar mencionado en el texto (ya normalizado con pdNorm), el más largo primero
+// Todos los municipios de la Comunidad de Madrid (municipios.json, generado desde OpenStreetMap)
+const PD_COMMON_WORDS = new Set(['pinto','corpa','batres','lozoya','robregordo','madarcos','horcajo','montejo','braojos','serna','gascones','berzosa','alameda','redueña','cabanillas','paredes','valdemaqueda','zarzalejo','patones','canencia','brea','estremera','anchuelo','fuentidueña','ambite','pezuela','santorcaz','carabaña','chapineria','cadalso','rozas','colmenar','villa','fresno','olmeda']);
+(function(){
+  fetch('municipios.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||!Array.isArray(j.municipios)) return;
+    const known = new Set(PD_PLACES.flatMap(pl=>pl.a.map(pdNorm)).concat(PD_PLACES.map(pl=>pdNorm(pl.n))));
+    j.municipios.forEach(m=>{
+      const nn = pdNorm(m.n);
+      if(known.has(nn)) return;
+      const al = [nn];
+      const sinArt = nn.replace(/^(el|la|los|las) /,''); if(sinArt!==nn && !known.has(sinArt)) al.push(sinArt);
+      const corto = nn.replace(/ (de|del|de la|de los|de las) .*$/,''); 
+      if(corto!==nn && corto.length>=6 && !known.has(corto) && !PD_COMMON_WORDS.has(corto) && !/^(san|santa|villa|torre|torres|fuente|nuevo|nueva|valde)$/.test(corto)) al.push(corto);
+      const single = !nn.includes(' ');
+      PD_PLACES.push({n:m.n, a:al, lat:m.lat, lon:m.lon, r:m.r||2, p: single && (nn.length<=6 || PD_COMMON_WORDS.has(nn)), muni:true});
+      known.add(nn);
+    });
+    window.RENTA_MUNICIPIOS = j.municipios.length;
+  }).catch(()=>{});
+})();
 function pdFindPlace(text){
   const cands=[];
   PD_PLACES.forEach(pl=>pl.a.forEach(al=>{
@@ -4327,6 +4347,10 @@ function pdParse(raw){
   if(planWords && p.wants.length>=2 && !p.qty) p.modeHint='plan';
 
   // plan sin categorías: cena + copas por defecto
+  if(p.modeHint==='plan' && p.wants.length===0 && /\btarde\b/.test(text) && !/\bnoche\b/.test(text)){
+    p.wants = [PD_CATS.find(c=>c.id==='cafe'), PD_CATS.find(c=>c.id==='tapas')];
+    p.notes.push('Plan de tarde: te propongo merienda y después unas cañas.');
+  }
   if(p.modeHint==='plan' && p.wants.length===0){
     p.wants = [PD_CATS.find(c=>c.id==='food'), PD_CATS.find(c=>c.id==='cock')];
     p.notes.push('No dijiste qué tipo de sitios, así que te propongo cena + copas.');
@@ -4461,7 +4485,8 @@ function pdPlaceToItem(pl, cm, city){
   const name = pl.displayName && pl.displayName.text || 'Sitio';
   const pls = {PRICE_LEVEL_INEXPENSIVE:'€',PRICE_LEVEL_MODERATE:'€€',PRICE_LEVEL_EXPENSIVE:'€€€',PRICE_LEVEL_VERY_EXPENSIVE:'€€€€'};
   return {src:pl.source==='OpenStreetMap'?'osm':'google', n:name, cm, cd:'', addr:pl.formattedAddress||'', v:pl.rating||null, nr:pl.userRatingCount||null,
-    priceLevel:pls[pl.priceLevel]||'', link:pl.googleMapsUri||null, city:city||'', _places:pl};
+    priceLevel:pls[pl.priceLevel]||'', link:pl.googleMapsUri||null, city:city||'', _places:pl,
+    lat:pl.location?pl.location.latitude:undefined, lon:pl.location?pl.location.longitude:undefined, locationVerified:!!pl.location};
 }
 async function pdLive(want, p, cityName, limit){
   const timeout = new Promise(res=>setTimeout(()=>res({items:[], error:'el mapa abierto tarda demasiado; te enseño lo que ya tengo'}), 6000));
@@ -4561,7 +4586,7 @@ async function pdBuildListCore(p, shuffle){
       }
       out.notes.push(...f.notes);
       items = pdShuffleTop(pdSort(f.items, p), qty, shuffle);
-      if(items.length<qty && key){
+      if(items.length<Math.min(3,qty)){
         const r = await pdLive(w, p, null, qty);
         const have = new Set(items.map(i=>pdNorm(i.n)));
         const extra = (r.items||[]).filter(i=>!have.has(pdNorm(i.n)) && !DATA.some(d=>pdNorm(d.n)===pdNorm(i.n)));
@@ -4600,7 +4625,12 @@ async function pdBuildPlan(p){
   if(p.time==null) out.notes.push(`No dijiste hora: arranco a las ${pdFmt(t)}.`);
   let prev = null;
   for(let i=0;i<wants.length;i++){
-    const w = wants[i];
+    let w = wants[i];
+    // después de comer, a media tarde: bar o terraza (las coctelerías abren hacia las 19:00)
+    if(w.id==='cock' && i>0 && meal==='comida' && t<18*60){
+      const bar = PD_CATS.find(c=>c.id==='tapas');
+      if(bar && !wants.includes(bar)){ w = bar; out.notes.push('Después de comer te propongo un bar o terraza para tomar algo: las coctelerías suelen abrir a partir de las 19:00.'); }
+    }
     // franjas realistas
     if(w.meal){
       if(meal==='cena' && t<21*60 && t>=12*60) { if(i===0 && p.time!=null){} else t = 21*60; }
@@ -4627,10 +4657,11 @@ async function pdBuildPlan(p){
       const anchor = prev && planHasCoords(prev) ? [prev.lat,prev.lon] : (p.place?[p.place.lat,p.place.lon]:(p.near&&userCoords?[userCoords.lat,userCoords.lon]:(p.zones.length?null:[40.4200,-3.7000])));   // sin zona: centro de Madrid
       // abierto a esa hora, cerca de la parada anterior y bien valorado (con algo de azar para «otra versión»)
       item = planPickNear(f.items, anchor, t, 3);
-      if(!item && key){
-        const r = await pdLive(w, p, null, 5);
+      if(!item){
+        const r = await pdLive(w, p, null, 8);
         const cands = (r.items||[]).filter(x=>!used.has(x.n));
-        item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
+        item = anchor ? planPickNear(cands, anchor, t, 3) : (cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null);
+        if(!item && r.error) out.notes.push('Mapa: '+r.error);
         if(item) out.notes.push(`"${w.label}": no tenía nada en tu lista${p.zoneLabels.length?' en '+p.zoneLabels.join(', '):''}, así que elegí un sitio real del mapa.`);
       }
     }

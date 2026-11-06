@@ -1,5 +1,10 @@
 """Cada lunes: restaurantes, coctelerías y shishas de la Comunidad de Madrid con ≥400 reseñas y nota ≥4,8 en Google.
 
+Cobertura: los 21 distritos de Madrid capital TODAS las semanas y los otros 178 municipios
+(municipios.json) por turnos: cada lunes una cuarta parte, así cada municipio se revisa una vez al mes.
+Municipios de ≥20.000 hab.: restaurantes, coctelerías y shishas; de 5.000 a 20.000: restaurantes y
+coctelerías; los más pequeños: restaurantes. Unas ~145 consultas por lunes (≤ ~725 al mes, tope 900).
+
 Resultado en nuevos.json (se acumula: lo encontrado en semanas anteriores se mantiene y se actualiza).
 ~150 consultas por ejecución a la tarifa «Enterprise» de Google, con tope mensual por debajo de lo gratuito.
 """
@@ -28,6 +33,21 @@ ZONAS = [  # (nombre, lat, lon, radio m, páginas para restaurantes)
     ('Sierra de Guadarrama', 40.7300, -4.0300, 9000, 1), ('Colmenar Viejo', 40.6590, -3.7660, 4000, 1), ('Aranjuez y Chinchón', 40.0850, -3.5150, 9000, 1),
     ('San Lorenzo de El Escorial', 40.5920, -4.1470, 5000, 1), ('Sierra Norte', 40.9300, -3.6800, 15000, 1), ('Navalcarnero y Villaviciosa', 40.3220, -3.9560, 6000, 1),
 ]
+MADRID_CAPITAL = ZONAS[:21]
+
+def municipios_de_la_semana(hoy):
+    path = ROOT / 'municipios.json'
+    if not path.exists(): return [(z[0], z[1], z[2], z[3], z[4], 3) for z in ZONAS[21:]]
+    ms = [m for m in json.loads(path.read_text(encoding='utf-8'))['municipios'] if m['n'] != 'Madrid']
+    ms.sort(key=lambda m: m['n'])
+    turno = hoy.isocalendar()[1] % 4
+    out = []
+    for i, m in enumerate(ms):
+        if i % 4 != turno: continue
+        ntipos = 3 if m['pop'] >= 20000 else 2 if m['pop'] >= 5000 else 1
+        out.append((m['n'], m['lat'], m['lon'], int(min(m.get('r', 2), 5) * 1000 + 1000), 1, ntipos))
+    return out
+
 TIPOS = [('restaurante', 'restaurantes'), ('cocteleria', 'coctelería'), ('shisha', 'shisha cachimba lounge')]
 FIELDS = 'places.id,places.displayName,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.businessStatus,places.priceLevel,places.primaryType,places.types,nextPageToken'
 PRICE = {'PRICE_LEVEL_INEXPENSIVE': '1-15', 'PRICE_LEVEL_MODERATE': '15-30', 'PRICE_LEVEL_EXPENSIVE': '30-50', 'PRICE_LEVEL_VERY_EXPENSIVE': '50+'}
@@ -59,15 +79,18 @@ def valido(tipo, p):
 
 def main():
     if not KEY: raise SystemExit('Falta GOOGLE_PLACES_KEY')
-    if not disponible('enterprise', 140):
+    if not disponible('enterprise', 160):
         print('No queda cupo gratuito de Google este mes para la búsqueda semanal: se mantiene nuevos.json.'); return
     _, _, data = load_data(); mios = [d['n'] for d in data]
     path = ROOT / 'nuevos.json'
     prev = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {'sitios': []}
     por_id = {s['gid']: s for s in prev.get('sitios', []) if s.get('gid')}
     hoy = datetime.date.today().isoformat(); vistos = set()
-    for zona, lat, lon, radio, paginas in ZONAS:
-        for tipo, q in TIPOS:
+    trabajos = [z + (3,) for z in MADRID_CAPITAL] + municipios_de_la_semana(datetime.date.today())
+    print(f'{len(trabajos)} zonas esta semana')
+    for zona, lat, lon, radio, paginas, ntipos in trabajos:
+        if not disponible('enterprise', 3): print('Tope mensual alcanzado: paro aquí'); break
+        for tipo, q in TIPOS[:ntipos]:
             token = None
             for pag in range(paginas if tipo == 'restaurante' else 1):
                 body = {'textQuery': f'{q} en {zona}, Madrid', 'pageSize': 20, 'languageCode': 'es', 'minRating': 4.5,
@@ -80,6 +103,7 @@ def main():
                     loc = p.get('location') or {}
                     if r < MIN_NOTA or n < MIN_RESENAS or p.get('businessStatus') not in (None, 'OPERATIONAL') or 'latitude' not in loc: continue
                     if km(40.4168, -3.7038, loc['latitude'], loc['longitude']) > 90 or not valido(tipo, p): continue
+                    if km(lat, lon, loc['latitude'], loc['longitude']) > max(radio / 1000 * 2.5, 4): continue   # que sea de esa zona
                     name = (p.get('displayName') or {}).get('text', '')
                     if any(sim(name, m) >= .85 for m in mios): continue
                     cm, cd = categoria(tipo, p)

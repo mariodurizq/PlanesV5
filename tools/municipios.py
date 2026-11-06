@@ -38,12 +38,13 @@ def main():
         t = el.get('tags', {}); c = el.get('center') or {}
         name = t.get('name:es') or t.get('name')
         if not name or not c: continue
+        if not (t.get('ine:municipio') or t.get('ref:ine')): continue   # territorios compartidos (El Redegüelo, Los Baldíos…)
         try: pop = int(str(t.get('population', '0')).replace('.', '').replace(' ', '') or 0)
         except ValueError: pop = 0
         out.append({'n': name, 'lat': round(c['lat'], 5), 'lon': round(c['lon'], 5), 'pop': pop, 'r': radio(pop),
                     'ine': t.get('ine:municipio') or t.get('ref:ine') or ''})
     out.sort(key=lambda m: -m['pop'])
-    if len(out) < 170: raise SystemExit(f'Solo {len(out)} municipios: algo ha ido mal, no se sobrescribe')
+    if len(out) < 175: raise SystemExit(f'Solo {len(out)} municipios: algo ha ido mal, no se sobrescribe')
     (ROOT / 'municipios.json').write_text(json.dumps({'generado': time.strftime('%Y-%m-%d'), 'municipios': out},
                                                      ensure_ascii=False, indent=0), encoding='utf-8')
     print(len(out), 'municipios guardados')

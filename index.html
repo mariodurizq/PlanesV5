@@ -2506,7 +2506,7 @@ let activeCat = null; // null = todas
 let userCoords = null;
 let maxDistance = 5;
 let selectedZone = '';
-let visibleCount = 20;
+let visibleCount = 10;
 let expandedVenue = null;
 let includeSuggested = false;
 let favoritesOnly = false;
@@ -2567,13 +2567,13 @@ function renderCatChips(){
   const allChip = document.createElement('div');
   allChip.className = 'chip' + (activeCat===null?' active':'');
   allChip.innerHTML = `Todos <span class="cnt">${DATA.length}</span>`;
-  allChip.onclick=()=>{activeCat=null; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=20; renderCatChips(); renderResults();};
+  allChip.onclick=()=>{activeCat=null; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=10; renderCatChips(); renderResults();};
   el.appendChild(allChip);
   cats.forEach(c=>{
     const chip=document.createElement('div');
     chip.className='chip'+(activeCat===c?' active':'');
     chip.innerHTML = `${CAT_ICONS[c]||'•'} ${c} <span class="cnt">${counts[c]}</span>`;
-    chip.onclick=()=>{activeCat=c; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=20; renderCatChips(); renderResults();};
+    chip.onclick=()=>{activeCat=c; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=10; renderCatChips(); renderResults();};
     el.appendChild(chip);
   });
   document.getElementById('catCountLbl').textContent = activeCat ? `→ ${activeCat}` : '';
@@ -2586,7 +2586,7 @@ function renderZoneSelect(){
   const sel = document.getElementById('zoneSelect');
   sel.innerHTML = '<option value="">— Todas las zonas —</option>' +
     Object.keys(zones).sort().map(z=>`<option value="${z}">${z} (${zones[z]})</option>`).join('');
-  sel.onchange = ()=>{ selectedZone = sel.value; visibleCount=20; renderResults(); };
+  sel.onchange = ()=>{ selectedZone = sel.value; visibleCount=10; renderResults(); };
 }
 
 // ---------- radar canvas ----------
@@ -2694,7 +2694,7 @@ window.addEventListener('error', function(e){
 document.getElementById('distSlider').oninput = (e)=>{
   maxDistance = parseInt(e.target.value);
   document.getElementById('radiusLbl').textContent = maxDistance;
-  visibleCount=20;
+  visibleCount=10;
   drawRadar(); renderResults();
 };
 
@@ -2916,7 +2916,7 @@ function renderResults(){
     const simBtn = div.querySelector('.simbtn');
     if(simBtn) simBtn.onclick = (ev)=>{
       ev.stopPropagation();
-      activeCat = d.cm; expandedVenue=null; visibleCount=20;
+      activeCat = d.cm; expandedVenue=null; visibleCount=10;
       renderCatChips(); renderResults();
       window.scrollTo({top:0, behavior:'smooth'});
     };
@@ -2976,7 +2976,7 @@ function renderResults(){
     });
   }
 }
-document.getElementById('loadMoreBtn').onclick = ()=>{ visibleCount+=20; renderResults(); };
+document.getElementById('loadMoreBtn').onclick = ()=>{ visibleCount+=10; renderResults(); };
 
 document.getElementById('toggleSuggested').onclick = function(){
   includeSuggested = !includeSuggested;
@@ -5457,13 +5457,13 @@ document.getElementById('headerMapBtn').addEventListener('click',()=>{
 let venueSearchDebounceTimer;
 document.getElementById('venueSearch').addEventListener('input',e=>{
   venueSearchQuery=e.target.value;
-  visibleCount=20;
+  visibleCount=10;
   clearTimeout(venueSearchDebounceTimer);
   venueSearchDebounceTimer=setTimeout(()=>renderResults(),100);
 });
-document.getElementById('sortResults').addEventListener('change',e=>{sortResultsBy=e.target.value;visibleCount=20;renderResults();});
-document.getElementById('quickFilter').addEventListener('change',e=>{quickFilterBy=e.target.value;visibleCount=20;document.getElementById('openNowBtn')?.setAttribute('aria-pressed',String(quickFilterBy==='now'));renderResults();});
-document.getElementById('openNowBtn')?.addEventListener('click',e=>{const on=quickFilterBy!=='now';quickFilterBy=on?'now':'all';document.getElementById('quickFilter').value=quickFilterBy;e.currentTarget.setAttribute('aria-pressed',String(on));visibleCount=20;renderResults();});
+document.getElementById('sortResults').addEventListener('change',e=>{sortResultsBy=e.target.value;visibleCount=10;renderResults();});
+document.getElementById('quickFilter').addEventListener('change',e=>{quickFilterBy=e.target.value;visibleCount=10;document.getElementById('openNowBtn')?.setAttribute('aria-pressed',String(quickFilterBy==='now'));renderResults();});
+document.getElementById('openNowBtn')?.addEventListener('click',e=>{const on=quickFilterBy!=='now';quickFilterBy=on?'now':'all';document.getElementById('quickFilter').value=quickFilterBy;e.currentTarget.setAttribute('aria-pressed',String(on));visibleCount=10;renderResults();});
 document.getElementById('surpriseBtn').addEventListener('click',showSurprise);
 document.getElementById('heroSurprise').addEventListener('click',showSurprise);
 document.getElementById('surpriseAgain').addEventListener('click',showSurprise);
@@ -5512,7 +5512,7 @@ function switchTab(tab){
   document.getElementById('tabbar').style.setProperty('--i', ['guiado','pide','eventos','match'].indexOf(tab==='directo'?'guiado':(tab==='autoplan'||tab==='radarlab')?'pide':tab));
   try{ navigator.vibrate && navigator.vibrate(8); }catch(e){}
 
-  if(isSearch){ visibleCount=20; renderResults(); }
+  if(isSearch){ visibleCount=10; renderResults(); }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -6553,5 +6553,68 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
   document.getElementById('mapLocateBtn')?.addEventListener('click',()=>{if(window.rentaRefPoint)clr.click();});
 })();
 </script>
+<style id="renta-compacto-css">
+/* Explorar más corto: secciones plegables con vista previa */
+.rc-head{cursor:pointer;user-select:none;position:relative;padding-right:34px!important}
+.rc-head::after{content:'▾';position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:18px;opacity:.7;transition:transform .2s}
+.rc-sec:not(.rc-closed) .rc-head::after{transform:translateY(-50%) rotate(180deg)}
+.rc-sec.rc-closed .rc-body[data-prev="0"]{display:none!important}
+.rc-sec.rc-closed .rc-body[data-prev="3"]>*:nth-child(n+4){display:none!important}
+.rc-sec.rc-closed .rc-body[data-prev="4"]>*:nth-child(n+5){display:none!important}
+.rc-more{display:block;width:100%;margin:10px 0 2px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.14));background:transparent;color:inherit;font:inherit;font-size:14px;font-weight:600;cursor:pointer;opacity:.9}
+.rc-sec.rc-closed .rc-head p{display:none}
+/* nota del mapa en una línea (se despliega al tocar) */
+.map-data-note.rc-note{cursor:pointer}
+.map-data-note.rc-note:not(.rc-open){max-height:30px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.map-data-note.rc-note:not(.rc-open) *{white-space:nowrap}
+#guiadoPanel.rc-closed:before{display:none}
+#guiadoPanel.rc-closed{padding-top:14px!important;padding-bottom:14px!important}
+.map-data-note.rc-note{padding-top:6px!important;padding-bottom:6px!important;font-size:12px}
+/* portada compacta */
+#searchHero{min-height:0!important}
+#searchHero .hero-photo,#searchHero .hero-index,#searchHero .hero-copy>p,#searchHero .eyebrow{display:none!important}
+#searchHero .hero-copy{padding:16px!important;position:relative!important}
+#searchHero h2{font-size:24px!important;line-height:1.15!important;margin:0 0 10px!important}
+#searchHero h2 em{display:inline!important;margin:0 .22em!important;padding:0!important}
+#searchHero .hero-actions{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:8px;scrollbar-width:none;margin:0!important}
+#searchHero .hero-actions::-webkit-scrollbar{display:none}
+#searchHero .hero-action{flex:0 0 auto!important;white-space:nowrap;width:auto!important}
+/* catálogo: sin cabecera grande */
+#catCard .renta-catalog-head{display:none!important}
+</style>
+<script id="renta-compacto">
+(function(){
+  const store={get(k){try{return localStorage.getItem('rc:'+k);}catch(e){return null;}},set(k,v){try{localStorage.setItem('rc:'+k,v);}catch(e){}}};
+  function plegable(key, sec, head, body, prev, moreTxt){
+    if(!sec||!head||!body||sec.classList.contains('rc-sec')) return;
+    sec.classList.add('rc-sec'); head.classList.add('rc-head'); body.classList.add('rc-body'); body.dataset.prev=String(prev);
+    if(store.get(key)!=='1') sec.classList.add('rc-closed');
+    let btn=null;
+    if(prev>0){ btn=document.createElement('button'); btn.type='button'; btn.className='rc-more'; body.after(btn); btn.onclick=e=>{e.stopPropagation();toggle();}; }
+    const label=()=>{ if(!btn) return; const n=body.children.length; const closed=sec.classList.contains('rc-closed');
+      btn.style.display = (closed && n<=prev) ? 'none' : ''; btn.textContent = closed ? moreTxt(n)+' ▾' : 'Ver menos ▴'; };
+    function toggle(){ const closed=sec.classList.toggle('rc-closed'); store.set(key, closed?'0':'1'); label();
+      if(closed) sec.scrollIntoView({block:'nearest'}); if(key==='radar') window.dispatchEvent(new Event('resize')); }
+    head.addEventListener('click',e=>{ if(e.target.closest('a,input,select,button:not(.rc-head)')) return; toggle(); });
+    new MutationObserver(label).observe(body,{childList:true}); label();
+  }
+  function init(){
+    const mp=document.getElementById('marketPanel');
+    plegable('mercados', mp, mp&&mp.querySelector('.nearby-heading'), document.getElementById('marketList'), 3, n=>`Ver los ${n} mercados`);
+    const np=document.querySelector('.nearby-panel');
+    plegable('cercanos', np, np&&np.querySelector('.nearby-heading'), document.getElementById('nearbyPlaces'), 3, n=>`Ver los ${n} más cercanos`);
+    const gp=document.getElementById('guiadoPanel');
+    if(gp){ const lab=gp.querySelector('.label'); const box=document.createElement('div'); [...gp.children].filter(c=>c!==lab).forEach(c=>box.appendChild(c)); gp.appendChild(box);
+      if(lab && !lab.querySelector('.rc-sub')) lab.insertAdjacentHTML('beforeend',' <span class="rc-sub" style="opacity:.7;font-weight:500">· radar por distancia</span>');
+      plegable('radar', gp, lab, box, 0, ()=>''); }
+    const h2=document.querySelector('#searchHero h2'); if(h2 && h2.querySelector('br')) h2.innerHTML='¿Qué te <em>apetece</em> hoy?';
+    const note=document.querySelector('.map-data-note');
+    if(note && !note.classList.contains('rc-note')){ note.classList.add('rc-note'); note.onclick=()=>note.classList.toggle('rc-open'); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,1500);
+})();
+</script>
+
 </body>
 </html>

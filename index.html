@@ -1570,6 +1570,7 @@ header.top.scrolled .tagline{max-height:0}
  .radar-modern-popup .radar-popup-body,.radar-modern-popup .radar-popup-card>div:not(.radar-popup-photo){padding-top:10px!important}
  .radar-modern-popup h3{font-size:18px!important;margin:4px 0!important}
 }
+.plan-walk{margin:6px 0 6px 14px;padding-left:12px;border-left:2px dashed var(--line,#cfcabb);font-size:12px;color:var(--muted,#6b716c)}
 </style>
 </head>
 <body>
@@ -2207,7 +2208,10 @@ header.top.scrolled .tagline{max-height:0}
   function filtersFor(text){
     const t = strip(text); const out = [];
     for(const r of RULES){ if(r.generic&&out.length) continue; if(r.re.test(t)){ r.f.forEach(f=>{ if(!out.includes(f)) out.push(f); }); if(out.length>=3) break; } }
-    return out.length ? out : DEFAULT_FILTERS;
+    if(out.length) return out;
+    const words = t.replace(/\ben\s+.*$/,'').replace(/[^a-zñ0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>=4 && !/^(para|quiero|algun|sitio|lugar|donde|madrid|comer|cenar|tomar|algo)/.test(w)).map(w=>w.length>5?w.slice(0,w.length-2):w).slice(0,3);
+    if(words.length){ const rx = words.join('|'); return ['["amenity"~"^(restaurant|bar|pub|cafe|fast_food|nightclub|ice_cream)$"]["name"~"'+rx+'",i]','["amenity"~"^(restaurant|bar|pub|cafe|fast_food)$"]["cuisine"~"'+rx+'",i]','["leisure"]["name"~"'+rx+'",i]']; }
+    return DEFAULT_FILTERS;
   }
   function placeFrom(text){
     const m = String(text||'').match(/\ben\s+([^]+)$/i);
@@ -3554,6 +3558,47 @@ function pickBest(pool, usedNames, onlyOpen){
   return pick;
 }
 
+
+// ---------- Planificación realista: orden lógico, franjas horarias y distancias a pie ----------
+const PLAN_ROLE={'Café/Brunch/Postres':1,'Ocio/Espacios no gastronómicos':2,'Hotel':2,'Otros':2,'Bar/Cervecería':3,'Rooftop/Terraza':5,'Coctelería':6,'Shisha Lounge':7,'Discoteca/Club':8};
+// [primera hora razonable, última hora razonable para EMPEZAR] en minutos; >1440 = de madrugada
+const PLAN_WIN={'Café/Brunch/Postres':[9*60,20*60],'Ocio/Espacios no gastronómicos':[10*60,22*60],'Hotel':[10*60,23*60],'Otros':[10*60,22*60],'Bar/Cervecería':[12*60,24*60],'Rooftop/Terraza':[13*60,24*60+30],'Coctelería':[19*60,26*60],'Shisha Lounge':[17*60,26*60+30],'Discoteca/Club':[24*60,27*60+30]};
+const PLAN_DUR={'Café/Brunch/Postres':60,'Ocio/Espacios no gastronómicos':90,'Hotel':60,'Otros':75,'Bar/Cervecería':60,'Rooftop/Terraza':75,'Coctelería':90,'Shisha Lounge':90,'Discoteca/Club':150};
+const planR15=m=>Math.ceil(m/15)*15;
+function planHasCoords(d){return d&&d.locationVerified&&Number.isFinite(d.lat)&&Number.isFinite(d.lon);}
+// Abierto a una hora concreta de hoy según su horario (true / false / null si no se sabe)
+function planOpenAt(d, minutes){
+  const raw=d.oh;if(!raw||!window.RentaFreeSearch)return null;
+  const per=d.hours||RentaFreeSearch.parseOsmHours(raw);if(!per||!per.length)return null;
+  const now=new Date();let day=now.getDay(),t=minutes;if(t>=1440){t-=1440;day=(day+1)%7;}
+  for(const p of per){if(!p.open)continue;const o=p.open.hour*60+(p.open.minute||0),cd=p.close?p.close.day:p.open.day,c=p.close?p.close.hour*60+(p.close.minute||0):1440;
+    if(p.open.day===day&&(cd===day?(t>=o&&t<c):t>=o))return true;if(cd===day&&p.open.day!==day&&t<c)return true;}
+  return false;
+}
+// Elige entre candidatos: abiertos a esa hora, cerca del anterior (≤1 km, si no ≤1,8, si no ≤3) y bien valorados
+function planPickNear(cands, anchor, minutes, randomTop){
+  let pool=cands.filter(d=>planOpenAt(d,minutes)!==false);
+  if(!pool.length)pool=cands;
+  if(anchor){
+    const withD=pool.filter(planHasCoords).map(d=>({d,km:haversine(anchor[0],anchor[1],d.lat,d.lon)}));
+    for(const lim of [1,1.8,3]){
+      const near=withD.filter(x=>x.km<=lim);
+      if(near.length>=2){pool=near.sort((a,b)=>((b.d.v||0)-(a.d.v||0))*1.2-(a.km-b.km)).map(x=>x.d);break;}
+      if(lim===3 && withD.length) pool=withD.sort((a,b)=>(a.km-b.km)-((b.d.v||0)-(a.d.v||0))*0.5).map(x=>x.d);
+    }
+  } else {
+    pool=pool.slice().sort((a,b)=>(planHasCoords(b)-planHasCoords(a))||((b.v||0)-(a.v||0)));
+  }
+  const top=pool.slice(0,randomTop||3);
+  return top[Math.floor(Math.random()*top.length)]||null;
+}
+function planWalkMin(a,b){if(!planHasCoords(a)||!planHasCoords(b))return 15;const km=haversine(a.lat,a.lon,b.lat,b.lon);if(km>2.5)return Math.min(45,Math.round(10+km*2.5));return Math.max(5,Math.round(km*1.25/4.5*60));}
+function planWalkHtml(stops,i){
+  if(i===0)return '';const a=stops[i-1],b=stops[i];if(!planHasCoords(a)||!planHasCoords(b))return '';
+  const km=haversine(a.lat,a.lon,b.lat,b.lon),min=planWalkMin(a,b);
+  return `<div class="plan-walk">${km>2.5?'🚇':'🚶'} ${km>2.5?'unos '+min+' min en metro/taxi':min+' min andando'} · ${km.toFixed(1).replace('.',',')} km</div>`;
+}
+
 async function renderMadridPlan(){
   const meetingTime = document.getElementById('planTime').value || '21:00';
   const eatYes = document.querySelector('#planEatChips .chip.active').dataset.eat === 'si';
@@ -3571,7 +3616,13 @@ async function renderMadridPlan(){
   if(planZone) basePool = basePool.filter(d=>d.z===planZone);
   if(basePool.length < 3) basePool = scope==='m30' ? DATA.filter(d=>M30_ZONES.has(d.z)) : DATA.slice();
   if(basePool.length < 3) basePool = DATA.slice();
-
+  basePool = basePool.filter(d=>d.e!=='Cerrado definitivamente' && d.e!=='Cerrado temporalmente');
+  // Punto de partida: tu zona elegida, tu GPS o, si no, el primer sitio que se elija
+  let planAnchor = null;
+  { const zp = planZone ? DATA.filter(d=>d.z===planZone && planHasCoords(d)) : [];
+    if(zp.length){ planAnchor=[zp.reduce((s,d)=>s+d.lat,0)/zp.length, zp.reduce((s,d)=>s+d.lon,0)/zp.length]; }
+    else if(typeof userCoords!=='undefined' && userCoords) planAnchor=[userCoords.lat,userCoords.lon]; }
+  const lastCoords = ()=>{ const p=[...stops].reverse().find(planHasCoords); return p?[p.lat,p.lon]:planAnchor; };
   // ---------- Verificación de horario real (si hay clave configurada) ----------
   function parseOpeningHours(place){
     return place && place.regularOpeningHours && place.regularOpeningHours.periods ? place.regularOpeningHours.periods : null;
@@ -3605,9 +3656,13 @@ async function renderMadridPlan(){
     let candidates = pool.filter(p=>!usedNames.has(p.n));
     const abiertos = candidates.filter(p=>p.e==='Abierto');
     if(abiertos.length>0) candidates = abiertos;
-    candidates.sort((a,b)=>(b.v||0)-(a.v||0));
     if(candidates.length===0) return null;
-    const topN = candidates.slice(0, Math.min(5, candidates.length));
+    // Cerca de la parada anterior, abierto a esa hora y bien valorado
+    let mins = toMinutes(timeForThis); if(mins < 6*60) mins += 1440;
+    const best = planPickNear(candidates, lastCoords(), mins, 3);
+    if(best && !key){ usedNames.add(best.n); return best; }
+    candidates.sort((a,b)=>(b.v||0)-(a.v||0));
+    const topN = best ? [best, ...candidates.filter(c=>c!==best)].slice(0,5) : candidates.slice(0, Math.min(5, candidates.length));
 
     if(key){
       for(let i=0;i<Math.min(3, topN.length);i++){
@@ -3624,12 +3679,7 @@ async function renderMadridPlan(){
 
   async function pickExtra(cat, timeForThis){
     let pool = basePool.filter(d=>d.cm===cat);
-    if(stops.length){
-      const lastZone = [...stops].reverse().find(s=>s.z)?.z;
-      const sameZone = pool.filter(d=>d.z===lastZone);
-      if(lastZone && sameZone.length>=2) pool = sameZone;
-    }
-    if(pool.length===0) pool = DATA.filter(d=>d.cm===cat);
+    if(pool.length<2) pool = DATA.filter(d=>d.cm===cat && d.e!=='Cerrado definitivamente');
     const pick = await pickVerified(pool, timeForThis);
     if(pick) stops.push({...pick, _time: timeForThis, _label: (CAT_ICONS[cat]||'')+' '+cat});
     return pick;
@@ -3697,28 +3747,35 @@ async function renderMadridPlan(){
   }
 
   if(fixedStops.length===0){
-    // Sin paradas fijas: comportamiento clásico, todo encadenado desde la hora general
-    let currentTime = meetingTime;
+    // Sin paradas fijas: orden natural (café/ocio/cañas → comida → terraza/copas/shisha/discoteca),
+    // cada cosa en su franja horaria y con el tiempo de ir andando de un sitio a otro.
+    const byRole=(a,b)=>(PLAN_ROLE[a]||5)-(PLAN_ROLE[b]||5);
+    const pre=extrasQueue.filter(c=>(PLAN_ROLE[c]||5)<4).sort(byRole), post=extrasQueue.filter(c=>(PLAN_ROLE[c]||5)>=4).sort(byRole);
+    let t=toMinutes(meetingTime); if(t<6*60) t+=1440;
+    const mealWin = mealPending ? mealWindowFor(meetingTime) : null;
+    let mealStart = mealWin ? toMinutes(mealWin.start) : null; if(mealStart!=null && mealStart<6*60) mealStart+=1440;
+    if(mealWin && t>mealStart) mealStart = t;   // si quedáis más tarde, se come/cena al llegar
+    const advance = ()=>{ const a=stops[stops.length-2], b=stops[stops.length-1]; return a&&b ? planWalkMin(a,b) : 0; };
+    async function placeCat(cat){
+      const w=PLAN_WIN[cat]||[12*60,26*60], dur=PLAN_DUR[cat]||75;
+      let st=planR15(Math.max(t, w[0]));
+      if(st>w[1]){ notes.push(`${(CAT_ICONS[cat]||'')+' '+cat} a las ${pdFmt(st)} no tiene sentido (a esa hora suelen estar cerrados); lo he quitado.`); return; }
+      if(st>t+45) notes.push(`${(CAT_ICONS[cat]||'')+' '+cat}: lo pongo a las ${pdFmt(st)}, antes suele estar cerrado o vacío.`);
+      const before=stops.length; await pickExtra(cat, pdFmt(st));
+      if(stops.length>before){ const walk=advance(); if(walk){ st+=0; } t=st+dur+(walk||10); }
+    }
+    for(const c of pre){
+      if(mealStart!=null && planR15(Math.max(t,(PLAN_WIN[c]||[0])[0]))+(PLAN_DUR[c]||60) > mealStart+30){
+        notes.push(`No da tiempo a ${c.toLowerCase()} antes de ${mealWin.label.toLowerCase()} (a las ${pdFmt(mealStart)}); lo he dejado fuera.`); continue; }
+      await placeCat(c);
+    }
     if(mealPending){
-      const window = mealWindowFor(currentTime);
-      const {mealTime, needsPrevia, gapMinutes} = resolveMealTime(currentTime, window);
-      if(needsPrevia && extrasQueue.length>0){
-        const cat = extrasQueue.shift();
-        await pickExtra(cat, currentTime);
-        notes.push(`Tenías tiempo hasta la hora de ${window.label.toLowerCase()} (${gapMinutes} min), así que metí una previa a las ${currentTime}.`);
-      } else if(mealTime !== currentTime){
-        notes.push(`Ajusté la hora de ${window.label.toLowerCase()} a las ${mealTime} — antes es pronto para ${window.label.toLowerCase()} en Madrid.`);
-      }
-      currentTime = mealTime;
-      const before = stops.length;
-      await placeMeal(currentTime);
-      if(stops.length>before) currentTime = addMinutes(currentTime, 105);
+      let st=planR15(Math.max(t, mealStart));
+      if(st!==toMinutes(meetingTime) && st>t+30) notes.push(`${mealWin.label} a las ${pdFmt(st)}: antes es pronto para ${mealWin.label.toLowerCase()} en Madrid.`);
+      const before=stops.length; await placeMeal(pdFmt(st));
+      if(stops.length>before) t=st+105+(advance()||10);
     }
-    for(let idx=0; idx<extrasQueue.length; idx++){
-      const before = stops.length;
-      await pickExtra(extrasQueue[idx], currentTime);
-      if(stops.length>before) currentTime = addMinutes(currentTime, idx===0 ? 120 : 90);
-    }
+    for(const c of post) await placeCat(c);
   } else {
     // Con una o varias paradas fijas: rellenamos antes, entre medias y después
     // Hueco ANTES de la primera parada fija
@@ -3880,7 +3937,7 @@ document.getElementById('planBtn').onclick = async ()=>{
   const notesHtml = notes.length ? `<div class="aiHint" style="margin-top:12px; border-left:2px solid var(--amber-dim); padding-left:10px;">🕐 ${notes.join('<br>')}</div>` : '';
 
   let waText = `Plan de hoy:\n`;
-  box.innerHTML = notesHtml + `<div style="margin-top:14px;">` + stops.map((s)=>{
+  box.innerHTML = notesHtml + `<div style="margin-top:14px;">` + stops.map((s,i)=>planWalkHtml(stops,i)+((s)=>{
     if(s._live){
       const p = s._live;
       const name = p.displayName?.text || 'Sitio encontrado';
@@ -3934,7 +3991,7 @@ document.getElementById('planBtn').onclick = async ()=>{
           </div>
         </div>`;
     }
-  }).join('') + `</div>
+  })(s)).join('') + `</div>
     <button class="aiBtn" id="regenBtn" style="margin-top:10px;">🎲 Probar otra combinación</button>
     <a class="aiBtn" style="display:block; text-align:center; text-decoration:none; margin-top:8px; background:#3FB94F;" href="https://wa.me/?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener">💬 Compartir plan completo</a>
   `;
@@ -3961,6 +4018,37 @@ const PD_CATS = [
   {id:'shisha', cm:'Shisha Lounge', label:'💨 Shisha', role:7, dur:80, q:'shisha lounge cachimba', kw:['shisha','cachimba','hookah','narguile']},
   {id:'disco', cm:'Discoteca/Club', label:'🕺 Discoteca', role:8, dur:150, q:'discoteca club', kw:['discoteca','disco ','club','bailar','fiesta','reggaeton','techno','after']},
 ];
+// Vocabulario ampliado: expresiones habituales → tipo de plan
+const PD_MORE_KW = {
+  cafe:['merendar','churros','chocolate con churros','gofre','helado','heladeria','crepe','tortitas','pancake','tarta de queso','cheesecake','cafe de especialidad','cafecito','desayuno','bolleria','croissant','matcha','bubble tea','reposteria'],
+  ocio:['museo','exposicion','teatro','musical','concierto','monologo','comedia','stand up','espectaculo','minigolf','padel','escalada','rocodromo','spa','masaje','banos arabes','hammam','ping pong','dardos','videojuegos','realidad virtual','arcade','juegos de mesa','taller','clase de cocina','visita guiada','planetario','zoo','acuario','parque de atracciones','pasear','parque','senderismo','mirador','algo diferente','algo original','plan original','que hacer','actividad','musica en directo','jazz','flamenco','tablao'],
+  tapas:['birra','birras','canita','tercio','cervecita','picar','picoteo','raciones','racion','croqueta','bravas','bocata','bocadillo de calamares','calamares','pincho','pintxo','montadito','vermouth','taberna','tasca','castizo','de toda la vida','bar de barrio','vinito','vino','vinoteca','vinos'],
+  esp:['ostra','marisqueria','marisco','pulpo','paella','arroz','arroceria','cocido','callos','gallego','asturiano','vasco','andaluz','castellano','cordero','cochinillo','tortilla','huevos rotos','jamon','iberico','casa de comidas','menu del dia'],
+  asia:['dim sum','dumpling','gyoza','wok','bao','udon','katsu','poke','curry','pad thai','pho','kimchi','bibimbap','yakitori','omakase','nikkei'],
+  mundo:['ceviche','arepa','empanada','kebab','shawarma','falafel','hummus','cuscus','tajine','moussaka','pupusa','tequeño','feijoada','churrasco','fondue','crepes salados','raclette','bowl','healthy','sano','saludable','sin gluten','celiaco'],
+  carne:['chuleton','solomillo','entrecot','hamburguesa de wagyu','wagyu','costillas','barbacoa','bbq'],
+  ita:['lasagna','carbonara','napolitana','burrata','tiramisu','focaccia','calzone'],
+  roof:['vistas','atardecer','puesta de sol','al aire libre','terracita','con vistas','skyline','azoteas'],
+  cock:['tomar unas copas','unas copas','una copa','copeo','afterwork','after work','cocteleria de autor','vermut por la tarde','champagne','champan','wine bar','bar de copas','gintonic','tequila','pisco','sake'],
+  shisha:['fumar','cachimbas','pipa de agua'],
+  disco:['perrear','reggaeton','electronica','salir de fiesta','irnos de fiesta','de fiesta','salsa','bachata','latino','bailoteo','discotecas','club nocturno']
+};
+PD_CATS.forEach(c=>{ (PD_MORE_KW[c.id]||[]).forEach(k=>{ if(!c.kw.includes(k)) c.kw.push(k); }); });
+// Platos/actividades concretas: si aparecen, se filtra por ellos (no solo por la categoría)
+const PD_DISH = {
+  cafe:['churros','gofre','helado','heladeria','crepe','tortitas','pancake','tarta de queso','cheesecake','cafe de especialidad','croissant','matcha','bubble tea','reposteria'],
+  ocio:['museo','exposicion','teatro','musical','concierto','monologo','comedia','minigolf','padel','escalada','rocodromo','spa','masaje','banos arabes','hammam','ping pong','dardos','videojuegos','realidad virtual','arcade','juegos de mesa','clase de cocina','flamenco','tablao','jazz','escape','karaoke','bolos','cine','karting'],
+  tapas:['croqueta','bravas','calamares','pintxo','montadito','vermouth','vermut','vinoteca'],
+  esp:['ostra','marisqueria','marisco','pulpo','paella','arroz','arroceria','cocido','callos','gallego','asturiano','vasco','andaluz','cordero','cochinillo','tortilla','huevos rotos','jamon','casa de comidas','menu del dia'],
+  asia:['dim sum','dumpling','gyoza','wok','bao','udon','katsu','poke','curry','pad thai','pho','kimchi','bibimbap','yakitori','omakase','nikkei','ramen'],
+  mundo:['ceviche','arepa','empanada','kebab','shawarma','falafel','hummus','cuscus','tajine','moussaka','pupusa','tequeno','feijoada','fondue','raclette','sin gluten','celiaco'],
+  carne:['chuleton','wagyu','costillas','barbacoa','bbq'],
+  ita:['lasagna','carbonara','burrata','tiramisu','focaccia','calzone'],
+  cock:['gintonic','tequila','pisco','sake','champagne','wine bar']
+};
+// raíz de búsqueda (para encontrar "marisquería" con "marisco", "ostras" con "ostra"...)
+const PD_DISH_STEM = {marisqueria:'marisc',marisco:'marisc',arroceria:'arroc',heladeria:'helad',helado:'helad',celiaco:'gluten','sin gluten':'gluten',costillas:'costill',barbacoa:'barbac',bbq:'barbac',croqueta:'croquet',tablao:'flamenco',museo:'muse',rocodromo:'escalad',escalada:'escalad',dumpling:'dumpl',gyoza:'gyoz',empanada:'empanad',vermut:'vermu',vermouth:'vermu'};
+function pdDishStem(w){ return PD_DISH_STEM[w] || (w.length>6 ? w.slice(0,w.length-2) : w); }
 // matices dentro de una categoría (se buscan en el tipo/nombre del sitio)
 const PD_SUBS = [
   {kw:['japon','sushi','ramen','izakaya'], f:['japon','sushi','ramen','izakaya','omakase'], label:'japonesa'},
@@ -3975,7 +4063,7 @@ const PD_SUBS = [
   {kw:['vegan','vegetarian'], f:['vegan','vegetar'], label:'vegana/vegetariana'},
   {kw:['michelin','alta cocina','estrella'], f:['michelin','alta cocina','estrella'], label:'alta cocina'},
   {kw:['smash'], f:['smash'], label:'smash'},
-  {kw:['escape'], f:['escape','ocio','juego'], label:'escape room', on:'ocio'},
+  {kw:['escape'], f:['escape'], label:'escape room', on:'ocio', dish:true},
 ];
 const PD_CITIES = ['leganes','getafe','alcorcon','mostoles','fuenlabrada','parla','pinto','valdemoro','alcobendas','san sebastian de los reyes','sanse','tres cantos','colmenar viejo','las rozas','majadahonda','pozuelo de alarcon','pozuelo','boadilla del monte','boadilla','villaviciosa de odon','torrejon de ardoz','torrejon','coslada','san fernando de henares','rivas vaciamadrid','rivas','arganda del rey','arganda','collado villalba','villalba','galapagar','torrelodones','san lorenzo de el escorial','navalcarnero','ciempozuelos','mejorada del campo','paracuellos de jarama','paracuellos','algete','humanes','griñon','villanueva de la cañada','cercedilla','guadarrama','manzanares el real','buitrago del lozoya','rascafria','toledo','segovia','avila','guadalajara','aranjuez','alcala de henares','alcala','chinchon','el escorial','cuenca','salamanca ciudad','valencia','barcelona','sevilla','malaga','bilbao','granada','cordoba','zaragoza','valladolid','san sebastian','donostia','lisboa','paris','londres','roma','milan','berlin','amsterdam','nueva york','new york','mexico','buenos aires','tokio','tokyo','oporto','porto'];
 const PD_EXAMPLES_FAIL = 'Prueba con cosas como: "8 sitios para cenar italiano en Salamanca", "plan sábado noche con cena y copas", "5 rooftops en el centro".';
@@ -4194,6 +4282,12 @@ function pdParse(raw){
 
   // matices
   PD_SUBS.forEach(s=>{ if(pdHas(text, s.kw)) p.subs.push(s); });
+  // plato / actividad concreta
+  p.wants.forEach(w=>{
+    const list = PD_DISH[w.id]||[];
+    const hit = list.filter(k=>new RegExp('(^|[^a-z])'+k+'(s|es)?([^a-z]|$)').test(text)).sort((a,b)=>b.length-a.length)[0];
+    if(hit && !p.subs.some(x=>x.on===w.id)){ p.subs.push({kw:[hit], f:[pdDishStem(hit)], label:hit, on:w.id, dish:true}); p.dish = p.dish||hit; }
+  });
   { const m = text.match(/\b(argentin|uruguay|peruan|venezol|colombian|liban|arabe|turc|grieg|marroqu|etiop|cuban|brasil|african|persa|israeli|georgian|ucranian|ruso|portugues|frances|aleman|nepal|pakistan|filipin|hawaian|poke|vegano|vegetarian)[a-z]*/);
     if(m){ p.cuisineWord = m[0]; if(!p.subs.some(x=>x.label===m[0])) p.subs.push({kw:[m[1]], f:[m[1].slice(0,6)], label:m[0]}); } }
 
@@ -4226,7 +4320,8 @@ function pdParse(raw){
   const planWords = /\b(plan|planazo|itinerario|ruta|agenda|programa|organiza|organizame|monta|montame|prepara|preparame|tarde|noche completa|luego|despues|y luego|y despues|para acabar|despues de|empezar|terminar)\b/.test(text);
   const listWords = /\b(opcion|opciones|alternativa|alternativas|lista|listado|ideas|sugerencia|sugerencias|recomienda|recomiendame|recomendaciones|dame|top)\b/.test(text);
   if(p.qty) p.modeHint='lista';
-  else if(p.wants.length>=2 || planWords) p.modeHint='plan';
+  else if(p.wants.length>=2) p.modeHint='plan';
+  else if(planWords && (p.wants.length===0 || /\b(plan|planazo|itinerario|ruta|organiza|organizame|monta|montame|prepara|preparame|noche completa)\b/.test(text))) p.modeHint='plan';
   else p.modeHint='lista';
   if(listWords && p.qty) p.modeHint='lista';
   if(planWords && p.wants.length>=2 && !p.qty) p.modeHint='plan';
@@ -4264,7 +4359,7 @@ function pdFilter(want, p, used, minNeeded, includeSugg){
   const mySubs = p.subs.filter(x=> x.on ? x.on===want.id : !!want.meal);
   const subFilter = (d)=>{
     if(!mySubs.length) return true;
-    const hay = pdNorm((d.cd||'')+' '+d.n+' '+(d.info||''));
+    const hay = pdNorm((d.cd||'')+' '+d.n+' '+(d.info||'')+' '+(d.osmCuisine||'')+' '+(d.no||'')+' '+(d.cm||''));
     return mySubs.some(x=>x.f.some(f=>hay.includes(f)));
   };
   const inRadius = (d, k) => {
@@ -4418,8 +4513,9 @@ async function pdBuildListCore(p, shuffle){
       const f = pdFilter(w, p, new Set(), qty, p.newOnes);
       if(p.zones.length){
         // Respetar la zona pedida: solo lo que está en ella (tiers 0-1) + sitios reales del mapa de esa zona
-        const inZone = p.place ? f.items : f.items.filter(d=>d._tier<2);
-        if(p.place && f.items.some(d=>d._tier>=2)) out.notes.push(...f.notes);
+        const dz = p.subs.some(x=>x.dish && x.on===w.id);
+        const inZone = p.place ? f.items.filter(d=>!dz||d._tier<3) : f.items.filter(d=>d._tier<2);
+        if(p.place && !dz && f.items.some(d=>d._tier>=2)) out.notes.push(...f.notes);
         items = pdShuffleTop(pdSort(inZone, p, p.place?[p.place.lat,p.place.lon]:null), qty, shuffle);
         if(items.length<Math.min(3,qty)){
           const r = await pdLive(w, p, null, qty*2);
@@ -4433,11 +4529,32 @@ async function pdBuildListCore(p, shuffle){
           // Sin conexión con el mapa: lo más cercano de tu lista a esa zona
           const zp = p.place ? [p.place.lat,p.place.lon] : DATA.filter(d=>p.zones.some(z=>pdNorm(d.z).includes(z))).map(d=>[d.zlat??d.lat, d.zlon??d.lon]).find(c=>Number.isFinite(c[0]));
           if(zp){
-            const pool = pdFilter(w, Object.assign({}, p, {place:null, zones:[], zoneLabels:[], m30:false}), new Set(), 9999, false).items;
+            let pool = pdFilter(w, Object.assign({}, p, {place:null, zones:[], zoneLabels:[], m30:false}), new Set(), 9999, false).items;
+            const dzLabel = dz ? p.subs.find(x=>x.dish && x.on===w.id).label : '';
+            if(dz && pool.some(d=>d._tier<3)) pool = pool.filter(d=>d._tier<3);
+            else if(dz) out.notes.push(`No tengo sitios de «${dzLabel}» en tu lista y el mapa no respondió; te dejo "${w.label}" cerca de ${p.zoneLabels.join(', ')}. Vuelve a probar en un momento.`);
             items = pool.filter(d=>d.locationVerified&&Number.isFinite(d.lat)).map(d=>Object.assign({},d,{_d:haversine(zp[0],zp[1],d.lat,d.lon)})).sort((a,b)=>a._d-b._d).slice(0,qty);
             if(items.length) out.notes.push(`No tengo "${w.label}" en ${p.zoneLabels.join(', ')}; te dejo los más cercanos de tu lista (con la distancia).`);
           }
           if(!items.length) out.notes.push(`No he encontrado "${w.label}" en ${p.zoneLabels.join(', ')}. Prueba con otra zona cercana.`);
+        }
+        out.sections.push({want:w, items});
+        continue;
+      }
+      const dishSub = p.subs.find(x=>x.dish && x.on===w.id);
+      if(dishSub){
+        const exact = f.items.filter(d=>d._tier<3);
+        items = pdShuffleTop(pdSort(exact, p), qty, shuffle);
+        if(items.length<Math.min(3,qty)){
+          const r = await pdLive(w, p, null, qty*2);
+          const have = new Set(items.map(i=>pdNorm(i.n)));
+          const extra = (r.items||[]).filter(i=>!have.has(pdNorm(i.n)));
+          if(extra.length) out.notes.push(`En tu lista ${items.length? 'solo había '+items.length : 'no había ninguno'} de «${dishSub.label}»; añadí sitios reales del mapa que lo tienen.`);
+          items = items.concat(extra).slice(0,qty);
+          if(!items.length){
+            items = pdShuffleTop(pdSort(f.items, p), qty, shuffle);
+            out.notes.push(`No encontré sitios concretos de «${dishSub.label}»${r.error?' (el mapa no respondió)':''}; te dejo lo más parecido de "${w.label}".`);
+          }
         }
         out.sections.push({want:w, items});
         continue;
@@ -4464,11 +4581,15 @@ async function pdBuildPlan(p){
   const out = {stops:[], notes:[]};
   const used = new Set();
   const key = getApiKey();
-  const wants = p.wants.slice();
+  const roleOf = w => w.meal ? 4 : (w.role||5);
+  const wants = p.wants.slice().sort((a,b)=>roleOf(a)-roleOf(b));
+  if(wants.map(w=>w.id).join()!==p.wants.map(w=>w.id).join()) out.notes.push('He ordenado las paradas en un orden lógico: '+wants.map(w=>w.label.replace(/^\S+\s/,'')).join(' → ')+'.');
   const first = wants[0];
-  const meal = p.meal || ((p.time!=null && p.time<17*60) ? 'comida' : 'cena');
+  const morning = /\b(brunch|desayun\w*|por la manana|de manana|mananero|vermut del domingo|mediodia)\b/.test(p.text||'');
+  const meal = p.meal || ((p.time!=null && p.time<17*60) || morning ? 'comida' : 'cena');
   let t;
   if(p.time!=null) t = p.time;
+  else if(morning) t = /brunch/.test(p.text||'') ? 11*60+30 : 10*60;
   else if(first.meal) t = meal==='comida' ? 14*60 : 21*60;
   else if(first.id==='cafe') t = 17*60+30;
   else if(first.id==='ocio') t = 18*60;
@@ -4487,7 +4608,10 @@ async function pdBuildPlan(p){
     }
     if(w.id==='cock' && t>=0 && t<19*60 && i>0) t = 20*60;
     if(w.id==='shisha' && i>0 && t<22*60) t = 22*60;
-    if(w.id==='disco' && i>0 && t<23*60+30) t = 24*60;
+    if(w.id==='disco' && t<23*60+30) t = 24*60;
+    { const win = PLAN_WIN[w.cm]; if(win && t>win[1]){ out.notes.push(`${w.label} a las ${pdFmt(t)} ya no es buena hora (suelen cerrar antes); lo he quitado.`); continue; }
+      if(win && t<win[0] && !(i===0&&p.time!=null)) t = win[0]; }
+    t = planR15(t);
     let item=null;
     if(p.city){
       
@@ -4497,12 +4621,12 @@ async function pdBuildPlan(p){
       item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
     } else {
       const f = pdFilter(w, p, used, 3, false);
+      if(p.subs.some(x=>x.dish && x.on===w.id)){ const ex=f.items.filter(d=>d._tier<3); if(ex.length) f.items=ex; else out.notes.push(`No tengo sitios de «${p.subs.find(x=>x.dish&&x.on===w.id).label}» en tu lista; te pongo lo más parecido.`); }
       if(p.zones.length && !p.place) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
       else out.notes.push(...f.notes);
-      const sorted = pdSort(f.items, p, prev ? pdCoord(prev) : (p.place?[p.place.lat,p.place.lon]:null));
-      // lo mejor valorado entre los más cercanos, con algo de azar para que "otra versión" cambie
-      const top = sorted.slice(0, 6);
-      item = top[Math.floor(Math.random()*Math.min(3, top.length))] || null;
+      const anchor = prev && planHasCoords(prev) ? [prev.lat,prev.lon] : (p.place?[p.place.lat,p.place.lon]:(p.near&&userCoords?[userCoords.lat,userCoords.lon]:(p.zones.length?null:[40.4200,-3.7000])));   // sin zona: centro de Madrid
+      // abierto a esa hora, cerca de la parada anterior y bien valorado (con algo de azar para «otra versión»)
+      item = planPickNear(f.items, anchor, t, 3);
       if(!item && key){
         const r = await pdLive(w, p, null, 5);
         const cands = (r.items||[]).filter(x=>!used.has(x.n));
@@ -4517,7 +4641,10 @@ async function pdBuildPlan(p){
       item.openNote = '🕒 '+item._places.regularOpeningHours.weekdayDescriptions[day];
     }
     used.add(item.n);
+    if(prev){ const wk = planWalkMin(prev, item); if(wk>15){ t = planR15(t - 15 + wk); } }
     item._start = t; item._end = t + w.dur;
+    if(prev && planHasCoords(prev) && planHasCoords(item)) item._walk = planWalkHtml([prev,item],1);
+    if(planOpenAt(item, t)===false) out.notes.push(`⚠ ${item.n} podría estar cerrado a las ${pdFmt(t)} según su horario; compruébalo.`);
     out.stops.push(item);
     t += w.dur + 15; prev = item;
   }
@@ -4565,7 +4692,32 @@ async function pdRun(shuffle){
       resEl.innerHTML = named.map(d=>pdCard(Object.assign({src:d.info?'sug':'lista'},d))).join('');
       return;
     }
-    // Sin categoría clara: decide sola según el contexto (bebida → copas; resto → comer)
+    // Sin categoría clara. Plan B: buscar las palabras raras en tus sitios y en el mapa
+    { const STOPW = new Set('quiero queria quisiera gustaria apetece apeteceria podriamos podemos vamos venga para unos unas algun alguna alguno algo sitio sitios lugar lugares donde haya hay hoy manana esta este estos noche tarde mediodia buen bueno buena buenos buenas mejor mejores cerca madrid nosotros nuestra salir hacer tomar plan planes recomiendame recomienda dime busca buscame encuentra encuentrame conoces sabes tienes muy mucho poco menos rico ricos rica tipo cosa cosas especial diferente'.split(' '));
+      const words = pdNorm(raw).replace(/[^a-zñ0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>=4 && !STOPW.has(w) && !(p.place && p.place.aliases.some(a=>pdNorm(a).includes(w))) && !(p.zoneLabels||[]).some(z=>pdNorm(z).includes(w)));
+      if(words.length){
+        const stem = w => w.length>5 ? w.slice(0, w.length-2) : w;
+        let hits = DATA.filter(d=>d.e!=='Cerrado definitivamente').map(d=>{ const txt=pdNorm([d.n,d.cd,d.cm,d.osmCuisine,d.no].join(' ')); return {d, sc:words.filter(w=>txt.includes(stem(w))).length}; }).filter(x=>x.sc>0);
+        if(p.place) hits = hits.filter(x=>planHasCoords(x.d) && haversine(p.place.lat,p.place.lon,x.d.lat,x.d.lon)<=p.place.r*2);
+        hits.sort((a,b)=>b.sc-a.sc || (b.d.v||0)-(a.d.v||0));
+        let items = hits.slice(0,8).map(x=>Object.assign({src:'lista'},x.d));
+        if(items.length<4){
+          try{
+            const bias = p.place ? {circle:{center:{latitude:p.place.lat,longitude:p.place.lon},radius:Math.round(p.place.r*1500)}} : null;
+            const r = await Promise.race([RentaFreeSearch.textSearch(words.join(' ')+(bias?'':' en Madrid'), bias, 10), new Promise(res=>setTimeout(()=>res({results:[]}),6000))]);
+            const have = new Set(items.map(i=>pdNorm(i.n)));
+            (r.results||[]).forEach(pl=>{ const it = pdPlaceToItem(pl, 'Restaurante (general)', ''); if(!have.has(pdNorm(it.n))) items.push(it); });
+          }catch(e){}
+        }
+        if(items.length){
+          pdLast = p; pdRun._items = items.slice(0,10);
+          uEl.innerHTML = `<div class="understood"><span class="chip on">🔎 «${pdEsc(words.join(' '))}»</span>${p.place?`<span class="chip on">📍 ${pdEsc(p.place.n)}</span>`:''}</div>`;
+          resEl.innerHTML = `<div class="pideNote">ℹ️ No es un tipo de plan que reconozca, así que he buscado «${pdEsc(words.join(' '))}» en tus sitios${items.some(i=>i.src!=='lista')?' y en el mapa':''}.</div><div class="secTitle">Lo que encaja <small>${pdRun._items.length} opciones</small></div>`+pdRun._items.map(d=>pdCard(d)).join('')+`<div class="actionsRow"><button class="ghostBtn" data-share-query>🔗 Compartir</button><button class="ghostBtn" data-group-vote>👥 Votar en grupo</button></div>`;
+          return;
+        }
+      }
+    }
+    // Sin nada que buscar: decide sola según el contexto (bebida → copas; resto → comer)
     const t = pdNorm(raw);
     const guess = /\b(beber|copa|copas|tomar algo|salir de noche|fiesta|bailar)\b/.test(t) ? 'cock' : /\b(cafe|merendar|desayun|dulce)\b/.test(t) ? 'cafe' : /\b(hacer algo|ocio|actividad|aburrido|tranquilo|plan)\b/.test(t) && !/\b(comer|cenar|cena|comida)\b/.test(t) ? 'ocio' : 'food';
     p.wants = [PD_CATS.find(c=>c.id===guess)];
@@ -4612,7 +4764,7 @@ async function pdRun(shuffle){
       if(out.stops.length){
         const title = `Plan${p.dayLabel?' de '+p.dayLabel:''}${p.zoneLabels.length?' · '+p.zoneLabels.join(', '):''}`;
         html += `<div class="secTitle">🧭 ${pdEsc(title)} <small>${pdFmt(out.stops[0]._start)} → ${pdFmt(out.stops[out.stops.length-1]._end)}</small></div>`;
-        html += `<div class="timeline">` + out.stops.map(s=>pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`})).join('') + `</div>`;
+        html += `<div class="timeline">` + out.stops.map(s=>(s._walk||'')+pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`})).join('') + `</div>`;
         pdRun._items = out.stops;
         html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;

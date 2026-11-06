@@ -1,0 +1,29 @@
+# Cada lunes: restaurantes, coctelerías y shishas de la Comunidad de Madrid con ≥4,8★ y ≥400 reseñas → nuevos.json
+name: Sitios top cada lunes
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 5 * * 1'
+concurrency:
+  group: escribir-repo
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  semanal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GOOGLE_PLACES_KEY: ${{ secrets.GOOGLE_PLACES_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/semanal.py
+      - name: Guardar cambios
+        run: |
+          for f in nuevos.json tools/google_uso.json; do if [ -e "$f" ]; then git add "$f"; fi; done
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "renta-bot"
+          git config user.email "renta-bot@users.noreply.github.com"
+          git commit -m "Sitios top de la semana (≥4,8★ y ≥400 reseñas)"
+          git pull --rebase -q origin main
+          git push

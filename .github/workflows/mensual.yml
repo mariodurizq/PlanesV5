@@ -1,5 +1,5 @@
 # Cada día 1 de mes: revisa cierres y ubica (ubicar.py), actualiza mercados (mercados.py)
-# y descubre sitios nuevos por reseñas (descubrir.py). Todo con tope mensual gratuito de Google.
+# Todo con tope mensual gratuito de Google.
 name: Revisión mensual
 on:
   workflow_dispatch:
@@ -24,9 +24,6 @@ jobs:
       - name: Mercados gastronómicos
         continue-on-error: true
         run: python3 tools/mercados.py
-      - name: Descubrir sitios nuevos por reseñas
-        continue-on-error: true
-        run: python3 tools/descubrir.py
       - name: Guardar cambios
         run: |
           for f in index.html nuevos.json mercados.json tools/*.json tools/*.txt; do if [ -e "$f" ]; then git add "$f"; fi; done

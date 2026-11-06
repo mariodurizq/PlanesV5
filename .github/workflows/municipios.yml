@@ -1,0 +1,21 @@
+# Una vez al año (o a mano): lista de los 179 municipios de la Comunidad de Madrid (OpenStreetMap, sin clave)
+name: Municipios de la Comunidad de Madrid
+on:
+  workflow_dispatch:
+  push:
+    paths: ['tools/municipios.py']
+  schedule:
+    - cron: '23 4 2 1 *'
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar y guardar
+        run: tools/guardar.sh "Municipios de la Comunidad de Madrid" "python3 tools/municipios.py" municipios.json

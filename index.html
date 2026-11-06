@@ -1544,6 +1544,32 @@ header.top.scrolled .tagline{max-height:0}
 .rw-finde{margin:8px 0 0;font-size:12px;color:var(--muted,#6b716c)}
 :root[data-theme="dark"] .renta-weather{background:#111712;border-color:#263229}:root[data-theme="dark"] .rw-day{background:rgba(255,255,255,.05)}
 :root[data-theme="dark"] .rw-main button{background:#b9d995;color:#172016}
+.map-place-search{position:relative;width:100%;margin:8px 0 4px}
+.map-place-search input{width:100%;box-sizing:border-box;padding:12px 40px 12px 14px;border-radius:14px;border:1px solid var(--line,#e3e1d8);background:var(--surface,#fffefa);color:inherit;font:600 15px Inter,system-ui,sans-serif}
+.map-place-search input:focus{outline:2px solid #e0583a;outline-offset:1px}
+#mapPlaceClear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.1);color:inherit;font-size:18px;cursor:pointer}
+.map-place-sugs{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:1500;background:var(--surface,#fffefa);border:1px solid var(--line,#e3e1d8);border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.2);overflow:hidden}
+.map-place-sugs button{display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:10px 14px;border:0;border-bottom:1px solid var(--line,#e3e1d8);background:transparent;color:inherit;text-align:left;cursor:pointer;font:600 14px Inter,sans-serif}
+.map-place-sugs button:last-child{border-bottom:0}.map-place-sugs small{font-size:11px;color:var(--muted,#6b716c);font-weight:500}
+.map-place-sugs button:hover{background:rgba(224,88,58,.08)}.map-place-wait{padding:12px 14px;font-size:13px;color:var(--muted,#6b716c)}
+:root[data-theme="dark"] .map-place-search input,:root[data-theme="dark"] .map-place-sugs{background:#141a16;border-color:#2b362e}
+.ref-marker{background:transparent!important;border:0!important}
+.ref-pin{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:22px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}
+.ref-pin span{font:800 12px Inter,sans-serif;background:#e0583a;color:#fff;padding:4px 8px;border-radius:99px}
+/* Fichas del mapa: botones en dos columnas y rutas en su propia fila */
+.radar-modern-popup .radar-popup-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+.radar-modern-popup .radar-popup-actions>*{min-width:0}
+.radar-modern-popup .radar-popup-actions>.radar-popup-btn{min-height:36px!important;height:auto!important;padding:7px 6px!important;font-size:11.5px!important;white-space:normal!important;line-height:1.15!important;width:auto!important}
+.radar-modern-popup .radar-popup-actions>.radar-nav-row{grid-column:1/-1;flex-wrap:wrap!important;gap:5px!important}
+.radar-modern-popup .radar-nav-row .radar-nav-label{width:100%;margin:2px 0 0}
+.radar-modern-popup .radar-nav-row .radar-popup-btn{flex:1 1 0;min-height:32px!important;font-size:11.5px!important;padding:6px 4px!important}
+.radar-modern-popup .leaflet-popup-content{width:min(270px,calc(100vw - 70px))!important}
+@media (max-width:620px){
+ .radar-modern-popup .radar-popup-photo{height:84px!important}
+ .radar-modern-popup .radar-popup-card,.radar-modern-popup .market-popup{overflow-y:auto;overscroll-behavior:contain}
+ .radar-modern-popup .radar-popup-body,.radar-modern-popup .radar-popup-card>div:not(.radar-popup-photo){padding-top:10px!important}
+ .radar-modern-popup h3{font-size:18px!important;margin:4px 0!important}
+}
 </style>
 </head>
 <body>
@@ -2001,6 +2027,11 @@ header.top.scrolled .tagline{max-height:0}
   <div class="map-shell" id="mapShell">
     <div class="map-topline map-topline-v9">
       <div><span class="map-kicker">RADAR / EXPLORAR</span><strong>Encuentra sitios a tu alrededor</strong><span id="mapStatus">Activa tu ubicación para ver qué tienes cerca.</span></div>
+      <div class="map-place-search" id="mapPlaceSearch">
+        <input type="search" id="mapPlaceInput" placeholder="🔎 ¿Dónde estás? Barrio, calle, metro, monumento…" autocomplete="off" enterkeyhint="search" aria-label="Buscar un lugar de Madrid">
+        <button type="button" id="mapPlaceClear" hidden aria-label="Quitar lugar">×</button>
+        <div class="map-place-sugs" id="mapPlaceSugs" hidden></div>
+      </div>
       <div class="map-toolbar">
         <button type="button" class="map-control-btn map-location-btn" id="mapLocateBtn">◎ Mi ubicación</button>
         <button type="button" class="map-control-btn" id="mapStyleBtn">☾ Modo noche</button>
@@ -4842,7 +4873,7 @@ function renderMapMarkers(list){
   const located=[...discovered,...mine];
   located.forEach(d=>{
     const icon=radarPinIcon(d);
-    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,autoPanOnFocus:false,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(radarMarkers);
+    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,autoPanOnFocus:false,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(radarMarkers);
     bindRadarPopup(marker,d);mapMarkersByName.set(normMapName(d.n),marker);
   });
   addUserMarker();
@@ -4852,10 +4883,11 @@ function renderMapMarkers(list){
 }
 function updateNearbyList(){
   const list=document.getElementById('nearbyPlaces');if(!list)return;
-  const center=userCoords||(radarMap?{lat:radarMap.getCenter().lat,lon:radarMap.getCenter().lng}:null);
+  const ref=window.rentaRefPoint;
+  const center=ref||userCoords||(radarMap?{lat:radarMap.getCenter().lat,lon:radarMap.getCenter().lng}:null);
   const title=document.getElementById('nearbyTitle');const subtitle=document.getElementById('nearbySubtitle');const count=document.getElementById('nearbyCount');
-  if(title)title.textContent=userCoords?'Los más cercanos a ti':'Los más cercanos a esta zona';
-  if(subtitle)subtitle.textContent=userCoords?'Ordenados por distancia desde tu ubicación GPS.':'Ordenados desde el centro del mapa; activa el GPS para calcular la distancia real desde ti.';
+  if(title)title.textContent=ref?`Cerca de ${ref.n}`:userCoords?'Los más cercanos a ti':'Los más cercanos a esta zona';
+  if(subtitle)subtitle.textContent=ref?'Ordenados por distancia desde el lugar que has elegido.':userCoords?'Ordenados por distancia desde tu ubicación GPS.':'Ordenados desde el centro del mapa; activa el GPS o busca un lugar arriba.';
   const pool=[...(radarCatalogOnMap||[]).filter(p=>p.locationVerified&&!p.osm),...(mapPlaces||[])];
   const items=pool.filter(p=>p.locationVerified&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&(!window.radarMapGroupOk||window.radarMapGroupOk(p))).map(p=>({...p,_distance:center?haversine(center.lat,center.lon,p.lat,p.lon):null})).sort((a,b)=>(a._distance??Infinity)-(b._distance??Infinity)).slice(0,8);
   if(count)count.textContent=String(items.length);
@@ -6143,7 +6175,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     if(!show)return;
     mercados.forEach(m=>{
       const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin"><span>🏪</span><b>${m.puestos.length}</b></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
-      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n,autoPanOnFocus:false}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,120)}).addTo(marketLayer);
+      const mk=L.marker([m.lat,m.lon],{icon,zIndexOffset:900,title:m.n,autoPanOnFocus:false}).bindPopup(popupHtml(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(marketLayer);
       marketMarkers.set(m.n,mk);
     });
   }
@@ -6282,6 +6314,60 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     const sw=document.getElementById('exploreSwitch');if(sw)sw.after(box);
     box.addEventListener('click',e=>{const b=e.target.closest('[data-weather-filter]');if(!b)return;const q=document.getElementById('quickFilter');q.value=b.dataset.weatherFilter;q.dispatchEvent(new Event('change'));document.getElementById('resultsCount')?.scrollIntoView({behavior:'smooth',block:'center'});});
   }).catch(()=>{});
+})();
+</script>
+<script id="renta-popup-visible">
+// Al abrir una ficha del mapa, la página se mueve lo justo para que no quede bajo la barra inferior
+window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;radarMap.on('popupopen',e=>{const box=e.popup.getElement()?.querySelector('.radar-popup-card,.market-popup');if(box&&innerWidth<=620){const h=document.getElementById('radarMap').clientHeight;box.style.maxHeight=Math.max(200,h-140)+'px';box.style.overflowY='auto';e.popup.update();e.popup.options.autoPanPaddingTopLeft=L.point(12,62);e.popup.options.autoPanPaddingBottomRight=L.point(12,12);e.popup._adjustPan&&e.popup._adjustPan();}setTimeout(()=>{const el=e.popup.getElement();if(!el)return;const r=el.getBoundingClientRect(),bar=document.getElementById('tabbar')?.getBoundingClientRect().top||innerHeight;const over=r.bottom-(bar-8);if(over>0)window.scrollBy({top:Math.min(over,r.top-70),behavior:'smooth'});else if(r.top<60)window.scrollBy({top:r.top-70,behavior:'smooth'});},250);});},800));
+</script>
+<script id="renta-map-place">
+// Buscar un lugar de Madrid y ver qué hay cerca (barrios conocidos al instante; calles y monumentos en el mapa abierto)
+(function(){
+  const inp=document.getElementById('mapPlaceInput'),sugs=document.getElementById('mapPlaceSugs'),clr=document.getElementById('mapPlaceClear');
+  if(!inp)return;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm=s=>String(s||'').toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+  let refMarker=null,refCircle=null,timer=null,lastQ='';
+  const list=()=>typeof PD_PLACES!=='undefined'?PD_PLACES:[];
+  function show(items,extra){
+    sugs.innerHTML=items.map((p,i)=>`<button type="button" data-ps="${i}"><b>${esc(p.n)}</b><small>${esc(p.tipo||'Zona de Madrid')}</small></button>`).join('')+(extra||'');
+    sugs.hidden=!sugs.innerHTML;sugs._items=items;
+  }
+  function suggest(){
+    const q=norm(inp.value);if(q.length<2){sugs.hidden=true;return;}
+    const local=list().map(p=>{const hit=p.a.concat([p.n]).map(norm).find(a=>a.startsWith(q)||a.includes(' '+q)||(q.length>3&&a.includes(q)));return hit?{...p,_s:hit.startsWith(q)?0:1}:null;}).filter(Boolean).sort((a,b)=>a._s-b._s||a.n.length-b.n.length).slice(0,6);
+    show(local,`<button type="button" data-ps-geo><b>🔎 Buscar «${esc(inp.value.trim())}» en el mapa</b><small>Calles, estaciones, monumentos…</small></button>`);
+  }
+  async function geocode(){
+    const q=inp.value.trim();if(!q)return;lastQ=q;
+    sugs.innerHTML='<div class="map-place-wait">Buscando en el mapa…</div>';sugs.hidden=false;
+    try{
+      const c=await Promise.race([RentaFreeSearch.resolveCenter(q),new Promise((_,rej)=>setTimeout(()=>rej(new Error('lento')),7000))]);
+      if(lastQ!==q||document.activeElement===inp&&inp.value.trim()!==q)return;
+      if(!c||!Number.isFinite(c.lat)||haversine(40.4168,-3.7038,c.lat,c.lon)>80)throw new Error('fuera');
+      pick({n:q.replace(/^./,m=>m.toUpperCase()),lat:c.lat,lon:c.lon,r:Math.max(.6,Math.min(2.5,(c.radius||1200)/1000))});
+    }catch(e){sugs.innerHTML='<div class="map-place-wait">No lo encuentro ahora mismo. Prueba con un barrio o una estación de metro conocida.</div>';}
+  }
+  function pick(p){
+    clearTimeout(timer);lastQ='';sugs.hidden=true;sugs.innerHTML='';inp.value=p.n;clr.hidden=false;inp.blur();
+    window.rentaRefPoint={n:p.n,lat:p.lat,lon:p.lon};
+    if(!ensureRadarMap())return;
+    document.getElementById('mapShell').scrollIntoView({behavior:'smooth',block:'start'});
+    radarMap.setView([p.lat,p.lon],p.r>2?14:15);
+    if(refMarker)refMarker.remove();if(refCircle)refCircle.remove();
+    refCircle=L.circle([p.lat,p.lon],{radius:(p.r||1)*1000,color:'#e0583a',weight:1.5,fillColor:'#e0583a',fillOpacity:.06,interactive:false}).addTo(radarMap);
+    refMarker=L.marker([p.lat,p.lon],{icon:L.divIcon({className:'ref-marker',html:`<div class="ref-pin">📍<span>${esc(p.n)}</span></div>`,iconSize:[1,1],iconAnchor:[0,0]}),zIndexOffset:2000,interactive:false}).addTo(radarMap);
+    updateNearbyList();
+    const near=(radarCatalogOnMap||[]).filter(d=>d.locationVerified&&haversine(p.lat,p.lon,d.lat,d.lon)<=(p.r||1)).length;
+    const st=document.getElementById('mapStatus');if(st)st.textContent=`${near} de tus sitios a menos de ${String(p.r||1).replace('.',',')} km de ${p.n}. Abajo los tienes ordenados por distancia.`;
+  }
+  inp.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(suggest,120);});
+  inp.addEventListener('focus',()=>{if(!window.rentaRefPoint||inp.value!==window.rentaRefPoint.n)suggest();});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const it=sugs._items||[];if(it.length&&norm(it[0].n).startsWith(norm(inp.value)))pick(it[0]);else geocode();}if(e.key==='Escape')sugs.hidden=true;});
+  sugs.addEventListener('click',e=>{const b=e.target.closest('[data-ps]');if(b)pick(sugs._items[+b.dataset.ps]);if(e.target.closest('[data-ps-geo]'))geocode();});
+  document.addEventListener('click',e=>{if(!e.target.closest('#mapPlaceSearch'))sugs.hidden=true;});
+  clr.addEventListener('click',()=>{inp.value='';clr.hidden=true;window.rentaRefPoint=null;if(refMarker)refMarker.remove();if(refCircle)refCircle.remove();refMarker=refCircle=null;updateNearbyList();});
+  document.getElementById('mapLocateBtn')?.addEventListener('click',()=>{if(window.rentaRefPoint)clr.click();});
 })();
 </script>
 </body>

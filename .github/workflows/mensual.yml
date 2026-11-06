@@ -21,4 +21,4 @@ jobs:
       - name: Ejecutar y guardar
         env:
           REPETIR: "0"
-        run: tools/guardar.sh "Revisión mensual: cierres y mercados" "python3 tools/ubicar.py; python3 tools/mercados.py || true" index.html mercados.json tools/ultima_ubicacion.txt tools/google_uso.json
+        run: tools/guardar.sh "Revisión mensual - cierres y mercados" "python3 tools/ubicar.py; python3 tools/mercados.py || true" index.html mercados.json tools/ultima_ubicacion.txt tools/google_uso.json

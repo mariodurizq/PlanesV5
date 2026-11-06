@@ -1,0 +1,27 @@
+# Cada jueves: revisa webs y fotos de los sitios (sin Google)
+name: Revisar webs y fotos
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '29 4 * * 4'
+concurrency:
+  group: escribir-repo
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/enlaces.py
+      - name: Guardar cambios
+        run: |
+          for f in index.html tools/ultima_revision_enlaces.txt; do if [ -e "$f" ]; then git add "$f"; fi; done
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "renta-bot"
+          git config user.email "renta-bot@users.noreply.github.com"
+          git commit -m "Revisión semanal de webs y fotos"
+          git pull --rebase -q origin main
+          git push

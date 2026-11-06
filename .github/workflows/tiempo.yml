@@ -1,0 +1,27 @@
+# Cada mañana: previsión de 7 días (Open-Meteo, sin clave)
+name: Tiempo para los planes
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7 5 * * *'
+concurrency:
+  group: escribir-repo
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/tiempo.py
+      - name: Guardar cambios
+        run: |
+          for f in tiempo.json; do if [ -e "$f" ]; then git add "$f"; fi; done
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "renta-bot"
+          git config user.email "renta-bot@users.noreply.github.com"
+          git commit -m "Previsión del tiempo actualizada"
+          git pull --rebase -q origin main
+          git push

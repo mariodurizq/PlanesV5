@@ -1534,6 +1534,16 @@ header.top.scrolled .tagline{max-height:0}
 .vote-bar{height:8px;border-radius:99px;background:rgba(0,0,0,.07);overflow:hidden;margin:4px 0}.vote-bar i{display:block;height:100%;background:#e0583a;border-radius:99px}
 .vote-row.win .vote-bar i{background:#1f7a3a}
 .my-votes{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:14px;font-size:13px}
+.renta-weather{margin:0 0 14px;padding:12px 14px;border-radius:18px;border:1px solid var(--line,#e3e1d8);background:var(--surface,#fffefa)}
+.rw-main{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.rw-main button{border:0;border-radius:999px;padding:8px 12px;background:#26332b;color:#fff;font:700 12px Inter,sans-serif;cursor:pointer}
+.rw-days{display:flex;gap:6px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+.rw-day{flex:1 0 56px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 4px;border-radius:12px;background:rgba(0,0,0,.04);font-size:18px}
+.rw-day small{font-size:10px;font-weight:700;color:var(--muted,#6b716c)}.rw-day b{font-size:12px}.rw-day i{font-size:9px;font-style:normal;color:#3a6fc4;min-height:11px}
+.rw-day.rw-interior{background:rgba(58,111,196,.09)}.rw-day.rw-exterior{background:rgba(234,122,28,.10)}
+.rw-finde{margin:8px 0 0;font-size:12px;color:var(--muted,#6b716c)}
+:root[data-theme="dark"] .renta-weather{background:#111712;border-color:#263229}:root[data-theme="dark"] .rw-day{background:rgba(255,255,255,.05)}
+:root[data-theme="dark"] .rw-main button{background:#b9d995;color:#172016}
 </style>
 </head>
 <body>
@@ -1979,6 +1989,8 @@ header.top.scrolled .tagline{max-height:0}
       <select id="quickFilter" aria-label="Filtrar resultados">
         <option value="all">Todos los sitios</option>
         <option value="now">🟢 Abierto ahora</option>
+        <option value="indoor">🏠 A cubierto (si llueve)</option>
+        <option value="outdoor">☀️ Al aire libre y terrazas</option>
         <option value="open">Abiertos según los datos</option>
         <option value="closed">🔒 Cerrados (se conservan en tu lista)</option>
         <option value="top">Valoración 4,5 o más</option>
@@ -2680,6 +2692,8 @@ function getFiltered(){
   list = quickFilterBy==='closed' ? list.filter(d=>d.e==='Cerrado definitivamente') : list.filter(d=>d.e!=='Cerrado definitivamente');
   if(quickFilterBy==='open') list = list.filter(d=>d.e==='Abierto');
   if(quickFilterBy==='now') list = list.filter(d=>typeof radarOpenNow==='function' && radarOpenNow(d)===true);
+  if(quickFilterBy==='indoor') list = list.filter(d=>!rentaOutdoor(d));
+  if(quickFilterBy==='outdoor') list = list.filter(d=>rentaOutdoor(d));
   if(quickFilterBy==='top') list = list.filter(d=>Number(d.v||0)>=4.5);
   if(quickFilterBy==='budget') list = list.filter(d=>{
     const nums=String(d.p||'').match(/\d+/g);
@@ -4802,6 +4816,7 @@ function radarPinIcon(d){
   const svg=`<svg class="radar-pin-svg" viewBox="0 0 34 44" width="34" height="44" aria-hidden="true"><path d="M17 43C17 43 3 27.6 3 16.5 3 8.5 9.3 2 17 2s14 6.5 14 14.5C31 27.6 17 43 17 43Z" fill="${fill}" stroke="${ring}" stroke-width="2.5"/></svg>`;
   return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm')+(isNew?' is-new':''),html:`<div class="radar-pin2" style="--pin:${color}" title="${escapeMapText(d.n)}">${svg}<span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
 }
+function rentaOutdoor(d){return d.cm==='Rooftop/Terraza'||/terraza|rooftop|azotea|parque|jard[ií]n|aire libre|chiringuito|merendero|rastro|mercadillo|picnic|mirador/i.test((d.cd||'')+' '+(d.n||'')+' '+(d.no||'')+' '+(d.cm||''));}
 function radarOpenNow(d){
   const raw=d.oh||(d.osmTags&&d.osmTags.opening_hours);const periods=d.hours||(raw&&window.RentaFreeSearch&&(d.hours=window.RentaFreeSearch.parseOsmHours(raw)));
   if(!periods||!periods.length)return null;
@@ -4894,6 +4909,7 @@ function radarPopupHtml(d){
   const zone=d.z || 'Madrid';
   const desc=d.osm ? 'Lugar encontrado en OpenStreetMap. Comprueba su ficha antes de ir.' : (d.verifiedAt ? 'Ubicación verificada en el mapa.' : 'Fotografía ilustrativa. Comprueba la ubicación y los datos antes de desplazarte.');
   const openState=radarOpenNow(d);
+  const webWarn=d.webCaida?`<span class="radar-popup-chip is-closed">⚠ Su web no responde</span>`:'';
   const openChip=openState===null?'':`<span class="radar-popup-chip ${openState?'is-open':'is-closed'}">${openState?'● Abierto ahora':'● Cerrado ahora'}</span>`;
   if(Number.isFinite(d.lat)&&d.locationVerified){links.gmapsView=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.n)}%20${d.lat},${d.lon}`;}
   return `<article class="radar-popup-card" data-place-name="${escapeMapText(d.n)}">
@@ -4905,7 +4921,7 @@ function radarPopupHtml(d){
       <div class="radar-popup-meta">
         <span class="radar-popup-chip">${escapeMapText(radarBudget(d))}</span>
         <span class="radar-popup-chip">${escapeMapText(rating)}</span>
-        ${openChip}
+        ${openChip}${webWarn}
       </div>
       <p class="radar-popup-desc">${escapeMapText(zone)} · ${escapeMapText(desc)}</p>
       <div class="radar-popup-actions">
@@ -6247,6 +6263,25 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
 
   // Compartir un sitio concreto desde su ficha del mapa
   window.rentaShareSite=n=>share(n,`Mira este sitio: ${n}`,`${base()}?sitio=${encodeURIComponent(n)}`);
+})();
+</script>
+<script id="renta-tiempo">
+// Planes según el tiempo: tiempo.json lo genera cada mañana GitHub Actions (Open-Meteo)
+(function(){
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=f=>{const d=new Date(f+'T12:00:00'),t=new Date();t.setHours(12,0,0,0);const diff=Math.round((d-t)/864e5);return diff===0?'Hoy':diff===1?'Mañana':d.toLocaleDateString('es-ES',{weekday:'long'}).replace(/^./,m=>m.toUpperCase());};
+  fetch('./tiempo.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||!j.dias)return;const hoyIso=new Date().toLocaleDateString('sv-SE');
+    const dias=j.dias.filter(x=>x.fecha>=hoyIso).slice(0,5);if(!dias.length)return;
+    const hoy=dias[0];const finde=dias.filter(x=>[5,6,0].includes(new Date(x.fecha+'T12:00:00').getDay()));
+    const msg=hoy.plan==='interior'?`${hoy.icono} ${hoy.texto.toLowerCase()} y ${hoy.max}° hoy: mejor a cubierto`:hoy.plan==='exterior'?`${hoy.icono} ${hoy.max}° y ${hoy.texto.toLowerCase()}: día de terraza`:`${hoy.icono} ${hoy.texto} · ${hoy.min}°–${hoy.max}°`;
+    const btn=hoy.plan==='interior'?'<button type="button" data-weather-filter="indoor">🏠 Ver planes a cubierto</button>':hoy.plan==='exterior'?'<button type="button" data-weather-filter="outdoor">☀️ Ver terrazas y aire libre</button>':'';
+    const box=document.createElement('section');box.className='renta-weather';box.id='rentaWeather';
+    box.innerHTML=`<div class="rw-main"><b>${esc(msg)}</b>${btn}</div><div class="rw-days">${dias.map(x=>`<span class="rw-day rw-${x.plan}" title="${esc(x.texto)} · lluvia ${x.lluvia}%"><small>${fmt(x.fecha)}</small>${x.icono}<b>${x.max}°</b><i>${x.lluvia>=40?'💧'+x.lluvia+'%':''}</i></span>`).join('')}</div>`+
+      (finde.length?`<p class="rw-finde">Finde: ${finde.map(x=>`${fmt(x.fecha)} ${x.icono} ${x.max}°`).join(' · ')}${finde.some(x=>x.plan==='interior')?' — lleva paraguas o reserva dentro':''}</p>`:'');
+    const sw=document.getElementById('exploreSwitch');if(sw)sw.after(box);
+    box.addEventListener('click',e=>{const b=e.target.closest('[data-weather-filter]');if(!b)return;const q=document.getElementById('quickFilter');q.value=b.dataset.weatherFilter;q.dispatchEvent(new Event('change'));document.getElementById('resultsCount')?.scrollIntoView({behavior:'smooth',block:'center'});});
+  }).catch(()=>{});
 })();
 </script>
 </body>

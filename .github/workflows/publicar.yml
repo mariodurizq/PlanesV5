@@ -1,0 +1,53 @@
+# Prueba la web y solo la publica si todo funciona.
+# Requiere: Settings → Pages → Build and deployment → Source: «GitHub Actions».
+name: Probar y publicar
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Actualizar eventos, Revisión mensual, Sitios top cada lunes, Horarios semanales, Revisar webs y fotos, Tiempo para los planes, Ubicar sitios en el mapa, Limpiar Dónde comer]
+    types: [completed]
+concurrency:
+  group: publicar
+  cancel-in-progress: true
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar navegador de pruebas
+        run: npm install --no-save playwright@1 && npx playwright install --with-deps chromium
+      - name: Probar la web
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 &
+          sleep 2
+          node tests/smoke.js http://127.0.0.1:8080/
+      - name: Preparar archivos de la web
+        run: |
+          mkdir _site
+          cp -r index.html verificar.html manifest.webmanifest service-worker.js .nojekyll *.png *.json _site/ 2>/dev/null || true
+          [ -d icons ] && cp -r icons _site/ || true
+          ls _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  publicar:
+    needs: probar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

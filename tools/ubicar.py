@@ -135,17 +135,18 @@ def google_pass(data):
         pl = best[1]; st = pl.get('businessStatus')
         gname = (pl.get('displayName') or {}).get('text', '')
         if st == 'CLOSED_PERMANENTLY':
-            if best[0] >= .88:   # solo se borra si el nombre coincide casi exactamente
-                d['_remove'] = True; removed.append(f"{d['n']} ({d.get('z') or 'sin zona'}) = Google: «{gname}»"); print('CERRADO', d['n'], '=', gname, round(best[0], 2)); continue
+            if best[0] >= .88:   # tus sitios nunca se borran: se marcan como cerrados
+                if d.get('e') != 'Cerrado definitivamente': d['cerradoDesde'] = today.isoformat()
+                d['e'] = 'Cerrado definitivamente'; removed.append(f"{d['n']} ({d.get('z') or 'sin zona'}) = Google: «{gname}»"); print('CERRADO', d['n'], '=', gname, round(best[0], 2)); continue
             d['e'] = 'Revisar (posible cierre)'; print('DUDOSO', d['n'], '~', gname, round(best[0], 2)); continue
         if st == 'CLOSED_TEMPORARILY': d['e'] = 'Cerrado temporalmente'
-        elif d.get('e') in ('Revisar (posible cierre)', 'Sin confirmar'): d['e'] = 'Abierto'
+        elif d.get('e') in ('Revisar (posible cierre)', 'Sin confirmar', 'Cerrado definitivamente'): d['e'] = 'Abierto'; d.pop('cerradoDesde', None)
         if not d.get('locationVerified'):
             loc = pl['location']; d['lat'], d['lon'] = round(loc['latitude'], 6), round(loc['longitude'], 6)
             d['locationVerified'] = True; d['locSrc'] = 'google'
             if pl.get('formattedAddress'): d['addr'] = pl['formattedAddress'].split(', Madrid')[0]
     print('Consultas a Google (tarifa básica):', calls, '· cerrados definitivos:', len(removed))
-    if removed:
+    if False:
         old = json.loads((ROOT / 'tools' / 'eliminados.json').read_text(encoding='utf-8')) if (ROOT / 'tools' / 'eliminados.json').exists() else []
         old += [{'fecha': today.isoformat(), **{k: v for k, v in d.items() if not k.startswith('_')}} for d in data if d.get('_remove')]
         (ROOT / 'tools' / 'eliminados.json').write_text(json.dumps(old, ensure_ascii=False, indent=1), encoding='utf-8')
@@ -253,16 +254,15 @@ def main():
                 nomi += 1; break
     removed = google_pass(data) if GKEY else []
     photos_pass(data)
-    data = [d for d in data if not d.get('_remove')]
     lines[i] = 'const DATA = ' + json.dumps(data, ensure_ascii=False) + ';'
     (ROOT / 'index.html').write_text('\n'.join(lines), encoding='utf-8')
     total = len(data); ok = sum(1 for d in data if d.get('locationVerified'))
     resumen = [f'Ubicación del {datetime.date.today().isoformat()}',
                f'{ok} de {total} sitios con coordenadas reales ({found} por mapa abierto, {nomi} por búsqueda individual).',
                f'{closed} marcados como posible cierre en el mapa.',
-               f'{len(removed)} eliminados por estar cerrados definitivamente según Google.',
+               f'{len(removed)} marcados como cerrados definitivamente según Google (se conservan en tu lista).',
                f'{sum(1 for d in data if d.get("photo"))} con foto de su web oficial.', '',
-               'Eliminados:'] + ['- ' + r for r in removed] + ['', 'Sin ubicar:'] + \
+               'Marcados como cerrados:'] + ['- ' + r for r in removed] + ['', 'Sin ubicar:'] + \
               ['- ' + d['n'] + (' (' + d['z'] + ')' if d.get('z') else '') for d in data if not d.get('locationVerified')]
     (ROOT / 'tools' / 'ultima_ubicacion.txt').write_text('\n'.join(resumen) + '\n', encoding='utf-8')
     print('\n'.join(resumen[:3]))

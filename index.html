@@ -2091,7 +2091,7 @@ header.top.scrolled .tagline{max-height:0}
 
   <footer class="foot">
     DATOS DE LA LISTA + OPENSTREETMAP<br>
-    Los horarios, precios y algunos puntos deben comprobarse antes de ir
+    Los horarios, precios y algunos puntos deben comprobarse antes de ir · <a href="mejores/" style="color:inherit">Los mejores sitios por zona</a>
   </footer>
 </div>
 
@@ -4709,12 +4709,109 @@ function pdUnderstoodHTML(p, mode){
 }
 
 let pdLast = null;
+// ── Eventos en Pídeme: "conciertos este finde", "qué hay hoy en Lavapiés", "teatro y luego cenar" ──
+let PD_EVENTOS = null;
+async function pdLoadEventos(){
+  if(PD_EVENTOS) return PD_EVENTOS;
+  try{ const r = await fetch('./eventos.json',{cache:'no-cache'}); PD_EVENTOS = r.ok ? ((await r.json()).eventos||[]) : []; }catch(e){ PD_EVENTOS = []; }
+  return PD_EVENTOS;
+}
+const PD_EV_CATS = [
+  ['Música', /\b(conciertos?|musica en directo|en directo|directo|jazz|flamenco|festival(es)?|dj|orquesta|recital)\b/],
+  ['Teatro y danza', /\b(teatro|obras? de teatro|danza|ballet|monologos?|musical(es)?|espectaculos?|circo|zarzuela|opera)\b/],
+  ['Cine', /\b(cine|pelicula|peliculas|proyeccion|cortos?)\b/],
+  ['Exposiciones', /\b(exposicion|exposiciones|expo|muestra de arte|arte)\b/],
+  ['Infantil', /\b(infantil|con (los )?(ninos|crios|peques|hijos)|para (ninos|peques|familias))\b/],
+  ['Talleres', /\b(talleres?|curso|clase de)\b/],
+  ['Gastronomía', /\b(feria gastronomica|mercadillo|jornadas gastronomicas|gastronomia)\b/],
+  ['Deporte', /\b(carrera popular|deporte|deportivo)\b/]
+];
+const PD_EV_INTENT = /\b(eventos?|que hay|que hacer|que se puede hacer|agenda|actividad(es)?|planes? (gratis|culturales?)|algo cultural|cultural(es)?|conciertos?|teatro|exposicion(es)?|festival(es)?|espectaculos?|monologos?|musica en directo|talleres?|mercadillos?|cine)\b/;
+function pdEvRange(text){
+  const t = new Date(); t.setHours(12,0,0,0);
+  const iso = d=>d.toISOString().slice(0,10), add=(n)=>{const d=new Date(t); d.setDate(t.getDate()+n); return d;};
+  if(/\bpasado manana\b/.test(text)) return [iso(add(2)),iso(add(2)),'pasado mañana'];
+  if(/\bmanana\b/.test(text) && !/\bpor la manana|de manana\b/.test(text)) return [iso(add(1)),iso(add(1)),'mañana'];
+  if(/\b(hoy|esta noche|esta tarde|ahora)\b/.test(text)) return [iso(t),iso(t),'hoy'];
+  if(/\b(finde|fin de semana)\b/.test(text)){ const d=t.getDay(); if(d===0) return [iso(t),iso(t),'este finde']; return [iso(add(Math.max(0,5-d))), iso(add(7-d)), 'este finde']; }
+  const DIAS=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  for(let i=0;i<7;i++) if(new RegExp('\\b'+DIAS[i]+'\\b').test(text)){ const n=(i-t.getDay()+7)%7; return [iso(add(n)),iso(add(n)),DIAS[i].replace('miercoles','miércoles').replace('sabado','sábado')]; }
+  if(/\b(esta semana|proximos dias)\b/.test(text)) return [iso(t),iso(add(6)),'esta semana'];
+  return [iso(t),iso(add(3)),'los próximos días'];
+}
+async function pdEventsFor(p){
+  const text = p.text;
+  const intent = PD_EV_INTENT.test(text) && !/\b(sitio|restaurante|bar|local) (de|con) (cine|teatro)\b/.test(text);
+  const evWords = PD_EV_CATS.filter(([,re])=>re.test(text)).map(([c])=>c);
+  const dated = /\b(hoy|manana|finde|fin de semana|sabado|domingo|viernes|esta semana|esta tarde|esta noche)\b/.test(text);
+  if(!(intent || evWords.includes('Infantil') || (evWords.length && dated))) return null;
+  const evRes = PD_EV_CATS.filter(([c])=>evWords.includes(c)).map(([,re])=>re);
+  const all = await pdLoadEventos(); if(!all.length) return null;
+  const [a,b,label] = pdEvRange(text);
+  const free = /\bgratis|gratuito|sin pagar\b/.test(text);
+  let center = p.place ? {lat:p.place.lat, lon:p.place.lon, r:Math.max(1.5,p.place.r*1.6)} : (p.near && typeof userCoords!=='undefined' && userCoords ? {lat:userCoords.lat, lon:userCoords.lon, r:2.5} : null);
+  if(!center && p.zones.length){
+    const pts = DATA.filter(d=>planHasCoords(d) && p.zones.includes(pdNorm(d.z||''))); 
+    if(pts.length) center = {lat:pts.reduce((s,d)=>s+d.lat,0)/pts.length, lon:pts.reduce((s,d)=>s+d.lon,0)/pts.length, r:2};
+  }
+  const dur = e => (new Date(e.end)-new Date(e.start))/864e5;
+  const titleHit = e => evRes.some(re=>re.test(pdNorm(e.n)));
+  let list = all.filter(e=>e.start<=b && e.end>=a && (!evWords.length || evWords.includes(e.cat) || titleHit(e)) && (!free || e.free));
+  if(center) list = list.filter(e=>e.lat && haversine(center.lat,center.lon,Number(e.lat),Number(e.lon))<=center.r);
+  const now=new Date(), todayIso=new Date(now.getTime()-now.getTimezoneOffset()*6e4).toISOString().slice(0,10), nowMin=now.getHours()*60+now.getMinutes();
+  list = list.filter(e=>!(e.start===e.end && e.end===todayIso && e.time && (+e.time.slice(0,2))*60+(+e.time.slice(3,5)) < nowMin-30));
+  const kids = evWords.includes('Infantil');
+  list.forEach(e=>{ e._sc = (!kids && (e.cat==='Infantil' || /infantil|familiar|bebes|ninos/.test(pdNorm(e.n))) ? -5 : 0) + (evWords.length && titleHit(e)?3:0) + (/\b(conferencia|club de lectura|tertulia|visita guiada)\b/.test(pdNorm(e.n)) && !/conferencia|lectura|tertulia|visita/.test(text)?-2:0) + (dur(e)<=10?4:0) + (e.time?2:0) + (e.free?0.5:0) + (center&&e.lat?1-haversine(center.lat,center.lon,Number(e.lat),Number(e.lon))/center.r:0); });
+  // franja que encaja con lo que viene después: copas/cena → eventos de tarde-noche
+  const night = p.wants.some(w=>['cock','disco','shisha','roof'].includes(w.id)) || p.meal==='cena' || /\b(cenar|cena|noche)\b/.test(text);
+  if(night) list.forEach(e=>{ const h=e.time?+e.time.slice(0,2):null; if(h!=null) e._sc += h>=17?2:-2; });
+  // si hay que montar plan después, mejor eventos con bares/restaurantes cerca
+  if(p.wants.some(w=>w.id!=='ocio')){ const pts=DATA.filter(d=>planHasCoords(d) && d.e!=='Cerrado definitivamente'); list.slice(0,80).forEach(e=>{ if(!e.lat) return; const n=pts.filter(d=>haversine(Number(e.lat),Number(e.lon),d.lat,d.lon)<=1).length; e._sc += Math.min(3, n/3); }); }
+  list.sort((x,y)=>y._sc-x._sc || x.start.localeCompare(y.start) || (x.time||'99').localeCompare(y.time||'99'));
+  const where = p.place ? ' en '+p.place.n : center ? ' por la zona' : '';
+  const ICON={'Gastronomía':'🍽️','Música':'🎵','Teatro y danza':'🎭','Cine':'🎬','Exposiciones':'🖼️','Infantil':'🧸','Deporte':'🏃','Talleres':'🛠️','Otros':'✨'};
+  const fmt=s=>new Date(s+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});
+  const card = e => `<article class="agenda-item"><div class="agenda-date">${pdEsc(dur(e)<1?fmt(e.start):'Hasta el '+fmt(e.end))}${e.time?' · '+pdEsc(e.time):''}</div>
+    <h4>${ICON[e.cat]||'✨'} ${pdEsc(e.n)}</h4><p>${pdEsc(e.place||'')}${e.addr?' · '+pdEsc(e.addr):''}</p>
+    <div class="agenda-tags"><span>${pdEsc(e.cat)}</span><span class="${e.free?'free':''}">${e.free?'Gratis':pdEsc(e.price||'Precio en la web')}</span></div>
+    <div class="agenda-links">${e.url?`<a href="${pdEsc(e.url)}" target="_blank" rel="noopener">Ver evento ↗</a>`:''}${e.lat&&typeof radarNavHtml==='function'?radarNavHtml(e.place||e.n,'',Number(e.lat),Number(e.lon),'agenda-nav'):''}</div></article>`;
+  const top = list.slice(0,6);
+  const kind = evWords.length ? evWords.join(' / ').toLowerCase() : 'eventos';
+  const html = top.length
+    ? `<div class="secTitle">🎟️ ${pdEsc(kind.charAt(0).toUpperCase()+kind.slice(1))} ${pdEsc(label)}${pdEsc(where)} <small>${list.length} en la agenda del Ayuntamiento</small></div><div class="pdEvents">${top.map(card).join('')}</div>`
+    : `<div class="pideNote">🎟️ No hay ${pdEsc(kind)} en la agenda municipal para ${pdEsc(label)}${pdEsc(where)}. Mira la pestaña Eventos para otras fechas.</div>`;
+  return {list, top, html, label, onlyEvents: p.wants.every(w=>w.id==='ocio')};
+}
+
 async function pdRun(shuffle){
   const raw = document.getElementById('pideText').value.trim();
   const resEl = document.getElementById('pideResults'), uEl = document.getElementById('pideUnderstood');
   if(!raw){ resEl.innerHTML = `<div class="pideNote">Escribe qué te apetece 🙂 ${pdEsc(PD_EXAMPLES_FAIL)}</div>`; uEl.innerHTML=''; return; }
   const p = pdParse(raw);
   pdLast = p;
+  // Eventos de la agenda (conciertos, teatro, expos…)
+  let ev = null;
+  try{ ev = await pdEventsFor(p); }catch(e){ ev = null; }
+  if(ev && ev.onlyEvents){
+    uEl.innerHTML = `<div class="understood"><span class="chip on">🎟️ Eventos</span><span class="chip on">📅 ${pdEsc(ev.label)}</span>${p.place?`<span class="chip on">📍 ${pdEsc(p.place.n)}</span>`:''}</div>`;
+    const withTime = ev.top.find(e=>e.time && e.lat);
+    resEl.innerHTML = ev.html + (withTime ? `<div class="actionsRow"><button class="ghostBtn" id="pdEvPlan">🍽️ Cenar o tomar algo cerca de «${pdEsc(withTime.n.slice(0,40))}»</button></div>` : '');
+    const bp = document.getElementById('pdEvPlan');
+    if(bp) bp.onclick = ()=>{ document.getElementById('pideText').value = raw.replace(/[.!?]*$/,'') + ' y luego cenar'; pdRun(false); };
+    return;
+  }
+  if(ev){
+    p.wants = p.wants.filter(w=>w.id!=='ocio');
+    const e = ev.top.find(x=>x.time && x.lat) || null;
+    if(e){
+      const [hh,mm] = e.time.split(':').map(Number); const extra = {'Música':120,'Teatro y danza':120,'Cine':120,'Exposiciones':90}[e.cat]||90;
+      if(p.time==null && Number.isFinite(hh)) p.time = planR15(hh*60+(mm||0)+extra);
+      if(!p.place){ p.place = {n:e.place||e.n, lat:Number(e.lat), lon:Number(e.lon), r:1.2, aliases:[]}; p.zoneLabels=[e.place||e.n]; }
+      p.notes.push(`Después de «${e.n}» (${e.time}${e.place?', '+e.place:''}) te propongo sitios a pocos minutos andando.`);
+    }
+    p.modeHint = 'plan';
+    p._evHtml = ev.html;
+  }
   // nombre de un sitio de la lista
   if(p.wants.length===0){
     const named = DATA.concat(SUGGERIDOS).filter(d=>d.n.length>=4 && pdNorm(raw).includes(pdNorm(d.n))).slice(0,5);
@@ -4801,7 +4898,7 @@ async function pdRun(shuffle){
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
     }
     const uniq = Array.from(new Set(notes));
-    resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + html;
+    resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + (p._evHtml||'') + html;
     const sh = document.getElementById('pideShuffle'); if(sh) sh.onclick = ()=>pdRun(true);
     // Después, sin bloquear: sitios nuevos que no tienes guardados
     if(mode==='lista'){
@@ -6640,6 +6737,72 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
       setTimeout(()=>{ if(d.isConnected){ d.remove(); try{localStorage.setItem('renta-install-hint','1');}catch(e){} } },20000);
     },4000);
   }catch(e){}
+})();
+</script>
+<style id="renta-aviso-css">
+.rnt-avisar{background:transparent!important;border:1px dashed var(--line,rgba(255,255,255,.2))!important;color:var(--muted,#9aa)!important;font-size:11.5px!important}
+.radar-popup-actions>.rnt-avisar{grid-column:1/-1;min-height:30px!important;padding:5px!important}
+#rntAviso{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+#rntAviso .sheet{width:min(520px,100%);background:var(--bg2,#121a17);color:var(--ink,#f3f1ea);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.4)}
+#rntAviso h3{margin:0 0 4px;font-size:18px}#rntAviso .sub{margin:0 0 12px;font-size:13px;opacity:.75}
+#rntAviso .opts{display:grid;gap:8px}
+#rntAviso .opts button{text-align:left;padding:12px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.15));background:transparent;color:inherit;font:inherit;font-size:14.5px;cursor:pointer}
+#rntAviso .opts button.on{border-color:var(--accent,#c5e3a0);background:rgba(197,227,160,.12)}
+#rntAviso textarea{width:100%;box-sizing:border-box;margin-top:10px;min-height:64px;border-radius:12px;padding:10px;border:1px solid var(--line,rgba(255,255,255,.15));background:transparent;color:inherit;font:inherit;font-size:14px}
+#rntAviso .row{display:flex;gap:8px;margin-top:12px}#rntAviso .row button{flex:1;padding:12px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;border:0}
+#rntAviso .send{background:var(--accent,#c5e3a0);color:#0b1210}#rntAviso .cancel{background:transparent;color:inherit;border:1px solid var(--line,rgba(255,255,255,.2))!important}
+#rntAviso .ok{font-size:15px;line-height:1.5;padding:8px 0}
+</style>
+<script id="renta-aviso">
+// "Avisar de un error": cerrado, horario, ubicación, precio… Llega como incidencia al repositorio (o por correo si se configura).
+(function(){
+  const CORREO = '';                     // si se rellena, los avisos llegan por email además de por GitHub
+  const REPO = 'mariodurizq/PlanesV5';
+  const MOTIVOS = [['cerrado','🚫 Ha cerrado / ya no existe'],['horario','🕒 El horario está mal'],['ubicacion','📍 La ubicación del mapa está mal'],['datos','💶 Precio, tipo o web incorrectos'],['otro','✏️ Otra cosa']];
+  const store={get(){try{return JSON.parse(localStorage.getItem('renta-avisos')||'{}');}catch(e){return {};}},set(v){try{localStorage.setItem('renta-avisos',JSON.stringify(v));}catch(e){}}};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function venueOf(n){ try{ return (typeof DATA!=='undefined'?DATA:[]).find(d=>d.n===n)||null; }catch(e){ return null; } }
+  function abrir(nombre){
+    const prev=store.get()[nombre];
+    const ov=document.createElement('div'); ov.id='rntAviso';
+    ov.innerHTML=`<div class="sheet" role="dialog" aria-label="Avisar de un error"><h3>¿Qué pasa con «${esc(nombre)}»?</h3><p class="sub">Tu aviso ayuda a mantener la lista al día.${prev?' (Ya avisaste de este sitio.)':''}</p>
+      <div class="opts">${MOTIVOS.map(([k,l])=>`<button type="button" data-k="${k}">${l}</button>`).join('')}</div>
+      <textarea placeholder="Detalles (opcional): horario correcto, dirección, desde cuándo…" maxlength="500"></textarea>
+      <div class="row"><button type="button" class="cancel">Cancelar</button><button type="button" class="send" disabled>Enviar aviso</button></div></div>`;
+    document.body.appendChild(ov);
+    let motivo=null; const send=ov.querySelector('.send');
+    ov.addEventListener('click',e=>{ if(e.target===ov||e.target.closest('.cancel')) ov.remove(); const b=e.target.closest('[data-k]'); if(b){ motivo=b.dataset.k; ov.querySelectorAll('[data-k]').forEach(x=>x.classList.toggle('on',x===b)); send.disabled=false; } });
+    send.onclick=()=>{
+      const det=ov.querySelector('textarea').value.trim(), d=venueOf(nombre), label=MOTIVOS.find(m=>m[0]===motivo)[1].replace(/^\S+\s/,'');
+      const cuerpo=[`Sitio: ${nombre}`, d?`Zona: ${d.z||''} · Tipo: ${d.cd||d.cm||''}`:'', d&&d.lat?`Coordenadas: ${d.lat},${d.lon}`:'', `Motivo: ${label}`, det?`Detalles: ${det}`:'', '', `Enviado desde la web el ${new Date().toLocaleString('es-ES')}`].filter(x=>x!=='').join('\n');
+      const titulo=`[Aviso] ${nombre} — ${label}`;
+      const avisos=store.get(); avisos[nombre]={motivo,t:Date.now()}; store.set(avisos);
+      const gh=`https://github.com/${REPO}/issues/new?title=${encodeURIComponent(titulo)}&body=${encodeURIComponent(cuerpo)}`;
+      const url = CORREO ? `mailto:${CORREO}?subject=${encodeURIComponent(titulo)}&body=${encodeURIComponent(cuerpo)}` : gh;
+      window.open(url,'_blank','noopener');
+      ov.querySelector('.sheet').innerHTML=`<h3>¡Gracias! 🙌</h3><div class="ok">Se ha abierto el aviso para enviarlo. Revisaremos «${esc(nombre)}» y lo corregiremos en la lista.${motivo==='cerrado'?'<br><br>Mientras tanto lo verás marcado como <b>avisado</b>.':''}</div><div class="row"><button type="button" class="send">Cerrar</button></div>`;
+      ov.querySelector('.send').onclick=()=>ov.remove(); marcar();
+    };
+  }
+  function nombreDe(el){
+    const pop=el.closest('.radar-popup-card'); if(pop) return pop.dataset.placeName||(pop.querySelector('.radar-popup-title')||{}).textContent;
+    const v=el.closest('.venue'); const h=v&&v.querySelector('h3'); if(!h) return null;
+    const c=h.cloneNode(true); c.querySelectorAll('.badge,span').forEach(x=>x.remove()); return c.textContent.trim();
+  }
+  function poner(root){
+    (root.querySelectorAll?root:document).querySelectorAll('.venue .mapbtns, .radar-popup-card .radar-popup-actions').forEach(box=>{
+      if(box.querySelector('.rnt-avisar')) return;
+      const b=document.createElement('button'); b.type='button'; b.className=(box.classList.contains('mapbtns')?'mapbtn':'radar-popup-btn')+' rnt-avisar'; b.textContent='⚑ Avisar de un error';
+      box.appendChild(b);
+    });
+  }
+  function marcar(){
+    const av=store.get();
+    document.querySelectorAll('.rnt-avisar').forEach(b=>{ const n=nombreDe(b); if(n&&av[n]) b.textContent= av[n].motivo==='cerrado'?'⚑ Avisado: cerrado':'⚑ Avisado'; });
+  }
+  document.addEventListener('click',e=>{ const b=e.target.closest('.rnt-avisar'); if(!b) return; e.preventDefault(); e.stopPropagation(); const n=nombreDe(b); if(n) abrir(n.trim()); },true);
+  let pend=false; new MutationObserver(()=>{ if(pend) return; pend=true; requestAnimationFrame(()=>{ pend=false; poner(document); marcar(); }); }).observe(document.body,{childList:true,subtree:true});
+  poner(document);
 })();
 </script>
 </body>

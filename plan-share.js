@@ -119,10 +119,16 @@
         }
         await Promise.all(jobs);
       }
-      // líneas
+      // líneas: ruta real si se puede (máx. 4 s), si no recta
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      g.walks.forEach(w => { if (w.line.length < 2) return; ctx.strokeStyle = C.acc; ctx.lineWidth = 8; ctx.beginPath(); w.line.forEach((p, i) => { const [x, y] = proj(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); });
-      ctx.setLineDash([14, 14]); g.transit.forEach(t => { ctx.strokeStyle = C.or; ctx.lineWidth = 6; ctx.beginPath(); const a = proj(t[0]), b = proj(t[1]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }); ctx.setLineDash([]);
+      const wait = p => Promise.race([p, new Promise(r => setTimeout(() => r(null), 4000))]);
+      const wl = await Promise.all(g.walks.map(w => w.line.length > 1 ? wait(route('foot', w.line)) : null));
+      const tl = await Promise.all(g.transit.map(t => wait(route('car', t))));
+      const stroke = (pts, col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); pts.forEach((p, i) => { const [x, y] = proj(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); };
+      g.walks.forEach((w, k) => { if (w.line.length > 1) stroke(wl[k] ? wl[k].line : w.line, C.acc, 8); });
+      g.transit.forEach((t, k) => { if (!tl[k]) ctx.setLineDash([14, 14]); stroke(tl[k] ? tl[k].line : t, C.or, 7); ctx.setLineDash([]);
+        if (tl[k]) { const [x, y] = proj(tl[k].line[Math.floor(tl[k].line.length / 2)]); const txt = '🚗 ' + tl[k].typical + ' min'; ctx.font = `800 24px ${F}`; const tw = ctx.measureText(txt).width;
+          ctx.fillStyle = C.or; rr(ctx, x - tw / 2 - 12, y - 20, tw + 24, 40, 20); ctx.fill(); ctx.fillStyle = '#1b1206'; ctx.fillText(txt, x - tw / 2, y + 9); } });
       // marcadores
       g.stops.forEach(p => { const [x, y] = proj(p.ll); const r = p.walk ? 17 : 27;
         ctx.fillStyle = p.walk ? C.lime : C.acc; ctx.strokeStyle = p.walk ? '#12201a' : '#fff'; ctx.lineWidth = p.walk ? 3 : 5;
@@ -167,5 +173,41 @@
     return 'downloaded';
   }
 
-  window.RentaPlanShare = {fromStops, encode, decode, url, summary, geometry, png: pngSafe, shareImage, fmt, BASE};
+  // ---------- rutas reales (OpenStreetMap, gratis, sin clave) ----------
+  const ROUTERS = {
+    car: ['https://router.project-osrm.org/route/v1/driving/', 'https://routing.openstreetmap.de/routed-car/route/v1/driving/'],
+    foot: ['https://routing.openstreetmap.de/routed-foot/route/v1/foot/']
+  };
+  const RC = new Map();
+  async function route(mode, pts) {
+    if (!pts || pts.length < 2) return null;
+    pts = pts.slice(0, 25);
+    const key = mode + '|' + pts.map(p => p[0].toFixed(5) + ',' + p[1].toFixed(5)).join(';');
+    if (RC.has(key)) return RC.get(key);
+    const job = (async () => {
+      const coords = pts.map(p => p[1].toFixed(6) + ',' + p[0].toFixed(6)).join(';');
+      for (const base of ROUTERS[mode] || []) {
+        const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 8000);
+        try {
+          const r = await fetch(base + coords + '?overview=full&geometries=geojson&steps=false', {signal: ctrl.signal});
+          clearTimeout(tm);
+          if (!r.ok) continue;
+          const j = await r.json(); const rt = j.routes && j.routes[0];
+          if (!rt) continue;
+          const min = rt.duration / 60;
+          return {line: rt.geometry.coordinates.map(c => [c[1], c[0]]), km: rt.distance / 1000, min,
+                  // en coche: lo que se tarda «normalmente» (la ruta da el tiempo sin tráfico; en Madrid se suele tardar ~30 % más + aparcar)
+                  typical: mode === 'car' ? Math.round(min * 1.3 + 4) : Math.round(min)};
+        } catch (e) { clearTimeout(tm); }
+      }
+      return null;
+    })();
+    RC.set(key, job);
+    const out = await job; if (!out) RC.delete(key);
+    return out;
+  }
+  // tramo largo (> 2,5 km) en coche; corto, andando
+  function legMode(a, b) { return km(a, b) > 2.5 ? 'car' : 'foot'; }
+
+  window.RentaPlanShare = {route, legMode, fromStops, encode, decode, url, summary, geometry, png: pngSafe, shareImage, fmt, BASE};
 })();

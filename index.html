@@ -712,7 +712,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script src="plan-share.js?v=3" defer></script>
+<script src="plan-share.js?v=4" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
@@ -3731,7 +3731,7 @@ function planWalkMin(a,b){if(!planHasCoords(a)||!planHasCoords(b))return 15;cons
 function planWalkHtml(stops,i){
   if(i===0)return '';const a=stops[i-1],b=stops[i];if(!planHasCoords(a)||!planHasCoords(b))return '';
   const km=haversine(a.lat,a.lon,b.lat,b.lon),min=planWalkMin(a,b);
-  return `<div class="plan-walk">${km>2.5?'🚇':'🚶'} ${km>2.5?'unos '+min+' min en metro/taxi':min+' min andando'} · ${km.toFixed(1).replace('.',',')} km</div>`;
+  return `<div class="plan-walk" data-a="${a.lat},${a.lon}" data-b="${b.lat},${b.lon}">${km>2.5?'🚗':'🚶'} ${km>2.5?'unos '+min+' min en coche':min+' min andando'} · ${km.toFixed(1).replace('.',',')} km</div>`;
 }
 
 async function renderMadridPlan(){
@@ -4903,6 +4903,7 @@ async function pdSwap(btn){
       const wa = document.querySelector('#pideResults .actionsRow a.wa'); if(wa) wa.href = pdWhatsAppPlan(stops, pdRun._planTitle||'Plan');
       pdRun._items = stops;
       if(document.getElementById('pdPlanMap')) pdDrawPlanMap(stops);
+      pdUpdateLegs();
       const nc = document.querySelectorAll('#pideResults .timeline .tl')[i]; if(nc) nc.scrollIntoView({block:'nearest', behavior:'smooth'});
     } else {
       const sec = pdRun._sections && pdRun._sections[+a]; const ii = +b; if(!sec) return toast('—');
@@ -4967,6 +4968,23 @@ document.addEventListener('click', e=>{
   if(e.target.closest('[data-plan-share]')){ e.preventDefault(); pdPlanShareSheet(); }
   if(e.target.closest('[data-plan-wa]')){ e.preventDefault(); pdPlanWhatsApp(); }
 });
+// Tiempos reales entre paradas: andando por calles o en coche (lo que se tarda normalmente)
+function pdUpdateLegs(){
+  if(!window.RentaPlanShare || !RentaPlanShare.route) return;
+  document.querySelectorAll('#pideResults .plan-walk[data-a]').forEach(async el=>{
+    if(el.dataset.done) return; el.dataset.done='1';
+    const a = el.dataset.a.split(',').map(Number), b = el.dataset.b.split(',').map(Number);
+    const mode = RentaPlanShare.legMode(a, b);
+    const r = await RentaPlanShare.route(mode, [a, b]);
+    if(!r) return;
+    const kmTxt = r.km.toFixed(1).replace('.',',')+' km';
+    const transit = `https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${a.join(',')}&destination=${b.join(',')}`;
+    el.innerHTML = mode==='car'
+      ? `🚗 ${r.typical} min en coche normalmente · ${kmTxt} · <a href="${transit}" target="_blank" rel="noopener">🚇 en transporte</a>`
+      : `🚶 ${Math.max(1,r.typical)} min andando · ${kmTxt}`;
+    el.title = mode==='car' ? 'Ruta en coche por OpenStreetMap; incluye un margen por tráfico y aparcamiento' : 'Ruta andando por calles (OpenStreetMap)';
+  });
+}
 // Mapa del plan: paradas numeradas, puntos del paseo y recorrido
 let pdPlanMapObj = null;
 function pdDrawPlanMap(stops){
@@ -5006,8 +5024,16 @@ function pdDrawPlanMap(stops){
       .bindPopup(`<b>${n}. ${pdEsc(s.n)}</b><br>${pdFmt(s._start)} · ${pdEsc(s.cd||s.cm||'')}<br>${pdEsc(rentaSellosText(s,2))}`);
     last = ll;
   });
-  walkLine.forEach(w=>{ if(w.line.length>1) L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.85}).addTo(map); });
-  transitLines.forEach(t=>L.polyline(t,{color:'#e8a24a',weight:3,opacity:.9,dashArray:'6 8'}).addTo(map));
+  const legs = [];
+  walkLine.forEach(w=>{ if(w.line.length>1) legs.push({mode:'foot', pts:w.line, layer:L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.55,dashArray:'2 6'}).addTo(map)}); });
+  transitLines.forEach(t=>legs.push({mode:'car', pts:t, layer:L.polyline(t,{color:'#e8a24a',weight:3,opacity:.6,dashArray:'6 8'}).addTo(map)}));
+  // ruta real por calles (andando) y por carretera (en coche); mientras llega, línea punteada
+  if(window.RentaPlanShare && RentaPlanShare.route) legs.forEach(async lg=>{
+    const r = await RentaPlanShare.route(lg.mode, lg.pts);
+    if(!r || pdPlanMapObj!==map) return;
+    lg.layer.setLatLngs(r.line); lg.layer.setStyle({dashArray:null, opacity:.95, weight: lg.mode==='car'?5:4});
+    if(lg.mode==='car'){ const mid = r.line[Math.floor(r.line.length/2)]; L.marker(mid,{icon:L.divIcon({className:'pm-icon pm-car', html:`<span>🚗 ${r.typical} min</span>`, iconSize:null}), interactive:false}).addTo(map); }
+  });
   if(bounds.length===1) map.setView(bounds[0], 15); else if(bounds.length) map.fitBounds(bounds,{padding:[28,28], maxZoom:16});
   setTimeout(()=>map.invalidateSize(), 200);
 }
@@ -5572,7 +5598,7 @@ async function pdRun(shuffle){
       if(out.stops.length){
         const title = `Plan${p.dayLabel?' de '+p.dayLabel:''}${p.zoneLabels.length?' · '+p.zoneLabels.join(', '):''}`;
         html += `<div class="secTitle">🧭 ${pdEsc(title)} <small>${pdFmt(out.stops[0]._start)} → ${pdFmt(out.stops[out.stops.length-1]._end)}</small></div>`;
-        if(out.stops.filter(s=>planHasCoords(s)).length>=1) html += `<div id="pdPlanMap" class="pdPlanMap" aria-label="Mapa del plan"></div><div class="pdPlanLegend"><span><i class="pm-stop"></i> Paradas</span><span><i class="pm-walk"></i> Puntos del paseo</span><span><i class="pm-line"></i> Recorrido andando</span>${out.stops.some(s=>s.transit)||out.stops.some((s,i)=>i&&planHasCoords(s)&&planHasCoords(out.stops[i-1])&&haversine(s.lat,s.lon,out.stops[i-1].lat,out.stops[i-1].lon)>2.5)?'<span><i class="pm-transit"></i> Metro/taxi</span>':''}</div>`;
+        if(out.stops.filter(s=>planHasCoords(s)).length>=1) html += `<div id="pdPlanMap" class="pdPlanMap" aria-label="Mapa del plan"></div><div class="pdPlanLegend"><span><i class="pm-stop"></i> Paradas</span><span><i class="pm-walk"></i> Puntos del paseo</span><span><i class="pm-line"></i> Andando</span>${out.stops.some(s=>s.transit)||out.stops.some((s,i)=>i&&planHasCoords(s)&&planHasCoords(out.stops[i-1])&&haversine(s.lat,s.lon,out.stops[i-1].lat,out.stops[i-1].lon)>2.5)?'<span><i class="pm-transit"></i> En coche</span>':''}</div>`;
         pdRun._mapStops = out.stops; pdRun._rej = new Set();
         html += pdTimelineHtml(out.stops);
         pdRun._planTitle = title;
@@ -5584,6 +5610,7 @@ async function pdRun(shuffle){
     const uniq = Array.from(new Set(notes));
     resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + (p._evHtml||'') + html;
     if(document.getElementById('pdPlanMap') && pdRun._mapStops) setTimeout(()=>pdDrawPlanMap(pdRun._mapStops), 30);
+    pdUpdateLegs();
     const sh = document.getElementById('pideShuffle'); if(sh) sh.onclick = ()=>pdRun(true);
     // Después, sin bloquear: sitios nuevos que no tienes guardados
     if(mode==='lista'){
@@ -7447,7 +7474,8 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 .pdPlanLegend .pm-stop{width:12px;height:12px;border-radius:50%;background:#2ec4b6;border:2px solid #fff}
 .pdPlanLegend .pm-walk{width:9px;height:9px;border-radius:50%;background:#c5e3a0;border:1.5px solid #12201a}
 .pdPlanLegend .pm-line{width:18px;height:4px;border-radius:2px;background:#2ec4b6}
-.pdPlanLegend .pm-transit{width:18px;height:0;border-top:3px dashed #e8a24a}
+.pdPlanLegend .pm-transit{width:18px;height:4px;border-radius:2px;background:#e8a24a}
+.pm-car span{display:inline-block;transform:translate(-50%,-50%);background:#e8a24a;color:#1b1206;font:800 11px/1 system-ui;padding:4px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .pm-icon{background:none;border:0}
 .pm-stopmk b{display:grid;place-items:center;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:#2ec4b6;color:#06231f;font:800 14px/1 system-ui;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .pm-walkpt span{display:grid;place-items:center;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#c5e3a0;color:#12201a;font:800 10px/1 system-ui;border:1.5px solid #12201a}

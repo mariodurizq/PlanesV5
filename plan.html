@@ -13,7 +13,7 @@
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="plan-share.js?v=3"></script>
+<script src="plan-share.js?v=4"></script>
 <style>
 :root{--bg:#0b100e;--card:#141c18;--ink:#f1efe8;--mut:#9aa59e;--acc:#2ec4b6;--lime:#c5e3a0;--or:#e8a24a;--line:#24302b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;line-height:1.45}
@@ -35,6 +35,8 @@ ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
 .pm-icon{background:none;border:0}.pm-s b{display:grid;place-items:center;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--acc);color:#06231f;font:800 14px/1 system-ui;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .pm-w span{display:grid;place-items:center;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--lime);color:#12201a;font:800 10px/1 system-ui;border:1.5px solid #12201a}
 .err{padding:30px 0;text-align:center;color:var(--mut)}
+.leg{margin:-2px 0 -2px 72px;padding:4px 0;font-size:13px;color:var(--mut);min-height:8px}.leg a{color:var(--lime)}
+.pm-car span{display:inline-block;transform:translate(-50%,-50%);background:#e8a24a;color:#1b1206;font:800 11px/1 system-ui;padding:4px 7px;border-radius:999px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -56,9 +58,15 @@ ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
   const ap = s => s.la!=null ? `https://maps.apple.com/?daddr=${s.la},${s.lo}&q=${encodeURIComponent(s.n)}` : gm(s);
   // ruta completa (Google Maps admite origen, destino y hasta 9 paradas intermedias)
   const pts = []; plan.s.forEach(s=>{ if(s.p) s.r.forEach(x=>pts.push([x[1],x[2]])); else if(s.la!=null) pts.push([s.la,s.lo]); });
-  const full = pts.length>=2 ? `https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=${pts[0].join(',')}&destination=${pts[pts.length-1].join(',')}${pts.length>2?'&waypoints='+encodeURIComponent(pts.slice(1,-1).slice(0,9).map(p=>p.join(',')).join('|')):''}` : '';
-  let n = 0;
+  const far = pts.some((p,i)=>i && Math.hypot((p[0]-pts[i-1][0])*111,(p[1]-pts[i-1][1])*85)>2.5);
+  const full = pts.length>=2 ? `https://www.google.com/maps/dir/?api=1&travelmode=${far?'driving':'walking'}&origin=${pts[0].join(',')}&destination=${pts[pts.length-1].join(',')}${pts.length>2?'&waypoints='+encodeURIComponent(pts.slice(1,-1).slice(0,9).map(p=>p.join(',')).join('|')):''}` : '';
+  let n = 0, prevLL = null, prevPaseo = false;
   const cards = plan.s.map(s=>{
+    const leg = (!s.p && s.la!=null && prevLL && !prevPaseo) ? `<div class="leg" data-a="${prevLL.join(',')}" data-b="${s.la},${s.lo}"></div>` : '';
+    if(s.p){ prevPaseo = true; prevLL = s.r.length ? [s.r[s.r.length-1][1], s.r[s.r.length-1][2]] : prevLL; } else if(s.la!=null){ prevPaseo = false; prevLL = [s.la, s.lo]; }
+    return leg + card1(s);
+  }).join('');
+  function card1(s){
     if(s.p) return `<div class="stop"><div class="t"><b>${fmt(s.s)}</b><small>${fmt(s.e)}</small></div><div class="b">
       <h2>🚶 ${s.tm?'Paseo por '+esc(s.to):s.to?'Paseo hasta '+esc(s.to):'Paseo'}</h2>
       ${s.tm?`<div class="m" style="color:var(--or)">🚇 Primero metro o taxi, unos ${s.tm} min</div>`:''}
@@ -71,9 +79,9 @@ ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
       <div class="m">${esc([s.c, s.z, s.p0?s.p0+' €':'', s.b||''].filter(Boolean).join(' · '))}</div>
       ${s.a?`<div class="m">📍 ${esc(s.a)}</div>`:''}${s.w?`<div class="w">💡 ${esc(s.w.charAt(0).toUpperCase()+s.w.slice(1))}</div>`:''}
       <div class="btns"><a href="${gm(s)}" target="_blank" rel="noopener">📍 Ver en Maps</a><a href="${nav(s)}" target="_blank" rel="noopener">🧭 Google Maps</a><a href="${ap(s)}" target="_blank" rel="noopener">🍎 Apple Maps</a></div></div></div>`;
-  }).join('');
+  }
   app.innerHTML = `<h1>${esc(plan.t)}</h1><div class="when">${fmt(plan.s[0].s)} → ${fmt(plan.s[plan.s.length-1].e)}${plan.d?' · '+esc(plan.d):''}</div>
-    <div id="map"></div><div class="legend"><span><i style="width:12px;height:12px;border-radius:50%;background:var(--acc);border:2px solid #fff"></i>Paradas</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--lime)"></i>Paseo</span><span><i style="width:18px;height:4px;background:var(--acc);border-radius:2px"></i>Andando</span><span><i style="width:18px;border-top:3px dashed var(--or)"></i>Metro/taxi</span></div>
+    <div id="map"></div><div class="legend"><span><i style="width:12px;height:12px;border-radius:50%;background:var(--acc);border:2px solid #fff"></i>Paradas</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--lime)"></i>Paseo</span><span><i style="width:18px;height:4px;background:var(--acc);border-radius:2px"></i>Andando</span><span><i style="width:18px;height:4px;background:var(--or);border-radius:2px"></i>En coche</span></div>
     <div class="top">${full?`<a class="pri" href="${full}" target="_blank" rel="noopener">🗺️ Ruta completa en Google Maps</a>`:''}<button type="button" id="img">🖼️ Guardar imagen</button><button type="button" id="sh">📲 Reenviar</button></div>
     ${cards}`;
   // mapa
@@ -82,11 +90,21 @@ ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
     const map = L.map('map',{scrollWheelZoom:false});
     const tl = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=cb1_4lmn_1_2aac24edf7da67a8627f2599',{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
     let errs=0; tl.on('tileerror',()=>{ if(++errs===4) tl.setUrl('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_4lmn_1_2aac24edf7da67a8627f2599'); });
-    g.walks.forEach(w=>{ if(w.line.length>1) L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.9}).addTo(map); });
-    g.transit.forEach(t=>L.polyline(t,{color:'#e8a24a',weight:3,dashArray:'6 8'}).addTo(map));
+    const legs=[];
+    g.walks.forEach(w=>{ if(w.line.length>1) legs.push({mode:'foot',pts:w.line,layer:L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.55,dashArray:'2 6'}).addTo(map)}); });
+    g.transit.forEach(t=>legs.push({mode:'car',pts:t,layer:L.polyline(t,{color:'#e8a24a',weight:3,opacity:.6,dashArray:'6 8'}).addTo(map)}));
+    legs.forEach(async lg=>{ const r=await S.route(lg.mode,lg.pts); if(!r) return; lg.layer.setLatLngs(r.line); lg.layer.setStyle({dashArray:null,opacity:.95,weight:lg.mode==='car'?5:4});
+      if(lg.mode==='car'){ const mid=r.line[Math.floor(r.line.length/2)]; L.marker(mid,{icon:L.divIcon({className:'pm-icon pm-car',html:`<span>🚗 ${r.typical} min</span>`,iconSize:null}),interactive:false}).addTo(map); } });
     g.stops.forEach(p=>L.marker(p.ll,{icon:L.divIcon({className:'pm-icon '+(p.walk?'pm-w':'pm-s'),html:p.walk?'<span>'+p.label+'</span>':'<b>'+p.label+'</b>',iconSize:null}),zIndexOffset:p.walk?0:500}).addTo(map).bindTooltip(esc(p.name)));
     if(g.all.length===1) map.setView(g.all[0],15); else if(g.all.length) map.fitBounds(g.all,{padding:[28,28],maxZoom:16}); else document.getElementById('map').remove();
   }catch(e){ const m=document.getElementById('map'); if(m) m.remove(); }
+  document.querySelectorAll('.leg[data-a]').forEach(async el=>{
+    const a=el.dataset.a.split(',').map(Number), b=el.dataset.b.split(',').map(Number), mode=S.legMode(a,b);
+    el.textContent = mode==='car' ? '🚗 calculando ruta…' : '🚶 …';
+    const r = await S.route(mode,[a,b]);
+    const km = r ? r.km.toFixed(1).replace('.',',')+' km' : '';
+    el.innerHTML = r ? (mode==='car' ? `🚗 ${r.typical} min en coche normalmente · ${km} · <a href="https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${a}&destination=${b}" target="_blank" rel="noopener">🚇 en transporte</a>` : `🚶 ${r.typical} min andando · ${km}`) : '';
+  });
   document.getElementById('img').onclick = async e=>{ const b=e.currentTarget; b.textContent='⏳ Creando imagen…'; try{ await S.shareImage(plan); }catch(err){} b.textContent='🖼️ Guardar imagen'; };
   document.getElementById('sh').onclick = async ()=>{
     const text = S.summary(plan);

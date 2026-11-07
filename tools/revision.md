@@ -1,14 +1,14 @@
 # Repaso de la lista de sitios — 2026-11-07
 
-Sitios: **699** · zonas corregidas: **1** (de ellas 1 estaban vacías) · coordenadas sospechosas: **0** · fuera de la Comunidad: **0** · sin coordenadas: **36** · posibles duplicados: **0** · cerrados: **77** · coordenadas pasadas de Google a OpenStreetMap: **4** · ubicados ahora por nombre: **1** · aún con coordenadas de Google: **213**
+Sitios: **699** · zonas corregidas: **0** (de ellas 0 estaban vacías) · coordenadas sospechosas: **0** · fuera de la Comunidad: **0** · sin coordenadas: **37** · posibles duplicados: **0** · cerrados: **77** · coordenadas pasadas de Google a OpenStreetMap: **0** · ubicados ahora por nombre: **0** · aún con coordenadas de Google: **213**
 
 La zona se calcula con los límites oficiales de distritos y municipios de OpenStreetMap. Si la dirección dice otra zona, no se toca nada y se apunta aquí para revisarlo a mano.
 
-## Ubicados ahora con OpenStreetMap (no tenían coordenadas) (1)
-- GYMAGE Lounge Resort → Gymage Lounge Resort
+## Ubicados ahora con OpenStreetMap (no tenían coordenadas) (0)
+- Nada 👍
 
-## Zonas corregidas (1)
-- GYMAGE Lounge Resort: (sin zona) → Centro
+## Zonas corregidas (0)
+- Nada 👍
 
 ## Coordenadas sospechosas (revisar a mano) (0)
 - Nada 👍
@@ -16,7 +16,7 @@ La zona se calcula con los límites oficiales de distritos y municipios de OpenS
 ## Fuera de la Comunidad de Madrid (0)
 - Nada 👍
 
-## Sin coordenadas (36)
+## Sin coordenadas (37)
 - Ostinato
 - Zozou Club
 - Taberna Murciana
@@ -44,6 +44,7 @@ La zona se calcula con los límites oficiales de distritos y municipios de OpenS
 - Mela Hookah
 - Bavylon shisha&cocktails
 - KIMBALA LOUNGE CLUB
+- Valhalla las rozas
 - White Moon Shisha club
 - Shisha's Lounge
 - Anubis Cócteleria Plaza Mayor

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plan · RENTA</title>
+<meta name="description" content="Un plan en Madrid hecho con RENTA: horarios, mapa y sitios.">
+<meta property="og:title" content="Te paso el plan 🧭">
+<meta property="og:description" content="Horarios, mapa y sitios. Hecho con RENTA.">
+<meta property="og:image" content="https://mariodurizq.github.io/PlanesV5/icon-512.png">
+<meta name="theme-color" content="#0b100e">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="plan-share.js?v=1"></script>
+<style>
+:root{--bg:#0b100e;--card:#141c18;--ink:#f1efe8;--mut:#9aa59e;--acc:#2ec4b6;--lime:#c5e3a0;--or:#e8a24a;--line:#24302b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;line-height:1.45}
+main{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:baseline;gap:8px}header a{color:var(--ink);font-weight:900;font-size:22px;text-decoration:none;letter-spacing:-.5px}header span{color:var(--mut);font-size:14px}
+h1{font-size:26px;line-height:1.15;margin:14px 0 4px}.when{font-family:ui-monospace,Menlo,monospace;color:var(--acc);font-size:15px}
+#map{height:300px;border-radius:18px;overflow:hidden;margin:14px 0 8px;border:1px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mut);margin-bottom:12px}
+.legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+.stop{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0;display:flex;gap:12px}
+.t{flex:0 0 58px;font-family:ui-monospace,Menlo,monospace}.t b{display:block;color:var(--acc);font-size:16px}.t small{color:var(--mut)}
+.b{min-width:0;flex:1}.b h2{font-size:17px;margin:0 0 3px}.m{color:var(--mut);font-size:13.5px}.w{font-size:13px;margin-top:4px;opacity:.9}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.btns a,.btns button{font:inherit;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:transparent;border-radius:10px;padding:7px 10px;cursor:pointer}
+.num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#06231f;font-size:12px;font-weight:800;margin-right:6px;vertical-align:1px}
+ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
+.top{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.top button,.top a{flex:1 1 140px;text-align:center;font:inherit;font-weight:700;font-size:14px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer}
+.top .pri{background:var(--lime);color:#0b1210;border-color:var(--lime)}
+.cta{margin-top:26px;text-align:center;color:var(--mut);font-size:13.5px}.cta a{color:var(--lime);font-weight:700}
+.pm-icon{background:none;border:0}.pm-s b{display:grid;place-items:center;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--acc);color:#06231f;font:800 14px/1 system-ui;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pm-w span{display:grid;place-items:center;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--lime);color:#12201a;font:800 10px/1 system-ui;border:1.5px solid #12201a}
+.err{padding:30px 0;text-align:center;color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+  <header><a href="./">RENTA</a><span>· Planes en Madrid</span></header>
+  <div id="app"><div class="err">Cargando el plan…</div></div>
+  <p class="cta">¿Quieres montar el tuyo? <a href="./">Prueba RENTA</a> y pídele lo que te apetezca.</p>
+</main>
+<script>
+(async function(){
+  const S = window.RentaPlanShare, app = document.getElementById('app');
+  const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let plan;
+  try{ plan = await S.decode(location.hash.slice(1)); }catch(e){ app.innerHTML = '<div class="err">Este enlace de plan no es válido o está incompleto 😕</div>'; return; }
+  document.title = plan.t + ' · RENTA';
+  const fmt = S.fmt;
+  const gm = s => s.la!=null ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n)}%20${s.la},${s.lo}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n+' '+(s.a||s.z||'Madrid'))}`;
+  const nav = s => s.la!=null ? `https://www.google.com/maps/dir/?api=1&destination=${s.la},${s.lo}` : gm(s);
+  const ap = s => s.la!=null ? `https://maps.apple.com/?daddr=${s.la},${s.lo}&q=${encodeURIComponent(s.n)}` : gm(s);
+  // ruta completa (Google Maps admite origen, destino y hasta 9 paradas intermedias)
+  const pts = []; plan.s.forEach(s=>{ if(s.p) s.r.forEach(x=>pts.push([x[1],x[2]])); else if(s.la!=null) pts.push([s.la,s.lo]); });
+  const full = pts.length>=2 ? `https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=${pts[0].join(',')}&destination=${pts[pts.length-1].join(',')}${pts.length>2?'&waypoints='+encodeURIComponent(pts.slice(1,-1).slice(0,9).map(p=>p.join(',')).join('|')):''}` : '';
+  let n = 0;
+  const cards = plan.s.map(s=>{
+    if(s.p) return `<div class="stop"><div class="t"><b>${fmt(s.s)}</b><small>${fmt(s.e)}</small></div><div class="b">
+      <h2>🚶 ${s.tm?'Paseo por '+esc(s.to):s.to?'Paseo hasta '+esc(s.to):'Paseo'}</h2>
+      ${s.tm?`<div class="m" style="color:var(--or)">🚇 Primero metro o taxi, unos ${s.tm} min</div>`:''}
+      <div class="m">${s.km?String(s.km).replace('.',',')+' km · ':''}unos ${s.wm||20} min andando</div>
+      ${s.r.length?`<ol class="r" type="A">${s.r.map(x=>`<li><b>${esc(x[0])}</b>${x[3]?` <span class="m">· ${esc(x[3])}</span>`:''}</li>`).join('')}</ol>`:''}
+      <div class="btns">${s.ru?`<a href="${esc(s.ru)}" target="_blank" rel="noopener">🗺️ Ruta andando</a>`:''}${s.tu?`<a href="${esc(s.tu)}" target="_blank" rel="noopener">🚇 Cómo ir</a>`:''}</div></div></div>`;
+    n++;
+    return `<div class="stop"><div class="t"><b>${fmt(s.s)}</b><small>${fmt(s.e)}</small></div><div class="b">
+      <h2><span class="num">${n}</span>${esc(s.n)}</h2>
+      <div class="m">${esc([s.c, s.z, s.v?'★ '+String(Number(s.v).toFixed(1)).replace('.',',')+(s.nr?' ('+Number(s.nr).toLocaleString('es-ES')+')':''):'', s.p0?s.p0+' €':''].filter(Boolean).join(' · '))}</div>
+      ${s.a?`<div class="m">📍 ${esc(s.a)}</div>`:''}${s.w?`<div class="w">💡 ${esc(s.w.charAt(0).toUpperCase()+s.w.slice(1))}</div>`:''}
+      <div class="btns"><a href="${gm(s)}" target="_blank" rel="noopener">📍 Ver en Maps</a><a href="${nav(s)}" target="_blank" rel="noopener">🧭 Google Maps</a><a href="${ap(s)}" target="_blank" rel="noopener">🍎 Apple Maps</a></div></div></div>`;
+  }).join('');
+  app.innerHTML = `<h1>${esc(plan.t)}</h1><div class="when">${fmt(plan.s[0].s)} → ${fmt(plan.s[plan.s.length-1].e)}${plan.d?' · '+esc(plan.d):''}</div>
+    <div id="map"></div><div class="legend"><span><i style="width:12px;height:12px;border-radius:50%;background:var(--acc);border:2px solid #fff"></i>Paradas</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--lime)"></i>Paseo</span><span><i style="width:18px;height:4px;background:var(--acc);border-radius:2px"></i>Andando</span><span><i style="width:18px;border-top:3px dashed var(--or)"></i>Metro/taxi</span></div>
+    <div class="top">${full?`<a class="pri" href="${full}" target="_blank" rel="noopener">🗺️ Ruta completa en Google Maps</a>`:''}<button type="button" id="img">🖼️ Guardar imagen</button><button type="button" id="sh">📲 Reenviar</button></div>
+    ${cards}`;
+  // mapa
+  try{
+    const g = S.geometry(plan);
+    const map = L.map('map',{scrollWheelZoom:false});
+    const tl = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=cb1_4lmn_1_2aac24edf7da67a8627f2599',{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+    let errs=0; tl.on('tileerror',()=>{ if(++errs===4) tl.setUrl('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_4lmn_1_2aac24edf7da67a8627f2599'); });
+    g.walks.forEach(w=>{ if(w.line.length>1) L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.9}).addTo(map); });
+    g.transit.forEach(t=>L.polyline(t,{color:'#e8a24a',weight:3,dashArray:'6 8'}).addTo(map));
+    g.stops.forEach(p=>L.marker(p.ll,{icon:L.divIcon({className:'pm-icon '+(p.walk?'pm-w':'pm-s'),html:p.walk?'<span>'+p.label+'</span>':'<b>'+p.label+'</b>',iconSize:null}),zIndexOffset:p.walk?0:500}).addTo(map).bindTooltip(esc(p.name)));
+    if(g.all.length===1) map.setView(g.all[0],15); else if(g.all.length) map.fitBounds(g.all,{padding:[28,28],maxZoom:16}); else document.getElementById('map').remove();
+  }catch(e){ const m=document.getElementById('map'); if(m) m.remove(); }
+  document.getElementById('img').onclick = async e=>{ const b=e.currentTarget; b.textContent='⏳ Creando imagen…'; try{ await S.shareImage(plan); }catch(err){} b.textContent='🖼️ Guardar imagen'; };
+  document.getElementById('sh').onclick = async ()=>{
+    const text = S.summary(plan);
+    if(navigator.share){ try{ await navigator.share({title:plan.t, text, url:location.href}); return; }catch(e){ if(e.name==='AbortError') return; } }
+    location.href = 'https://wa.me/?text='+encodeURIComponent(text+'\n\n'+location.href);
+  };
+})();
+</script>
+</body>
+</html>

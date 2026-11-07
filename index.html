@@ -703,6 +703,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script src="plan-share.js?v=1" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
@@ -4724,6 +4725,43 @@ async function pdSwap(btn){
   }catch(e){ console.warn(e); toast('Error'); }
 }
 document.addEventListener('click', e=>{ const b = e.target.closest('.pdSwap'); if(b){ e.preventDefault(); pdSwap(b); } });
+// Compartir el plan: enlace a una página solo con el plan, WhatsApp o imagen PNG
+function pdCurrentPlan(){ return (window.RentaPlanShare && pdRun._mapStops) ? RentaPlanShare.fromStops(pdRun._mapStops, pdRun._planTitle||'Plan', pdRun._planDay||'') : null; }
+async function pdPlanWhatsApp(){
+  const plan = pdCurrentPlan(); if(!plan) return;
+  const u = await RentaPlanShare.url(plan);
+  window.open('https://wa.me/?text='+encodeURIComponent(RentaPlanShare.summary(plan)+'\n\n🗺️ Mapa y detalles: '+u), '_blank', 'noopener');
+}
+function pdPlanShareSheet(){
+  const plan = pdCurrentPlan(); if(!plan) return;
+  const ov = document.createElement('div'); ov.id='pdShareSheet';
+  ov.innerHTML = `<div class="sheet" role="dialog" aria-label="Compartir plan"><h3>📤 Compartir el plan</h3><p class="sub">Solo se comparte el plan (horas, mapa y sitios), no lo que escribiste.</p>
+    <div class="opts">
+      <button type="button" data-o="link">🔗 Enviar enlace del plan<small>Se abre una página con el plan y el mapa</small></button>
+      <button type="button" data-o="wa">💬 WhatsApp<small>Horarios en el mensaje + enlace al mapa</small></button>
+      <button type="button" data-o="img">🖼️ Imagen PNG<small>Horarios, mapa y sitios en una imagen</small></button>
+      <button type="button" data-o="copy">📋 Copiar enlace</button>
+    </div><button type="button" class="cancel">Cerrar</button></div>`;
+  document.body.appendChild(ov);
+  const close = ()=>ov.remove();
+  ov.addEventListener('click', async e=>{
+    if(e.target===ov || e.target.closest('.cancel')) return close();
+    const b = e.target.closest('[data-o]'); if(!b) return;
+    const o = b.dataset.o, label = b.innerHTML;
+    try{
+      if(o==='img'){ b.innerHTML='⏳ Creando imagen…'; const r = await RentaPlanShare.shareImage(plan); b.innerHTML = r==='downloaded' ? '✅ Imagen descargada' : label; if(r!=='downloaded') close(); return; }
+      const u = await RentaPlanShare.url(plan);
+      if(o==='wa'){ window.open('https://wa.me/?text='+encodeURIComponent(RentaPlanShare.summary(plan)+'\n\n🗺️ Mapa y detalles: '+u),'_blank','noopener'); return close(); }
+      if(o==='copy'){ try{ await navigator.clipboard.writeText(u); b.innerHTML='✅ Enlace copiado'; }catch(err){ prompt('Copia el enlace:', u); } return; }
+      if(navigator.share){ try{ await navigator.share({title:plan.t, text:RentaPlanShare.summary(plan), url:u}); return close(); }catch(err){ if(err.name==='AbortError') return; } }
+      try{ await navigator.clipboard.writeText(u); b.innerHTML='✅ Enlace copiado'; }catch(err){ prompt('Copia el enlace:', u); }
+    }catch(err){ console.warn(err); b.innerHTML = label; }
+  });
+}
+document.addEventListener('click', e=>{
+  if(e.target.closest('[data-plan-share]')){ e.preventDefault(); pdPlanShareSheet(); }
+  if(e.target.closest('[data-plan-wa]')){ e.preventDefault(); pdPlanWhatsApp(); }
+});
 // Mapa del plan: paradas numeradas, puntos del paseo y recorrido
 let pdPlanMapObj = null;
 function pdDrawPlanMap(stops){
@@ -5237,7 +5275,8 @@ async function pdRun(shuffle){
         html += pdTimelineHtml(out.stops);
         pdRun._planTitle = title;
         pdRun._items = out.stops;
-        html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
+        html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-plan-share>📤 Compartir</button><button class="ghostBtn wa" data-plan-wa>💬 Enviar plan</button></div>`;
+        pdRun._planDay = p.dayLabel||'';
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
     }
     const uniq = Array.from(new Set(notes));
@@ -7083,6 +7122,15 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
   }catch(e){}
 })();
 </script>
+<style id="renta-planshare-css">
+#pdShareSheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+#pdShareSheet .sheet{width:min(520px,100%);background:var(--bg2,#121a17);color:var(--ink,#f3f1ea);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+#pdShareSheet h3{margin:0 0 4px;font-size:18px}#pdShareSheet .sub{margin:0 0 12px;font-size:13px;opacity:.75}
+#pdShareSheet .opts{display:grid;gap:8px}
+#pdShareSheet .opts button{text-align:left;padding:12px 14px;border-radius:14px;border:1px solid var(--line,rgba(255,255,255,.15));background:transparent;color:inherit;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+#pdShareSheet .opts small{display:block;font-weight:400;font-size:12.5px;opacity:.7;margin-top:2px}
+#pdShareSheet .cancel{width:100%;margin-top:12px;padding:12px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.2));background:transparent;color:inherit;font:inherit;font-weight:700}
+</style>
 <style id="renta-planmap-css">
 .pdPlanMap{height:280px;border-radius:16px;overflow:hidden;margin:10px 0 6px;border:1px solid var(--line,rgba(255,255,255,.12));z-index:0}
 .pdPlanLegend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted,#9aa);margin:0 0 12px}

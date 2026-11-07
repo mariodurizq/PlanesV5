@@ -4224,6 +4224,63 @@ function pdFindPlace(text){
   cands.sort((x,y)=>y.len-x.len);
   return cands[0].pl;
 }
+// Todos los lugares mencionados, en orden (para "comer por el centro… y cenar por Goya")
+function pdFindAllPlaces(text){
+  const hits=[];
+  PD_PLACES.forEach(pl=>pl.a.forEach(al=>{
+    const a=pdNorm(al).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const re=new RegExp((pl.p?PD_PREP:'(?:^|[^a-z])')+'('+a+')(?:[^a-z]|$)','g');
+    let m; while((m=re.exec(text))){ const i=m.index+m[0].indexOf(m[1]); hits.push({pl,i,len:m[1].length}); re.lastIndex=m.index+1; }
+  }));
+  hits.sort((x,y)=>x.i-y.i || y.len-x.len);
+  const out=[]; hits.forEach(h=>{ if(!out.some(o=>h.i<o.i+o.len && o.i<h.i+h.len)) out.push(h); });
+  return out;
+}
+// Sitios bonitos para pasear (coordenadas aproximadas) y una frase sobre cada uno
+const PD_PASEOS = [
+  ['Plaza Mayor',40.4155,-3.7074,'soportales y la plaza más famosa'],['Puerta del Sol',40.4169,-3.7035,'el kilómetro cero'],
+  ['Palacio Real',40.4180,-3.7143,'y la explanada con la Almudena'],['Plaza de Oriente',40.4184,-3.7120,'jardines frente al palacio'],
+  ['Jardines de Sabatini',40.4228,-3.7146,'jardín tranquilo junto al palacio'],['Templo de Debod',40.4240,-3.7178,'atardecer con vistas'],
+  ['Plaza de España',40.4234,-3.7122,'renovada y peatonal'],['Gran Vía',40.4199,-3.7016,'la calle de los edificios icónicos'],
+  ['Edificio Metrópolis',40.4189,-3.6970,'la cúpula más fotografiada'],['Cibeles',40.4193,-3.6931,'fuente y Palacio de Cibeles'],
+  ['Puerta de Alcalá',40.4200,-3.6887,'la entrada al Retiro'],['Retiro · Estanque Grande',40.4153,-3.6845,'barcas y el monumento a Alfonso XII'],
+  ['Retiro · Palacio de Cristal',40.4136,-3.6827,'el rincón más bonito del parque'],['Paseo del Prado',40.4138,-3.6921,'bulevar arbolado de los museos'],
+  ['Barrio de las Letras',40.4146,-3.6995,'calles con citas literarias'],['Plaza de Santa Ana',40.4146,-3.7010,'terrazas y ambiente'],
+  ['Mercado de San Miguel',40.4154,-3.7090,'mercado de hierro y cristal'],['La Latina · Plaza de la Paja',40.4122,-3.7116,'el Madrid más antiguo'],
+  ['El Rastro · Cascorro',40.4105,-3.7070,'calles con tiendas'],['Lavapiés',40.4088,-3.7010,'barrio multicultural'],
+  ['Plaza del Dos de Mayo',40.4269,-3.7038,'el corazón de Malasaña'],['Plaza de Chueca',40.4229,-3.6976,'ambiente y tiendas'],
+  ['Calle Fuencarral',40.4245,-3.7012,'peatonal y de compras'],['Conde Duque',40.4275,-3.7108,'cuartel cultural'],
+  ['Plaza de Colón',40.4253,-3.6903,'jardines del Descubrimiento'],['Calle Serrano',40.4290,-3.6875,'la milla de oro'],
+  ['Calle Jorge Juan',40.4225,-3.6810,'terrazas y boutiques'],['Mercado de la Paz',40.4269,-3.6831,'mercado de barrio con solera'],
+  ['Calle Goya',40.4245,-3.6760,'comercio del barrio de Salamanca'],['Parque del Oeste · Rosaleda',40.4285,-3.7210,'jardín y vistas'],
+  ['Madrid Río · Puente de Segovia',40.4142,-3.7213,'paseo junto al río'],['Matadero',40.3920,-3.6974,'centro cultural junto al río'],
+  ['Plaza de Olavide',40.4325,-3.7025,'la plaza de Chamberí'],['Museo Sorolla',40.4355,-3.6930,'casa y jardín del pintor'],
+  ['Jardín Botánico',40.4111,-3.6913,'junto al Prado'],['Calle Huertas',40.4140,-3.6985,'bares y letras doradas']
+].map(([n,lat,lon,b])=>({n,lat,lon,b}));
+function planWalkRoute(from, to){
+  const km=(a,b)=>haversine(a.lat,a.lon,b.lat,b.lon);
+  let pts=[];
+  if(to && km(from,to)>0.6){
+    const dir=km(from,to);
+    const proj=l=>((l.lat-from.lat)*(to.lat-from.lat)+(l.lon-from.lon)*(to.lon-from.lon)*0.6)/(((to.lat-from.lat)**2+((to.lon-from.lon)**2)*0.6)||1);
+    const perp=l=>{ const t2=Math.max(0,Math.min(1,proj(l))); const q={lat:from.lat+(to.lat-from.lat)*t2, lon:from.lon+(to.lon-from.lon)*t2}; return km(l,q); };
+    const c=PD_PASEOS.filter(l=>km(from,l)>0.2 && km(l,to)>0.15 && proj(l)>0.03 && proj(l)<0.97 && perp(l) <= 0.35+dir*0.08);
+    const maxN = Math.max(2, Math.min(4, Math.round(dir/0.7)));
+    c.sort((a,b)=>perp(a)-perp(b));
+    c.forEach(l=>{ if(pts.length<maxN && pts.every(x=>km(x,l)>=0.4)) pts.push(l); });
+    pts.sort((a,b)=>proj(a)-proj(b));
+  }
+  if(!pts.length){
+    let cur=from; const pool=PD_PASEOS.filter(l=>km(from,l)<=1.3 && km(from,l)>0.15 && (!to || km(l,to)<=km(from,to)+0.6));
+    while(pts.length<(to?2:4) && pool.length){ pool.sort((a,b)=>km(cur,a)-km(cur,b)); const nx=pool.shift(); if(!pts.length || km(pts[pts.length-1],nx)>=0.3){ pts.push(nx); cur=nx; } }
+  }
+  const end = to || pts[pts.length-1] || from;
+  const seq=[from].concat(pts, to?[to]:[]);
+  let dist=0; for(let i=1;i<seq.length;i++) dist+=km(seq[i-1],seq[i]);
+  const ll=x=>x.lat.toFixed(5)+','+x.lon.toFixed(5);
+  const url='https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ll(from)+'&destination='+ll(end)+(pts.length?'&waypoints='+encodeURIComponent(pts.filter(x=>x!==end).map(ll).join('|')):'');
+  return {pts, end, km:dist*1.2, url};
+}
 // Si no lo conocemos: lo que va tras "en/por/cerca de…", para buscarlo en el mapa
 const PD_NOT_PLACE = /^(pareja|grupo|familia|terraza|casa|coche|metro|bici|plan|serio|general|madrid|un |una |algun|cualquier|el centro comercial)/;
 function pdGuessPlace(text){
@@ -4336,6 +4393,48 @@ function pdParse(raw){
   }
   if(/\b(en cualquier|dentro de la m-?30)\b/.test(text)) p.m30 = /m-?30/.test(text);
 
+  // ── varias partes en una frase: "comer por el centro, pasear, y tomar algo antes de cenar por Goya" ──
+  {
+    const idxOf = {}; found.forEach(f=>{ idxOf[f.c.id]=f.idx; });
+    p.wants = p.wants.map(w=>Object.assign({}, w, {_idx: idxOf[w.id]!=null?idxOf[w.id]:999}));
+    const lunchM = text.match(/\b(comer|comida|almorzar|almuerzo)\b/), dinnerM = text.match(/\b(cenar|cena)\b/);
+    const meals = p.wants.filter(w=>w.meal);
+    if(lunchM && dinnerM && meals.length===1){
+      const lunchFirst = lunchM.index < dinnerM.index;
+      meals[0]._meal = lunchFirst?'comida':'cena'; meals[0]._idx = lunchFirst?lunchM.index:dinnerM.index;
+      const food = PD_CATS.find(c=>c.id==='food');
+      p.wants.push(Object.assign({}, food, {label: lunchFirst?'🌙 Cena':'☀️ Comida', _meal: lunchFirst?'cena':'comida', _idx: lunchFirst?dinnerM.index:lunchM.index, _second:true}));
+      p.twoMeals = true;
+    } else if(meals.length>=2){ meals.sort((a,b)=>a._idx-b._idx); meals[0]._meal='comida'; meals[meals.length-1]._meal='cena'; p.twoMeals=true; }
+    const walkM = text.match(/\b(pasear|paseo|paseito|dar una vuelta|dar un paseo|callejear|caminar|andar un rato)\b/);
+    if(walkM){ p.wants.push({id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur: /tranquil|largo|toda la tarde|tarde/.test(text)?100:60, _idx: walkM.index}); p.walk = true; }
+    const allPl = pdFindAllPlaces(text);
+    const distinct = [...new Set(allPl.map(h=>h.pl.n))];
+    if(distinct.length>=2 || p.walk){
+      const cuts=[0]; const re=/,|;|\.|\b(y )?(luego|despues|mas tarde|para acabar|al final)\b/g; let m; while((m=re.exec(text))) cuts.push(m.index); cuts.push(text.length);
+      const clauseOf=i=>{ let a=0,b=text.length; cuts.forEach(c=>{ if(c<=i && c>a) a=c; if(c>i && c<b) b=c; }); return [a,b]; };
+      const ordered = p.wants.slice().sort((a,b)=>a._idx-b._idx);
+      let last=null;
+      ordered.forEach(w=>{
+        if(w.id==='paseo'){
+          const [a,b]=clauseOf(w._idx); const h=allPl.filter(x=>x.i>=a && x.i<b).pop();
+          const lm=PD_PASEOS.find(l=>{ const k=pdNorm(l.n.split(' · ')[0]); return text.slice(a,b).includes(k); });
+          if(lm) w._place={n:lm.n.split(' · ')[0], lat:lm.lat, lon:lm.lon, r:0.5, aliases:[]}; else if(h) w._place={n:h.pl.n, lat:h.pl.lat, lon:h.pl.lon, r:h.pl.r, aliases:h.pl.a};
+          return;
+        }
+        const [a,b]=clauseOf(w._idx); const h=allPl.filter(x=>x.i>=a && x.i<b).pop();
+        const pl = h ? h.pl : last;
+        if(pl){ w._place={n:pl.n, lat:pl.lat, lon:pl.lon, r:pl.r, aliases:pl.a}; last=pl; }
+      });
+      // lo que va antes del primer lugar con nombre, al primer lugar
+      const firstPl = ordered.find(w=>w._place); if(firstPl) ordered.forEach(w=>{ if(w.id!=='paseo' && !w._place) w._place=firstPl._place; });
+      if(distinct.length>=2){ p.zoneLabels = distinct; p.multiPlace = true; }
+    }
+    p.textOrder = !!(p.walk || p.twoMeals || p.multiPlace) || /\b(antes de|primero|para empezar)\b/.test(text);
+    if(p.textOrder) p.wants.sort((a,b)=>a._idx-b._idx);
+    if(p.walk && !p.wants.some(w=>w.id!=='paseo')) p.wants.unshift(Object.assign({}, PD_CATS.find(c=>c.id==='cafe'), {_idx:-1}));
+  }
+
   // modo
   const planWords = /\b(plan|planazo|itinerario|ruta|agenda|programa|organiza|organizame|monta|montame|prepara|preparame|tarde|noche completa|luego|despues|y luego|y despues|para acabar|despues de|empezar|terminar)\b/.test(text);
   const listWords = /\b(opcion|opciones|alternativa|alternativas|lista|listado|ideas|sugerencia|sugerencias|recomienda|recomiendame|recomendaciones|dame|top)\b/.test(text);
@@ -4345,6 +4444,7 @@ function pdParse(raw){
   else p.modeHint='lista';
   if(listWords && p.qty) p.modeHint='lista';
   if(planWords && p.wants.length>=2 && !p.qty) p.modeHint='plan';
+  if((p.walk || p.twoMeals || p.multiPlace) && p.wants.length>=2 && !p.qty) p.modeHint='plan';
 
   // plan sin categorías: cena + copas por defecto
   if(p.modeHint==='plan' && p.wants.length===0 && /\btarde\b/.test(text) && !/\bnoche\b/.test(text)){
@@ -4468,6 +4568,7 @@ function pdCard(d, opt){
       <div class="meta"><span class="tagpill">${CAT_ICONS[d.cm]||'📍'} ${pdEsc(d.cd||d.cm||'Sitio')}</span><span>${pdEsc(d.z||d.addr||'')}${dist}${price}</span></div>
     </div>
     <div class="rating">${d.v?'★ '+Number(d.v).toFixed(1):'—'}<small>${d.nr?d.nr+' rev.':''}</small></div></div>
+    ${opt.when ? pdPlanInfo(d) : ''}
     ${d.info?`<div style="margin-top:9px;font-size:12px;color:var(--muted);line-height:1.5;">${pdEsc(d.info)}</div>`:''}
     ${d.openNote?`<div style="margin-top:6px;font-size:11.5px;color:var(--green);">${pdEsc(d.openNote)}</div>`:''}
     <div class="mapbtns">
@@ -4478,6 +4579,32 @@ function pdCard(d, opt){
     <div class="navpop"><a href="${l.wnav}">Waze</a><a href="${l.gnav}">Google Maps</a><a href="${l.anav}">Apple Maps</a></div>
   </div>`;
   return opt.when ? `<div class="tl"><span class="dot"></span>${when}${body}</div>` : body;
+}
+
+// Más información en las paradas del plan: valoración, qué es, si está abierto y por qué se eligió
+function pdPlanInfo(d){
+  const bits=[];
+  if(d.v) bits.push(`<b>★ ${Number(d.v).toFixed(1).replace('.',',')}</b>${d.nr?` <span style="opacity:.75">(${Number(d.nr).toLocaleString('es-ES')} reseñas)</span>`:''}`);
+  if(d._open===true) bits.push('<span style="color:var(--green)">🟢 Abierto a esa hora</span>');
+  else if(d._open===false) bits.push('<span style="color:#e8a24a">🟠 Revisa el horario</span>');
+  const what = [d.osmCuisine && !String(d.cd||'').toLowerCase().includes(String(d.osmCuisine).toLowerCase()) ? String(d.osmCuisine).replace(/;/g,', ') : '', d.no].filter(Boolean).join(' · ');
+  const addr = d.addr && d.addr!==d.z ? String(d.addr).replace(/, España$/,'').replace(/, \d{5} Madrid$/,'') : '';
+  return `<div class="pdInfo" style="margin-top:8px;font-size:12.5px;line-height:1.55;color:var(--muted)">
+    ${bits.length?`<div>${bits.join(' · ')}</div>`:''}
+    ${what?`<div>🍴 ${pdEsc(what)}</div>`:''}
+    ${addr?`<div>📍 ${pdEsc(addr)}</div>`:''}
+    ${d._why?`<div style="color:var(--ink,inherit);opacity:.9">💡 ${pdEsc(d._why.charAt(0).toUpperCase()+d._why.slice(1))}</div>`:''}
+  </div>`;
+}
+function pdPaseoCard(s, when){
+  const list = (s.route||[]).map(x=>`<li><b>${pdEsc(x.n)}</b> <span style="opacity:.75">· ${pdEsc(x.b)}</span></li>`).join('');
+  const km = s.km ? s.km.toFixed(1).replace('.',',') : '';
+  return `<div class="tl"><span class="dot"></span><div class="when">${when}</div><div class="venue expanded pdPaseo" style="cursor:default;">
+    <h3>🚶 ${s.fromName&&s.toName&&s.fromName!==s.toName?'Paseo de '+pdEsc(s.fromName)+' a '+pdEsc(s.toName):s.toName?'Paseo hasta '+pdEsc(s.toName):s.fromName?'Paseo por '+pdEsc(s.fromName):'Paseo tranquilo'}</h3>
+    <div class="meta"><span>${km?km+' km · ':''}unos ${s.walkMin||20} min andando, sin prisa${s.toName?' · terminas cerca de la siguiente parada':''}</span></div>
+    ${list?`<ol style="margin:10px 0 4px 18px;padding:0;font-size:13px;line-height:1.6">${list}</ol>`:'<div style="margin-top:8px;font-size:13px">Callejea por la zona sin rumbo fijo.</div>'}
+    <div class="mapbtns"><a class="mapbtn gmaps" href="${s.routeUrl}" target="_blank" rel="noopener">🗺️ Ver la ruta andando</a></div>
+  </div></div>`;
 }
 
 // ---- Mapa abierto en vivo (antes Google) ----
@@ -4607,15 +4734,16 @@ async function pdBuildPlan(p){
   const used = new Set();
   const key = getApiKey();
   const roleOf = w => w.meal ? 4 : (w.role||5);
-  const wants = p.wants.slice().sort((a,b)=>roleOf(a)-roleOf(b));
-  if(wants.map(w=>w.id).join()!==p.wants.map(w=>w.id).join()) out.notes.push('He ordenado las paradas en un orden lógico: '+wants.map(w=>w.label.replace(/^\S+\s/,'')).join(' → ')+'.');
+  const wants = p.textOrder ? p.wants.slice() : p.wants.slice().sort((a,b)=>roleOf(a)-roleOf(b));
+  if(!p.textOrder && wants.map(w=>w.id).join()!==p.wants.map(w=>w.id).join()) out.notes.push('He ordenado las paradas en un orden lógico: '+wants.map(w=>w.label.replace(/^\S+\s/,'')).join(' → ')+'.');
   const first = wants[0];
   const morning = /\b(brunch|desayun\w*|por la manana|de manana|mananero|vermut del domingo|mediodia)\b/.test(p.text||'');
   const meal = p.meal || ((p.time!=null && p.time<17*60) || morning ? 'comida' : 'cena');
   let t;
   if(p.time!=null) t = p.time;
   else if(morning) t = /brunch/.test(p.text||'') ? 11*60+30 : 10*60;
-  else if(first.meal) t = meal==='comida' ? 14*60 : 21*60;
+  else if(first.meal) t = (first._meal||meal)==='comida' ? 14*60 : 21*60;
+  else if(first.id==='paseo'){ const nx=wants.find(x=>x.id!=='paseo'); t = nx && (['cock','disco','shisha','roof'].includes(nx.id) || nx._meal==='cena' || (nx.meal && meal==='cena')) ? 18*60+30 : 17*60; }
   else if(first.id==='cafe') t = 17*60+30;
   else if(first.id==='ocio') t = 18*60;
   else if(first.id==='tapas') t = 20*60;
@@ -4626,15 +4754,31 @@ async function pdBuildPlan(p){
   let prev = null;
   for(let i=0;i<wants.length;i++){
     let w = wants[i];
+    const nextW = wants.slice(i+1).find(x=>x.id!=='paseo');
+    // paseo: ruta andando por sitios bonitos hasta la siguiente parada
+    if(w.id==='paseo'){
+      const from = prev && planHasCoords(prev) ? {lat:prev.lat, lon:prev.lon} : (w._place || p.place || {lat:40.4169, lon:-3.7035});
+      const to = nextW && nextW._place ? nextW._place : null;
+      const r = planWalkRoute(from, to);
+      const names = r.pts.map(x=>x.n);
+      const walkMin = Math.round(r.km/4*60);
+      const st = {_paseo:true, n: names.length ? 'Paseo: '+names.slice(0,3).join(' → ')+(names.length>3?'…':'') : 'Paseo por la zona', cm:'Paseo', cd:'Paseo',
+        route:r.pts, routeUrl:r.url, km:r.km, walkMin, toName: to?to.n:'', fromName: !prev && w._place ? w._place.n : '', lat:r.end.lat, lon:r.end.lon, locationVerified:true};
+      st._start = planR15(t); st._end = st._start + Math.max(w.dur, walkMin+30);
+      out.stops.push(st); prev = st; t = st._end; continue;
+    }
+    // "tomar algo antes de cenar": a última hora de la tarde, pegado a la cena
+    if(['cock','tapas','roof'].includes(w.id) && nextW && nextW._meal==='cena' && t<19*60) t = 19*60;
     // después de comer, a media tarde: bar o terraza (las coctelerías abren hacia las 19:00)
-    if(w.id==='cock' && i>0 && meal==='comida' && t<18*60){
+    if(w.id==='cock' && i>0 && t<18*60 && !(nextW && nextW._meal==='cena')){
       const bar = PD_CATS.find(c=>c.id==='tapas');
       if(bar && !wants.includes(bar)){ w = bar; out.notes.push('Después de comer te propongo un bar o terraza para tomar algo: las coctelerías suelen abrir a partir de las 19:00.'); }
     }
     // franjas realistas
     if(w.meal){
-      if(meal==='cena' && t<21*60 && t>=12*60) { if(i===0 && p.time!=null){} else t = 21*60; }
-      if(meal==='comida' && t<14*60 && t>=11*60 && !(i===0&&p.time!=null)) t = 14*60;
+      const wMeal = w._meal || meal;
+      if(wMeal==='cena' && t<21*60 && t>=12*60) { if(i===0 && p.time!=null){} else t = Math.max(t, 20*60+30); }
+      if(wMeal==='comida' && t<14*60 && t>=11*60 && !(i===0&&p.time!=null)) t = 14*60;
     }
     if(w.id==='cock' && t>=0 && t<19*60 && i>0) t = 20*60;
     if(w.id==='shisha' && i>0 && t<22*60) t = 22*60;
@@ -4642,7 +4786,7 @@ async function pdBuildPlan(p){
     { const win = PLAN_WIN[w.cm]; if(win && t>win[1]){ out.notes.push(`${w.label} a las ${pdFmt(t)} ya no es buena hora (suelen cerrar antes); lo he quitado.`); continue; }
       if(win && t<win[0] && !(i===0&&p.time!=null)) t = win[0]; }
     t = planR15(t);
-    let item=null;
+    let item=null, anchor=null, anchorName='';
     if(p.city){
       
       const r = await pdLive(w, p, p.city, 6);
@@ -4650,15 +4794,18 @@ async function pdBuildPlan(p){
       const cands = r.items.filter(x=>!used.has(x.n));
       item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
     } else {
-      const f = pdFilter(w, p, used, 3, false);
+      const pw = w._place ? Object.assign({}, p, {place:w._place, zones:[pdNorm(w._place.n)], zoneLabels:[w._place.n]}) : p;
+      const f = pdFilter(w, pw, used, 3, false);
       if(p.subs.some(x=>x.dish && x.on===w.id)){ const ex=f.items.filter(d=>d._tier<3); if(ex.length) f.items=ex; else out.notes.push(`No tengo sitios de «${p.subs.find(x=>x.dish&&x.on===w.id).label}» en tu lista; te pongo lo más parecido.`); }
       if(p.zones.length && !p.place) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
       else out.notes.push(...f.notes);
-      const anchor = prev && planHasCoords(prev) ? [prev.lat,prev.lon] : (p.place?[p.place.lat,p.place.lon]:(p.near&&userCoords?[userCoords.lat,userCoords.lon]:(p.zones.length?null:[40.4200,-3.7000])));   // sin zona: centro de Madrid
+      const farFromPrev = w._place && prev && planHasCoords(prev) && haversine(prev.lat,prev.lon,w._place.lat,w._place.lon) > Math.max(1, w._place.r*1.3);
+      anchor = (w._place && (!prev || farFromPrev)) ? [w._place.lat,w._place.lon] : prev && planHasCoords(prev) ? [prev.lat,prev.lon] : (p.place?[p.place.lat,p.place.lon]:(p.near&&userCoords?[userCoords.lat,userCoords.lon]:(p.zones.length?null:[40.4200,-3.7000])));   // sin zona: centro de Madrid
+      anchorName = (w._place && (!prev || farFromPrev)) ? w._place.n : prev ? (prev._paseo ? 'el final del paseo' : prev.n) : (p.place ? p.place.n : 'el centro');
       // abierto a esa hora, cerca de la parada anterior y bien valorado (con algo de azar para «otra versión»)
       item = planPickNear(f.items, anchor, t, 3);
       if(!item){
-        const r = await pdLive(w, p, null, 8);
+        const r = await pdLive(w, pw, null, 8);
         const cands = (r.items||[]).filter(x=>!used.has(x.n));
         item = anchor ? planPickNear(cands, anchor, t, 3) : (cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null);
         if(!item && r.error) out.notes.push('Mapa: '+r.error);
@@ -4672,8 +4819,19 @@ async function pdBuildPlan(p){
       item.openNote = '🕒 '+item._places.regularOpeningHours.weekdayDescriptions[day];
     }
     used.add(item.n);
-    if(prev){ const wk = planWalkMin(prev, item); if(wk>15){ t = planR15(t - 15 + wk); } }
+    if(prev && !prev._paseo){ const wk = planWalkMin(prev, item); if(wk>15){ t = planR15(t - 15 + wk); } }
+    if(prev && prev._paseo && t > prev._end + 15){ prev._end = Math.min(t - 15, prev._start + 165); if(t - prev._end > 30) out.notes.push(`Entre el paseo y la siguiente parada te queda un rato libre (${pdFmt(prev._end)}–${pdFmt(t)}) para curiosear por la zona.`); }
+    item = Object.assign({}, item);
     item._start = t; item._end = t + w.dur;
+    // por qué este sitio
+    try{
+      const why=[];
+      if(anchorName && planHasCoords(item) && anchor){ const dk=haversine(anchor[0],anchor[1],item.lat,item.lon); why.push(dk<0.15?'Justo en '+anchorName:'A '+(dk<0.95?Math.round(dk*1000/50)*50+' m':dk.toFixed(1).replace('.',',')+' km')+' de '+anchorName); }
+      if(item.v>=4.7 && item.nr>=300) why.push('de lo mejor valorado de la zona');
+      const op = planOpenAt(item, t); if(op===true) why.push('abierto a esa hora');
+      item._why = why.join(' · ');
+      item._open = op;
+    }catch(e){}
     if(prev && planHasCoords(prev) && planHasCoords(item)) item._walk = planWalkHtml([prev,item],1);
     if(planOpenAt(item, t)===false) out.notes.push(`⚠ ${item.n} podría estar cerrado a las ${pdFmt(t)} según su horario; compruébalo.`);
     out.stops.push(item);
@@ -4686,7 +4844,7 @@ async function pdBuildPlan(p){
 function pdWhatsAppPlan(stops, title){
   const lines = stops.map(s=>{
     const l = pdLinks(s.n, s.z||s.addr, s.addr?'':(s.city||'Madrid'));
-    return `${pdFmt(s._start)} · ${s.n}${s.z?' ('+s.z+')':''}\n${s.link||l.view}`;
+    return `${pdFmt(s._start)} · ${s.n}${s.z?' ('+s.z+')':''}\n${s._paseo?s.routeUrl:(s.link||l.view)}`;
   });
   return 'https://wa.me/?text='+encodeURIComponent(`📍 ${title}\n\n`+lines.join('\n\n'));
 }
@@ -4892,7 +5050,7 @@ async function pdRun(shuffle){
       if(out.stops.length){
         const title = `Plan${p.dayLabel?' de '+p.dayLabel:''}${p.zoneLabels.length?' · '+p.zoneLabels.join(', '):''}`;
         html += `<div class="secTitle">🧭 ${pdEsc(title)} <small>${pdFmt(out.stops[0]._start)} → ${pdFmt(out.stops[out.stops.length-1]._end)}</small></div>`;
-        html += `<div class="timeline">` + out.stops.map(s=>(s._walk||'')+pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`})).join('') + `</div>`;
+        html += `<div class="timeline">` + out.stops.map(s=>(s._walk||'')+(s._paseo ? pdPaseoCard(s, `${pdFmt(s._start)} – ${pdFmt(s._end)} · Paseo`) : pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`}))).join('') + `</div>`;
         pdRun._items = out.stops;
         html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
@@ -6741,6 +6899,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 </script>
 <style id="renta-aviso-css">
 .rnt-avisar{background:transparent!important;border:1px dashed var(--line,rgba(255,255,255,.2))!important;color:var(--muted,#9aa)!important;font-size:11.5px!important}
+.mapbtns>.rnt-mini{flex:0 0 46px!important;min-width:46px!important;max-width:46px!important;padding-left:0!important;padding-right:0!important;font-size:15px!important}
 .radar-popup-actions>.rnt-avisar{grid-column:1/-1;min-height:30px!important;padding:5px!important}
 #rntAviso{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 #rntAviso .sheet{width:min(520px,100%);background:var(--bg2,#121a17);color:var(--ink,#f3f1ea);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.4)}
@@ -6792,13 +6951,15 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
   function poner(root){
     (root.querySelectorAll?root:document).querySelectorAll('.venue .mapbtns, .radar-popup-card .radar-popup-actions').forEach(box=>{
       if(box.querySelector('.rnt-avisar')) return;
-      const b=document.createElement('button'); b.type='button'; b.className=(box.classList.contains('mapbtns')?'mapbtn':'radar-popup-btn')+' rnt-avisar'; b.textContent='⚑ Avisar de un error';
+      if(box.closest('.pdPaseo')) return;
+      const mini = !!box.closest('#pideResults');
+      const b=document.createElement('button'); b.type='button'; b.className=(box.classList.contains('mapbtns')?'mapbtn':'radar-popup-btn')+' rnt-avisar'+(mini?' rnt-mini':''); b.textContent= mini?'⚑':'⚑ Avisar de un error'; b.title='Avisar de un error'; b.setAttribute('aria-label','Avisar de un error');
       box.appendChild(b);
     });
   }
   function marcar(){
     const av=store.get();
-    document.querySelectorAll('.rnt-avisar').forEach(b=>{ const n=nombreDe(b); if(n&&av[n]) b.textContent= av[n].motivo==='cerrado'?'⚑ Avisado: cerrado':'⚑ Avisado'; });
+    document.querySelectorAll('.rnt-avisar:not(.rnt-mini)').forEach(b=>{ const n=nombreDe(b); if(n&&av[n]) b.textContent= av[n].motivo==='cerrado'?'⚑ Avisado: cerrado':'⚑ Avisado'; });
   }
   document.addEventListener('click',e=>{ const b=e.target.closest('.rnt-avisar'); if(!b) return; e.preventDefault(); e.stopPropagation(); const n=nombreDe(b); if(n) abrir(n.trim()); },true);
   let pend=false; new MutationObserver(()=>{ if(pend) return; pend=true; requestAnimationFrame(()=>{ pend=false; poner(document); marcar(); }); }).observe(document.body,{childList:true,subtree:true});

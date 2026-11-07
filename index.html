@@ -4330,6 +4330,7 @@ function pdParse(raw){
   if(!p.qty){ m = text.match(/\b(dame|ponme|quiero|muestrame|enseñame|ensename|recomiendame|recomienda|dime|sacame)\s+(\d{1,2})\b/); if(m) p.qty = parseInt(m[2]); }
   if(!p.qty){ const w = text.match(/\b(un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte)\s+(opcion|opciones|sitios|sitio|alternativa|alternativas|ideas|sugerencia|sugerencias|lugares|restaurantes|bares|locales|rooftops?)/); if(w) p.qty = PD_NUMS[w[1]]; }
   if(!p.qty){ const t = text.match(/\btop\s*(\d{1,2})\b/); if(t) p.qty = parseInt(t[1]); }
+  if(!p.qty){ const t = text.match(/(?:^|\b(?:unos|unas|quiero|busco|dame|ponme)\s+)(\d{1,2})\s+(?!h\b|horas?|minutos?|min\b|personas?|amigos?|euros?|eur\b|km\b|kilometros?|de la|y media)[a-z]{4,}/); if(t && +t[1]>=2) p.qty = parseInt(t[1]); }
   if(p.qty) p.qty = Math.max(1, Math.min(p.qty, 25));
 
   // hora
@@ -4605,12 +4606,22 @@ function pdCard(d, opt){
       <a class="mapbtn gmaps" href="${l.view}" target="_blank" rel="noopener">📍 Maps</a>
       <button class="mapbtn pdNav" type="button">🧭 Ir</button>
       <a class="mapbtn wa" href="${l.wa}" target="_blank" rel="noopener">💬 Enviar</a>
+      ${opt.swap?`<button class="mapbtn pdSwap" type="button" data-swap="${opt.swap}" title="Cambiar por otro sitio">🔄 Cambiar</button>`:''}
     </div>
     <div class="navpop"><a href="${l.wnav}">Waze</a><a href="${l.gnav}">Google Maps</a><a href="${l.anav}">Apple Maps</a></div>
   </div>`;
   return opt.when ? `<div class="tl"><span class="dot"></span>${when}${body}</div>` : body;
 }
 
+function planWhy(item, anchor, anchorName, t){
+  try{
+    const why=[];
+    if(anchorName && planHasCoords(item) && anchor){ const dk=haversine(anchor[0],anchor[1],item.lat,item.lon); why.push(dk<0.15?'Justo en '+anchorName:'A '+(dk<0.95?Math.round(dk*1000/50)*50+' m':dk.toFixed(1).replace('.',',')+' km')+' de '+anchorName); }
+    if(item.v>=4.7 && item.nr>=300) why.push('de lo mejor valorado de la zona');
+    const op = planOpenAt(item, t); if(op===true) why.push('abierto a esa hora');
+    item._why = why.join(' · '); item._open = op;
+  }catch(e){}
+}
 // Más información en las paradas del plan: valoración, qué es, si está abierto y por qué se eligió
 function pdPlanInfo(d){
   const bits=[];
@@ -4626,6 +4637,58 @@ function pdPlanInfo(d){
     ${d._why?`<div style="color:var(--ink,inherit);opacity:.9">💡 ${pdEsc(d._why.charAt(0).toUpperCase()+d._why.slice(1))}</div>`:''}
   </div>`;
 }
+function pdTimelineHtml(stops){
+  return `<div class="timeline">` + stops.map((s,i)=>(s._walk||'')+(s._paseo ? pdPaseoCard(s, `${pdFmt(s._start)} – ${pdFmt(s._end)} · Paseo`) : pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`, swap: s._ctx ? 'P:'+i : ''}))).join('') + `</div>`;
+}
+// Cambiar un sitio concreto (plan o lista) sin rehacer todo
+async function pdSwap(btn){
+  const [kind, a, b] = btn.dataset.swap.split(':');
+  pdRun._rej = pdRun._rej || new Set();
+  const old = btn.textContent; btn.disabled = true; btn.textContent = '⏳';
+  const toast = msg=>{ btn.textContent = msg; setTimeout(()=>{ btn.textContent = old; btn.disabled = false; }, 2200); };
+  try{
+    if(kind==='P'){
+      const stops = pdRun._mapStops, i = +a, cur = stops[i], c = cur && cur._ctx; if(!c) return toast('—');
+      pdRun._rej.add(cur.n);
+      const used = new Set(stops.map(x=>x.n).concat([...pdRun._rej]));
+      let pick = null;
+      if(!c.city){
+        const f = pdFilter(c.w, c.pw, used, 6, false);
+        pick = planPickNear(f.items, c.anchor, c.t, 4);
+      }
+      if(!pick){
+        const r = await pdLive(c.w, c.pw, c.city, 10);
+        const cands = (r.items||[]).filter(x=>!used.has(x.n));
+        pick = c.anchor ? planPickNear(cands, c.anchor, c.t, 4) : cands[0] || null;
+      }
+      if(!pick) return toast('No hay más cerca');
+      const it = Object.assign({}, pick, {_start:cur._start, _end:cur._end, _ctx:c});
+      planWhy(it, c.anchor, c.anchorName, c.t);
+      const prev = stops[i-1], next = stops[i+1];
+      it._walk = prev && !prev._paseo && planHasCoords(prev) && planHasCoords(it) ? planWalkHtml([prev,it],1) : (prev && prev._paseo && planHasCoords(it) ? planWalkHtml([prev,it],1) : '');
+      stops[i] = it;
+      if(next && !next._paseo && planHasCoords(next) && planHasCoords(it)) next._walk = planWalkHtml([it,next],1);
+      const tl = document.querySelector('#pideResults .timeline'); if(tl) tl.outerHTML = pdTimelineHtml(stops);
+      const wa = document.querySelector('#pideResults .actionsRow a.wa'); if(wa) wa.href = pdWhatsAppPlan(stops, pdRun._planTitle||'Plan');
+      pdRun._items = stops;
+      if(document.getElementById('pdPlanMap')) pdDrawPlanMap(stops);
+      const nc = document.querySelectorAll('#pideResults .timeline .tl')[i]; if(nc) nc.scrollIntoView({block:'nearest', behavior:'smooth'});
+    } else {
+      const sec = pdRun._sections && pdRun._sections[+a]; const ii = +b; if(!sec) return toast('—');
+      const cur = sec.items[ii]; pdRun._rej.add(cur.n);
+      const used = new Set(pdRun._sections.flatMap(x=>x.items.map(y=>y.n)).concat([...pdRun._rej]));
+      let pool = [];
+      if(!pdRun._p.city){ const f = pdFilter(sec.want, pdRun._p, used, 30, false); pool = pdSort(f.items.filter(d=>d._tier<3), pdRun._p); if(!pool.length) pool = pdSort(f.items, pdRun._p); }
+      if(pool.length<1){ const r = await pdLive(sec.want, pdRun._p, pdRun._p.city, 12); pool = (r.items||[]).filter(x=>!used.has(x.n)); }
+      const pick = pool[Math.floor(Math.random()*Math.min(3,pool.length))];
+      if(!pick) return toast('No hay más');
+      sec.items[ii] = pick;
+      const card = btn.closest('.venue'); if(card) card.outerHTML = pdCard(pick, {swap:'L:'+a+':'+ii});
+      pdRun._items = pdRun._sections.flatMap(x=>x.items);
+    }
+  }catch(e){ console.warn(e); toast('Error'); }
+}
+document.addEventListener('click', e=>{ const b = e.target.closest('.pdSwap'); if(b){ e.preventDefault(); pdSwap(b); } });
 // Mapa del plan: paradas numeradas, puntos del paseo y recorrido
 let pdPlanMapObj = null;
 function pdDrawPlanMap(stops){
@@ -4863,7 +4926,7 @@ async function pdBuildPlan(p){
     { const win = PLAN_WIN[w.cm]; if(win && t>win[1]){ out.notes.push(`${w.label} a las ${pdFmt(t)} ya no es buena hora (suelen cerrar antes); lo he quitado.`); continue; }
       if(win && t<win[0] && !(i===0&&p.time!=null)) t = win[0]; }
     t = planR15(t);
-    let item=null, anchor=null, anchorName='';
+    let item=null, anchor=null, anchorName='', pw=p;
     if(p.city){
       
       const r = await pdLive(w, p, p.city, 6);
@@ -4871,7 +4934,7 @@ async function pdBuildPlan(p){
       const cands = r.items.filter(x=>!used.has(x.n));
       item = cands[Math.floor(Math.random()*Math.min(3,cands.length))] || null;
     } else {
-      const pw = w._place ? Object.assign({}, p, {place:w._place, zones:[pdNorm(w._place.n)], zoneLabels:[w._place.n]}) : p;
+      pw = w._place ? Object.assign({}, p, {place:w._place, zones:[pdNorm(w._place.n)], zoneLabels:[w._place.n]}) : p;
       const f = pdFilter(w, pw, used, 3, false);
       if(p.subs.some(x=>x.dish && x.on===w.id)){ const ex=f.items.filter(d=>d._tier<3); if(ex.length) f.items=ex; else out.notes.push(`No tengo sitios de «${p.subs.find(x=>x.dish&&x.on===w.id).label}» en tu lista; te pongo lo más parecido.`); }
       if(p.zones.length && !p.place) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
@@ -4900,15 +4963,8 @@ async function pdBuildPlan(p){
     if(prev && prev._paseo && t > prev._end + 15){ prev._end = Math.min(t - 15, prev._start + 165); if(t - prev._end > 30) out.notes.push(`Entre el paseo y la siguiente parada te queda un rato libre (${pdFmt(prev._end)}–${pdFmt(t)}) para curiosear por la zona.`); }
     item = Object.assign({}, item);
     item._start = t; item._end = t + w.dur;
-    // por qué este sitio
-    try{
-      const why=[];
-      if(anchorName && planHasCoords(item) && anchor){ const dk=haversine(anchor[0],anchor[1],item.lat,item.lon); why.push(dk<0.15?'Justo en '+anchorName:'A '+(dk<0.95?Math.round(dk*1000/50)*50+' m':dk.toFixed(1).replace('.',',')+' km')+' de '+anchorName); }
-      if(item.v>=4.7 && item.nr>=300) why.push('de lo mejor valorado de la zona');
-      const op = planOpenAt(item, t); if(op===true) why.push('abierto a esa hora');
-      item._why = why.join(' · ');
-      item._open = op;
-    }catch(e){}
+    planWhy(item, anchor, anchorName, t);
+    item._ctx = {w, pw, anchor, anchorName, t, city:p.city||null};
     if(prev && planHasCoords(prev) && planHasCoords(item)) item._walk = planWalkHtml([prev,item],1);
     if(planOpenAt(item, t)===false) out.notes.push(`⚠ ${item.n} podría estar cerrado a las ${pdFmt(t)} según su horario; compruébalo.`);
     out.stops.push(item);
@@ -5114,10 +5170,11 @@ async function pdRun(shuffle){
     if(mode==='lista'){
       const out = await pdBuildList(p, shuffle);
       notes.push(...out.notes);
-      out.sections.forEach(s=>{
+      pdRun._sections = out.sections; pdRun._p = p; pdRun._rej = new Set();
+      out.sections.forEach((s,si)=>{
         if(out.sections.length>1 || p.wants.length>1) html += `<div class="secTitle">${s.want.label} <small>${s.items.length} opciones</small></div>`;
         else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por valoración${p.near&&userCoords?' y cercanía':''}</small></div>`;
-        html += s.items.length ? s.items.map(d=>pdCard(d)).join('') : `<div class="emptystate">Nada con esos filtros 😕</div>`;
+        html += s.items.length ? s.items.map((d,ii)=>pdCard(d,{swap:'L:'+si+':'+ii})).join('') : `<div class="emptystate">Nada con esos filtros 😕</div>`;
       });
       pdRun._items = out.sections.flatMap(s=>s.items);
       if(out.sections.some(s=>s.items.length)) html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🎲 Otras opciones</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><button class="ghostBtn" data-group-vote>👥 Votar en grupo</button></div>`;
@@ -5128,8 +5185,9 @@ async function pdRun(shuffle){
         const title = `Plan${p.dayLabel?' de '+p.dayLabel:''}${p.zoneLabels.length?' · '+p.zoneLabels.join(', '):''}`;
         html += `<div class="secTitle">🧭 ${pdEsc(title)} <small>${pdFmt(out.stops[0]._start)} → ${pdFmt(out.stops[out.stops.length-1]._end)}</small></div>`;
         if(out.stops.filter(s=>planHasCoords(s)).length>=1) html += `<div id="pdPlanMap" class="pdPlanMap" aria-label="Mapa del plan"></div><div class="pdPlanLegend"><span><i class="pm-stop"></i> Paradas</span><span><i class="pm-walk"></i> Puntos del paseo</span><span><i class="pm-line"></i> Recorrido andando</span>${out.stops.some(s=>s.transit)||out.stops.some((s,i)=>i&&planHasCoords(s)&&planHasCoords(out.stops[i-1])&&haversine(s.lat,s.lon,out.stops[i-1].lat,out.stops[i-1].lon)>2.5)?'<span><i class="pm-transit"></i> Metro/taxi</span>':''}</div>`;
-        pdRun._mapStops = out.stops;
-        html += `<div class="timeline">` + out.stops.map(s=>(s._walk||'')+(s._paseo ? pdPaseoCard(s, `${pdFmt(s._start)} – ${pdFmt(s._end)} · Paseo`) : pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`}))).join('') + `</div>`;
+        pdRun._mapStops = out.stops; pdRun._rej = new Set();
+        html += pdTimelineHtml(out.stops);
+        pdRun._planTitle = title;
         pdRun._items = out.stops;
         html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
@@ -6991,6 +7049,11 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 </style>
 <style id="renta-aviso-css">
 .rnt-avisar{background:transparent!important;border:1px dashed var(--line,rgba(255,255,255,.2))!important;color:var(--muted,#9aa)!important;font-size:11.5px!important}
+.venue .mapbtns:has(.pdSwap){display:grid!important;grid-template-columns:repeat(3,1fr);gap:7px!important}
+.venue .mapbtns:has(.pdSwap)>*{min-width:0!important;max-width:none!important;white-space:nowrap}
+.venue .mapbtns:has(.pdSwap)>.pdSwap{grid-column:span 2}
+.venue .mapbtns:has(.pdSwap)>.rnt-mini{flex:none!important;width:auto!important}
+.mapbtns>.pdSwap{color:var(--accent,#c5e3a0)!important}
 .mapbtns>.rnt-mini{flex:0 0 46px!important;min-width:46px!important;max-width:46px!important;padding-left:0!important;padding-right:0!important;font-size:15px!important}
 .radar-popup-actions>.rnt-avisar{grid-column:1/-1;min-height:30px!important;padding:5px!important}
 #rntAviso{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}

@@ -6,7 +6,7 @@ on:
     branches: [main]
   workflow_dispatch:
   workflow_run:
-    workflows: [Actualizar eventos, Revisión mensual, Sitios top cada lunes, Horarios semanales, Revisar webs y fotos, Tiempo para los planes, Ubicar sitios en el mapa, Limpiar Dónde comer, Municipios de la Comunidad de Madrid, Lugares para pasear]
+    workflows: [Actualizar eventos, Revisión mensual, Sitios top cada lunes, Horarios semanales, Revisar webs y fotos, Tiempo para los planes, Ubicar sitios en el mapa, Limpiar Dónde comer, Municipios de la Comunidad de Madrid, Lugares para pasear, Repasar la lista de sitios]
     types: [completed]
 concurrency:
   group: publicar

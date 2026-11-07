@@ -1,0 +1,21 @@
+# Una vez al mes (o a mano): lista de los bares, restaurantes, ocio… de toda la Comunidad para buscar al instante (OpenStreetMap)
+name: Sitios de OpenStreetMap
+on:
+  workflow_dispatch:
+  push:
+    paths: ['tools/osm_locales.py']
+  schedule:
+    - cron: '53 3 2 * *'
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar y guardar
+        run: tools/guardar.sh "Sitios de OpenStreetMap" "python3 tools/osm_locales.py" osm

@@ -1,0 +1,21 @@
+# Una vez al mes (o a mano): lista de los plazas, parques, miradores y monumentos de la Comunidad (OpenStreetMap, sin clave)
+name: Lugares para pasear
+on:
+  workflow_dispatch:
+  push:
+    paths: ['tools/paseos.py']
+  schedule:
+    - cron: '37 4 3 * *'
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar y guardar
+        run: tools/guardar.sh "Lugares para pasear" "python3 tools/paseos.py" paseos.json

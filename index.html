@@ -2176,6 +2176,10 @@ header.top.scrolled .tagline{max-height:0}
 
   // Palabras clave → filtros de OSM
   const RULES = [
+    {re:/vegan|vegetar/, f:['["amenity"~"^(restaurant|cafe|fast_food)$"]["diet:vegan"~"yes|only"]','["amenity"~"^(restaurant|cafe|fast_food)$"]["diet:vegetarian"~"yes|only"]','["amenity"~"^(restaurant|cafe)$"]["cuisine"~"vegan|vegetarian",i]']},
+    {re:/sin gluten|celiac|gluten/, f:['["amenity"~"^(restaurant|cafe|fast_food|bakery)$"]["diet:gluten_free"~"yes|only"]','["shop"="bakery"]["diet:gluten_free"~"yes|only"]']},
+    {re:/futbol|deportes|partido|sports bar/, f:['["amenity"~"^(bar|pub)$"]["sport"]','["amenity"~"^(bar|pub)$"]["name"~"sport|deport|futbol|fútbol",i]','["amenity"~"^(pub)$"]']},
+    {re:/comida rapida|fast food/, f:['["amenity"="fast_food"]']},
     {re:/spa|termal|bienestar|yoga|pilates|masaje|sauna/, f:['["leisure"~"^(sauna|spa|fitness_centre)$"]','["amenity"="public_bath"]','["shop"="massage"]']},
     {re:/museo|exposic|galeria|teatro|cultura/, f:['["tourism"~"^(museum|gallery)$"]','["amenity"~"^(theatre|arts_centre)$"]']},
     {re:/concierto|musica en directo|espectacul/, f:['["amenity"~"^(music_venue|theatre|events_venue)$"]','["amenity"="nightclub"]["live_music"="yes"]']},
@@ -4071,7 +4075,12 @@ const PD_SUBS = [
   {kw:['argentin'], f:['argentin'], label:'argentina'},
   {kw:['marisc','pescado'], f:['marisc','pescad'], label:'marisco/pescado'},
   {kw:['libanes','arabe','turco'], f:['liban','arab','turc','shawarma','halal'], label:'árabe/libanesa'},
-  {kw:['vegan','vegetarian'], f:['vegan','vegetar'], label:'vegana/vegetariana'},
+  {kw:['vegan','vegetarian'], f:['vegan','vegetar'], label:'vegana/vegetariana', diet:true},
+  {kw:['sin gluten','celiac'], f:['gluten','celiac'], label:'sin gluten', diet:true},
+  {kw:['romantic','con mi pareja','cita','aniversario','intimo'], f:['romant','intim','velas','michelin','gastro','elegan','vistas','rooftop','autor'], label:'romántico', soft:true},
+  {kw:['futbol','ver el partido','partido de','champions','sports bar'], f:['futbol','deport','sport','pantalla','partido'], label:'para ver el fútbol', on:'tapas', dish:true},
+  {kw:['comida rapida','fast food'], f:['hamburg','burger','pizza','kebab','bocad','fast','taco','pollo','delivery'], label:'comida rápida', on:'food', dish:true},
+  {kw:['personas','en grupo','grupo grande','cumpleanos','cumple ','despedida','cena de empresa','comida de empresa'], f:['grupo','reservado','amplio','evento','celebra','salon','terraza'], label:'para grupo', soft:true},
   {kw:['michelin','alta cocina','estrella'], f:['michelin','alta cocina','estrella'], label:'alta cocina'},
   {kw:['smash'], f:['smash'], label:'smash'},
   {kw:['escape'], f:['escape'], label:'escape room', on:'ocio', dish:true},
@@ -4143,6 +4152,13 @@ const PD_PLACES = [
   {n:'Castellana',a:['castellana','paseo de la castellana'],lat:40.4450,lon:-3.6900,r:1.5},
   {n:'Goya',a:['goya'],lat:40.4243,lon:-3.6760,r:0.7},
   {n:'Velázquez',a:['velazquez','calle velazquez'],lat:40.4262,lon:-3.6838,r:0.6},
+  {n:'Santa Ana',a:['santa ana','plaza de santa ana'],lat:40.4146,lon:-3.7010,r:0.4,p:true},
+  {n:'Callao',a:['callao','plaza de callao'],lat:40.4199,lon:-3.7059,r:0.4,p:true},
+  {n:'Embajadores',a:['embajadores'],lat:40.4048,lon:-3.7027,r:0.6,p:true},
+  {n:'Ventas',a:['ventas','las ventas'],lat:40.4317,lon:-3.6631,r:0.8,p:true},
+  {n:'Pacífico',a:['pacifico'],lat:40.4011,lon:-3.6747,r:0.6,p:true},
+  {n:'Barrio del Pilar',a:['barrio del pilar','el pilar'],lat:40.4771,lon:-3.7106,r:0.9},
+  {n:'Valdebebas',a:['valdebebas'],lat:40.4824,lon:-3.6202,r:1.2},
   {n:'Núñez de Balboa',a:['nunez de balboa'],lat:40.4299,lon:-3.6795,r:0.5},
   {n:'Lista',a:['diego de leon','lista'],lat:40.4300,lon:-3.6760,r:0.5,p:true},
   {n:'Serrano',a:['serrano','calle serrano','jorge juan'],lat:40.4260,lon:-3.6870,r:0.8},
@@ -4343,7 +4359,7 @@ function pdParse(raw){
   let m = text.match(/\b(\d{1,2})\s*(opcion|opciones|sitios|sitio|alternativa|alternativas|ideas|sugerencia|sugerencias|lugares|restaurantes|bares|locales|rooftops?|planes)/);
   if(m) p.qty = parseInt(m[1]);
   if(!p.qty){ m = text.match(/\b(dame|ponme|quiero|muestrame|enseñame|ensename|recomiendame|recomienda|dime|sacame)\s+(\d{1,2})\b/); if(m) p.qty = parseInt(m[2]); }
-  if(!p.qty){ const w = text.match(/\b(un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte)\s+(opcion|opciones|sitios|sitio|alternativa|alternativas|ideas|sugerencia|sugerencias|lugares|restaurantes|bares|locales|rooftops?)/); if(w) p.qty = PD_NUMS[w[1]]; }
+  if(!p.qty){ const w = text.match(/\b(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte)\s+(opcion|opciones|sitios|sitio|alternativa|alternativas|ideas|sugerencia|sugerencias|lugares|restaurantes|bares|locales|rooftops?)/); if(w) p.qty = PD_NUMS[w[1]]; }
   if(!p.qty){ const t = text.match(/\btop\s*(\d{1,2})\b/); if(t) p.qty = parseInt(t[1]); }
   if(!p.qty){ const t = text.match(/(?:^|\b(?:unos|unas|quiero|busco|dame|ponme)\s+)(\d{1,2})\s+(?!h\b|horas?|minutos?|min\b|personas?|amigos?|euros?|eur\b|km\b|kilometros?|de la|y media)[a-z]{4,}/); if(t && +t[1]>=2) p.qty = parseInt(t[1]); }
   if(p.qty) p.qty = Math.max(1, Math.min(p.qty, 25));
@@ -4411,8 +4427,18 @@ function pdParse(raw){
   // dedupe por id
   const seen=new Set(); p.wants = wants.filter(c=>!seen.has(c.id)&&seen.add(c.id));
 
+  // "coctelería con vistas", "terraza para tomar algo": es UN sitio (rooftop/terraza), no dos paradas
+  if(p.wants.some(w=>w.id==='roof') && p.wants.some(w=>w.id==='cock' || w.id==='tapas')){
+    const sep = /\b(y (luego|despues)|despues|luego|mas tarde|y (unas |unos )?(copas|canas|cocteles)|para acabar)\b/.test(text);
+    if(!sep){ p.wants = p.wants.filter(w=>w.id!=='cock' && w.id!=='tapas'); p.notes.push('Busco sitios con terraza o vistas para tomar algo.'); }
+  }
+  // "abierto ahora"
+  if(/\b(abiert[oa]s? (ahora|ya|ahora mismo|en este momento)|ahora mismo)\b/.test(text)){ p.openNow = true; }
   // matices
   PD_SUBS.forEach(s=>{ if(pdHas(text, s.kw)) p.subs.push(s); });
+  // dieta (vegana, sin gluten): obligatoria, no se afloja; si no hay en la lista se busca en el mapa
+  p.subs = p.subs.flatMap(s=>{ if(!s.diet) return [s]; const mw=p.wants.filter(w=>w.meal||w.id==='cafe'); return mw.length ? mw.map(w=>Object.assign({}, s, {on:w.id, dish:true})) : [s]; });
+  if(p.subs.some(s=>s.label==='para ver el fútbol') && !p.wants.some(w=>w.id==='tapas')){ const t=PD_CATS.find(c=>c.id==='tapas'); if(t) p.wants.push(t); }
   // plato / actividad concreta
   p.wants.forEach(w=>{
     const list = PD_DISH[w.id]||[];
@@ -4520,8 +4546,11 @@ function pdParse(raw){
       let last=null;
       ordered.forEach(w=>{
         if(w.id==='paseo'){
-          const [a,b]=clauseOf(w._idx); const h=allPl.filter(x=>x.i>=a && x.i<b).pop();
-          const lm=PD_PASEOS.find(l=>{ const k=pdNorm(l.n.split(' · ')[0]); return text.slice(a,b).includes(k); });
+          // "pasear por X / paseo por el X / hasta X": solo lo que va justo después
+          const a = w._idx, b = Math.min(text.length, w._idx+45);
+          const seg = text.slice(a,b).replace(/\b(y|luego|despues|para) .*$/,'');
+          const h = /\b(por|en|hasta|hacia|alrededor de|junto a)\b/.test(seg) ? allPl.filter(x=>x.i>=a && x.i<a+seg.length)[0] : null;
+          const lm = /\b(por|en|hasta|hacia)\b/.test(seg) ? PD_PASEOS.find(l=>{ const k=pdNorm(l.n.split(' · ')[0]); return seg.includes(k); }) : null;
           if(lm) w._place={n:lm.n.split(' · ')[0], lat:lm.lat, lon:lm.lon, r:0.5, aliases:[]}; else if(h) w._place={n:h.pl.n, lat:h.pl.lat, lon:h.pl.lon, r:h.pl.r, aliases:h.pl.a};
           return;
         }
@@ -4537,7 +4566,7 @@ function pdParse(raw){
       const firstPl = ordered.find(w=>w._place); if(firstPl) ordered.forEach(w=>{ if(w.id!=='paseo' && !w._place && !w._here && !w._fixed) w._place=firstPl._place; });
       if(distinct.length>=2){ p.zoneLabels = distinct; p.multiPlace = true; }
     }
-    p.textOrder = !!(p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames || p.namedQueries.length) || /\b(antes de|primero|para empezar)\b/.test(text);
+    p.textOrder = !!(p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames || p.namedQueries.length) || /\b(antes de|primero|para empezar|y luego|luego|y despues|despues|mas tarde|para acabar|para terminar)\b/.test(text);
     if(p.textOrder) p.wants.sort((a,b)=>a._idx-b._idx);
     if(p.walk && !p.wants.some(w=>w.id!=='paseo')) p.wants.unshift(Object.assign({}, PD_CATS.find(c=>c.id==='cafe'), {_idx:-1}));
   }
@@ -4553,7 +4582,8 @@ function pdParse(raw){
   if(planWords && p.wants.length>=2 && !p.qty) p.modeHint='plan';
   if((p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames) && p.wants.length>=2 && !p.qty) p.modeHint='plan';
   if((p.fixedNames || (p.namedQueries&&p.namedQueries.length)) && !p.qty) p.modeHint='plan';   // un sitio concreto: se enseña ese sitio (y lo demás alrededor)
-  if(p.maxWalk && !p.place && !p.zones.length && !p.near && p.modeHint==='lista') p.near = true;   // "a menos de 300 m" sin sitio = cerca de mí
+  if(p.maxWalk && !p.place && !p.zones.length && !p.near && p.modeHint==='lista') p.near = true;
+  if(p.openNow && p.time==null && p.modeHint==='plan'){ const n=new Date(); p.time = Math.ceil((n.getHours()*60+n.getMinutes())/15)*15; }   // "a menos de 300 m" sin sitio = cerca de mí
 
   // plan sin categorías: cena + copas por defecto
   if(p.modeHint==='plan' && p.wants.length===0 && /\btarde\b/.test(text) && !/\bnoche\b/.test(text)){
@@ -4897,6 +4927,11 @@ async function pdLiveCore(want, p, cityName, limit){
 // ---- construcción de lista ----
 async function pdBuildList(p, shuffle){
   const out = await pdBuildListCore(p, shuffle);
+  if(p.openNow){
+    const now = new Date(), nm = now.getHours()*60+now.getMinutes();
+    out.sections.forEach(sec=>{ const before = sec.items.length; sec.items = sec.items.filter(d=>planOpenAt(d, nm)!==false); if(sec.items.length<before) out.notes.push(`He quitado ${before-sec.items.length} que según su horario están cerrados ahora.`); });
+    out.notes.push('Los sitios sin horario conocido se muestran igualmente: compruébalo antes de ir.');
+  }
   if(!p.maxWalk) return out;
   const c = p.place ? [p.place.lat, p.place.lon] : (typeof userCoords!=='undefined' && userCoords ? [userCoords.lat, userCoords.lon] : null);
   if(!c){ out.notes.push(`Para buscar a menos de ${p.maxWalkLabel} necesito saber desde dónde: activa la ubicación o di una zona («…cerca de Sol»).`); return out; }
@@ -4956,8 +4991,17 @@ async function pdBuildListCore(p, shuffle){
       if(p.zones.length){
         // Respetar la zona pedida: solo lo que está en ella (tiers 0-1) + sitios reales del mapa de esa zona
         const dz = p.subs.some(x=>x.dish && x.on===w.id);
-        const inZone = p.place ? f.items.filter(d=>!dz||d._tier<3) : f.items.filter(d=>d._tier<2);
-        if(p.place && !dz && f.items.some(d=>d._tier>=2)) out.notes.push(...f.notes);
+        let inZone = p.place ? f.items.filter(d=>!dz||d._tier<3) : f.items.filter(d=>d._tier<2);
+        let outside = [];
+        if(p.place){
+          // "en X" = de verdad cerca de X: lo que queda lejos solo sirve de relleno al final
+          const R = Math.max(0.8, p.place.r*1.1);
+          const pn = pdNorm(p.place.n), isDistrict = DATA.some(d=>pdNorm(d.z||'')===pn);
+          const ok = d => isDistrict ? (pdNorm(d.z||'')===pn ? d._d==null || d._d<=Math.max(R*2,3) : (!d.z && d._d!=null && d._d<=R)) : (d._d!=null && d._d<=R);
+          const withD = inZone.map(d=>Object.assign({}, d, {_d: planHasCoords(d) ? haversine(p.place.lat,p.place.lon,d.lat,d.lon) : null}));
+          inZone = withD.filter(ok);
+          outside = withD.filter(d=>!ok(d)).sort((a,b)=>(a._d??99)-(b._d??99));
+        } else if(f.items.some(d=>d._tier>=2)) {}
         items = pdShuffleTop(pdSort(inZone, p, p.place?[p.place.lat,p.place.lon]:null), qty, shuffle);
         if(items.length<Math.min(3,qty)){
           const r = await pdLive(w, p, null, qty*2);
@@ -4965,7 +5009,11 @@ async function pdBuildListCore(p, shuffle){
           const extra = (r.items||[]).filter(i=>!have.has(pdNorm(i.n)));
           if(extra.length) out.notes.push(`En tu lista había ${items.length} para "${w.label}" en ${p.zoneLabels.join(', ')}; añadí ${Math.min(extra.length,qty-items.length)} sitios reales de esa zona.`);
           else if(r.error) out.notes.push('Mapa: '+r.error);
-          items = items.concat(extra).slice(0,qty);
+          items = items.concat(extra.map(d=>p.place && planHasCoords(d) ? Object.assign({}, d, {_d:haversine(p.place.lat,p.place.lon,d.lat,d.lon)}) : d)).slice(0,qty);
+        }
+        if(p.place && items.length<qty && outside.length){
+          const add = outside.slice(0, Math.min(qty-items.length, Math.max(0, 3-items.length) + 2));
+          if(add.length){ items = items.concat(add); out.notes.push(`Cerca de ${p.place.n} solo había ${items.length-add.length}; te añado ${add.length} algo más lejos (con la distancia).`); }
         }
         if(!items.length){
           // Sin conexión con el mapa: lo más cercano de tu lista a esa zona
@@ -5048,10 +5096,25 @@ async function pdBuildPlan(p){
     const nextW = wants.slice(i+1).find(x=>x.id!=='paseo');
     // paseo: ruta andando por sitios bonitos hasta la siguiente parada
     if(w.id==='paseo'){
-      const from = prev && planHasCoords(prev) ? {lat:prev.lat, lon:prev.lon} : (w._place || p.place || {lat:40.4169, lon:-3.7035});
+      let from = prev && planHasCoords(prev) ? {lat:prev.lat, lon:prev.lon} : (w._place || p.place || {lat:40.4169, lon:-3.7035});
       const to = nextW && nextW._place ? nextW._place : null;
       await pdLoadPaseos();
-      const r = planWalkRoute(from, to);
+      // si dijiste dónde pasear, el paseo pasa por ahí
+      let forced = null;
+      if(w._place && prev && planHasCoords(prev)){
+        forced = {n:w._place.n, lat:w._place.lat, lon:w._place.lon, b:'donde querías pasear', w:9};
+        const d0 = haversine(prev.lat,prev.lon,forced.lat,forced.lon);
+        if(d0 > 4.5) out.notes.push(`Hasta ${forced.n} hay ${d0.toFixed(1).replace('.',',')} km: mejor en metro o taxi.`);
+        from = {lat:forced.lat, lon:forced.lon};
+      }
+      const r = planWalkRoute(from, to && (!forced || haversine(forced.lat,forced.lon,to.lat,to.lon)>0.3) ? to : null);
+      if(forced){
+        r.pts = [forced].concat(r.pts.filter(x=>haversine(x.lat,x.lon,forced.lat,forced.lon)>0.25)); if(!to) r.end = r.pts[r.pts.length-1];
+        const seq=[{lat:prev.lat,lon:prev.lon}].concat(r.pts, to?[to]:[]); let dd=0; for(let k=1;k<seq.length;k++) dd+=haversine(seq[k-1].lat,seq[k-1].lon,seq[k].lat,seq[k].lon); r.km = dd*1.2;
+        const ll=x=>x.lat.toFixed(5)+','+x.lon.toFixed(5); const way=r.pts.filter(x=>x!==r.end).slice(0,8);
+        r.url='https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ll(prev)+'&destination='+ll(r.end)+(way.length?'&waypoints='+encodeURIComponent(way.map(ll).join('|')):'');
+        r.start = {lat:prev.lat, lon:prev.lon};
+      }
       const names = r.pts.map(x=>x.n);
       const walkMin = Math.round(r.km/4*60);
       if(r.transit) out.notes.push(`De ${prev && !prev._paseo ? prev.n : 'la primera parada'} a ${to.n} hay ${r.transit.km.toFixed(1).replace('.',',')} km: demasiado para ir andando. Te propongo ir en metro o taxi (unos ${r.transit.min} min) y pasear por allí.`);
@@ -5130,6 +5193,15 @@ async function pdBuildPlan(p){
         }
         if(!item && r.error) out.notes.push('Mapa: '+r.error);
         if(item) out.notes.push(`"${w.label}": no tenía nada en tu lista${p.zoneLabels.length?' en '+p.zoneLabels.join(', '):''}, así que elegí un sitio real del mapa.`);
+      }
+    }
+    if(item && !w._fixed && !p.city && anchor && planHasCoords(item) && !p.maxWalk){
+      const dk = haversine(anchor[0],anchor[1],item.lat,item.lon);
+      if(dk > 1.2){
+        const pwr = Object.assign({}, pw, {place:{n:anchorName||'aquí', lat:anchor[0], lon:anchor[1], r:0.9, aliases:[]}});
+        const r = await pdLive(w, pwr, null, 10);
+        const near = (r.items||[]).filter(x=>!used.has(x.n) && planHasCoords(x)).map(x=>({x, km:haversine(anchor[0],anchor[1],x.lat,x.lon)})).filter(o=>o.km < Math.min(1.0, dk*0.6)).sort((a,b)=>a.km-b.km);
+        if(near.length){ item = near[Math.floor(Math.random()*Math.min(2,near.length))].x; out.notes.push(`"${w.label.replace(/^\S+\s/,'')}": lo de tu lista quedaba a ${dk.toFixed(1).replace('.',',')} km, así que elegí un sitio del mapa más cerca.`); }
       }
     }
     if(!item){ out.notes.push(`No encontré nada para "${w.label}".`); continue; }

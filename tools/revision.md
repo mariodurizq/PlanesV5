@@ -1,0 +1,254 @@
+# Repaso de la lista de sitios — 2026-11-07
+
+Sitios: **699** · zonas corregidas: **117** (de ellas 79 estaban vacías) · coordenadas sospechosas: **0** · fuera de la Comunidad: **0** · sin coordenadas: **37** · posibles duplicados: **0** · cerrados: **77**
+
+La zona se calcula con los límites oficiales de distritos y municipios de OpenStreetMap. Si la dirección dice otra zona, no se toca nada y se apunta aquí para revisarlo a mano.
+
+## Zonas corregidas (117)
+- Ni-Fu Ni-Fa: (sin zona) → Centro
+- Gaston Wine Bar Madrid: (sin zona) → Salamanca
+- Snake Bar: (sin zona) → Centro
+- Lanzhou beef noodles: (sin zona) → Centro
+- ABYA Madrid: (sin zona) → Salamanca
+- Biri Biri: (sin zona) → Centro
+- Bar Trafalgar: (sin zona) → Chamberí
+- UBA Wine Bar: (sin zona) → Salamanca
+- Lolli Gelato: (sin zona) → Chamberí
+- Restaurante Fino Bar - Alcalá de Henares: (sin zona) → Alcalá de Henares
+- El Canalla - Irish Pub & Sports Bar: (sin zona) → Villaviciosa de Odón
+- NUGA Castellana: (sin zona) → Chamartín
+- Florentine Madrid - Rooftop Italian Restaurant: (sin zona) → Salamanca
+- Primo Restaurante Taquería: (sin zona) → Centro
+- Only YOU Boutique Hotel Madrid: (sin zona) → Centro
+- TAKAMI SUSHI (buffet libre): (sin zona) → Centro
+- Keli | Restaurante Barrio Salamanca: (sin zona) → Salamanca
+- Marciano: (sin zona) → Salamanca
+- Fat Cats Cocktail House: (sin zona) → Centro
+- SUSHI MOCHI: (sin zona) → Salamanca
+- LA CANTERA DEL TINTERILLO: (sin zona) → Rivas-Vaciamadrid
+- TalCual: (sin zona) → Salamanca
+- Issei Nikkei Restaurante: (sin zona) → Chamberí
+- Palique: (sin zona) → Moratalaz
+- Yantar Sidrería Gastronómica: (sin zona) → Centro
+- Baoyilong: (sin zona) → Salamanca
+- Sidrería El Texu: (sin zona) → Rivas-Vaciamadrid
+- El Texu de Getafe: (sin zona) → Getafe
+- Mercado de San Leopoldo: (sin zona) → Tetuán
+- Mamazzita Madrid Bar | Best Mexican Bar: (sin zona) → Salamanca
+- Bizzo Canalla: (sin zona) → Chamberí
+- Kuoco: (sin zona) → Centro
+- Casa Mùi: (sin zona) → Chamartín
+- Restaurante Allegra: (sin zona) → Salamanca
+- El Patio de Triana. Taberna andaluza en Retiro: (sin zona) → Retiro
+- Chambao Madrid Restaurante | Steakhouse en Madrid: (sin zona) → Salamanca
+- dNorte: (sin zona) → Centro
+- Tangiers Lounge Madrid: (sin zona) → Majadahonda
+- TKO Tacos Lavapies: (sin zona) → Centro
+- Restaurante Kultura: (sin zona) → Torrejón de Ardoz
+- Giulietta | Restaurante Italiano Madrid: (sin zona) → Hortaleza
+- Hamburguesas | QW Foodtruck Sol: (sin zona) → Centro
+- High Bar Shisha Lounge - 嗨吧: (sin zona) → Usera
+- Mojito´s Cocktail bar: (sin zona) → Centro
+- Restaurante Santancha: (sin zona) → Chamberí
+- La Nave Burger: (sin zona) → Pinto
+- La Parrilla de Salamanca: (sin zona) → Salamanca
+- SLVJ Moraleja: (sin zona) → Alcobendas
+- Bolus Burger Gran vía - Callao: (sin zona) → Centro
+- Restaurante Casa Mono: (sin zona) → Moncloa-Aravaca
+- Gonzalez&Co Madrid: (sin zona) → Chamberí
+- Restaurante Pasiones Argentinas: (sin zona) → Las Rozas de Madrid
+- Roost Chicken Malasaña: (sin zona) → Centro
+- Madame Sushita: (sin zona) → Chamartín
+- Restaurante Vinitus: (sin zona) → Centro
+- Hamburguesería Don Oso: (sin zona) → Centro
+- Mo de Movimiento: (sin zona) → Chamberí
+- Makkila Almagro: (sin zona) → Chamberí
+- Sr.Ito Lab: (sin zona) → Chamberí
+- La Cabaña Argentina: (sin zona) → Centro
+- Moby Dick: (sin zona) → Tetuán
+- La Que Se Lía: (sin zona) → Chamartín
+- Hopper: (sin zona) → Centro
+- Chicago Style Pizza: (sin zona) → Chamberí
+- Quinto elemento Restaurante: (sin zona) → Centro
+- Malaba Club: (sin zona) → Chamberí
+- Restaurante Mala mía: (sin zona) → Alcorcón
+- Mercado de la Reina 10: (sin zona) → Centro
+- Salutteria (ahora La Originale Velázquez): Salamanca → Chamberí
+- Smash Club burgers: Centro → Chamberí
+- Sushi Ginza: Centro → Salamanca
+- Beata Pasta: Salamanca → Centro
+- Pizzería Reginella: Salamanca → Chamberí
+- Cantina Mariachi (Alcalá): Salamanca → Chamartín
+- Lady MACAO: (sin zona) → Fuencarral-El Pardo
+- La Bonita: (sin zona) → Arganzuela
+- Distrito Burger: Centro → Arganzuela
+- La Birra Bar: Centro → Salamanca
+- ImPasta: Chamberí → Centro
+- Invernadero del Palacio de Cristal de Arganzuela: Arganzuela → Centro
+- OleMole: (sin zona) → Centro
+- Hambrientos hasta el amanecer: Las Rozas → Las Rozas de Madrid
+- Guachinche: (sin zona) → Rivas-Vaciamadrid
+- Nômâda: Salamanca → Centro
+- Saona Las Rozas: Las Rozas → Las Rozas de Madrid
+- JARDÍN CERVEZAS ALHAMBRA MADRID: Salamanca → Centro
+- Frankie Burgers - Las Mejores Hamburguesas de Madrid: Salamanca → Chamberí
+- Ristorante Reginella: Salamanca → Chamberí
+- Coqtél Madrid: (sin zona) → Centro
+- Sal Mestiza: Salamanca → Centro
+- Knowmad Madrid - Goya: Salamanca → Arganzuela
+- Restaurante El Latigazo: Salamanca → Centro
+- Miss Sushi Hortaleza: Hortaleza → Centro
+- Mamá Chicó: Hortaleza → Chamartín
+- Royal Lounge Madrid: (sin zona) → Coslada
+- Oashis - Cocktails & Shishas: (sin zona) → Vicálvaro
+- Warehouse@TheHClub: Salamanca → Centro
+- Pipa & Co: (sin zona) → Salamanca
+- Fresh: Chamberí → Centro
+- Lara Grill: (sin zona) → Chamberí
+- La Nueva Troje: Chamberí → Centro
+- Palacio de Arena: (sin zona) → Carabanchel
+- Prep' La Crêpe: Chamberí → Centro
+- Le Pain Quotidien: (sin zona) → Salamanca
+- Sibuya Urban Sushi Bar: Centro → Chamberí
+- Terraza Bar Palacio de Cibeles (Azotea Cibeles): Retiro → Moratalaz
+- Terraza SkyLine: Tetuán → Chamartín
+- Juanchi's Burgers (Juancho's BBQ Chamartín): Chamartín → Tetuán
+- Moreira Lounge Club Av. América: Chamberí → Ciudad Lineal
+- Parque de Santander: Chamberí → Centro
+- Saoko Club Lounge: Las Rozas → Las Rozas de Madrid
+- ImPasta Santa Engracia: Chamberí → Centro
+- Döggo: Chamberí → Tetuán
+- Lobo Club: Las Rozas → Las Rozas de Madrid
+- Luxury Monkey: Las Rozas → Las Rozas de Madrid
+- Pepe taco: Chamberí → Centro
+- Angelita Madrid Sky Bar: Retiro → Centro
+
+## Coordenadas sospechosas (revisar a mano) (0)
+- Nada 👍
+
+## Fuera de la Comunidad de Madrid (0)
+- Nada 👍
+
+## Sin coordenadas (37)
+- Ostinato
+- Zozou Club
+- Taberna Murciana
+- Restaurante Wanderlust CC Plaza Río 2
+- Tiki Taco Princesa
+- Baku Nights
+- Saona (Salamanca-Madrid)
+- Bar Malos
+- El 11 Resto-Brunch
+- Glück Cervecería - Madrid
+- BARAKA drinks & Pool
+- Red Roo Australian Restaurant
+- Sushi YAKUZA
+- Hemingway Cocktail Bar
+- El Rayo Verde
+- Panoramic Bar
+- Alboroto Experience
+- Wings 4 You
+- Yukatán Hookah Lounge
+- Dingo Restaurante
+- Paperboy
+- KOKÓ URBAN
+- Botánica Lounge Concept
+- Bacoa Burger
+- Mela Hookah
+- Bavylon shisha&cocktails
+- KIMBALA LOUNGE CLUB
+- White Moon Shisha club
+- Shisha's Lounge
+- Anubis Cócteleria Plaza Mayor
+- Teje y Maneje
+- Café del Soul
+- Kambarah Alcocer
+- GYMAGE Lounge Resort
+- Quadrato Pizzeria
+- E-teon Lounge
+- ILUSHION HOOKAH
+
+## Posibles duplicados (0)
+- Nada 👍
+
+## Marcados como cerrados (se ocultan en la web, no se borran) (77)
+- Quadrato Pizzeria
+- Tetehookah 火咖
+- Rhudo
+- Chun-Li Dumplings - Ópera
+- Yeite
+- Food Hall Galería Canalejas
+- Cardinale Food & Spritz
+- Las carnes de Martín
+- SyMental Rojas Madrid
+- Saoko Club Lounge
+- La Carlota Restaurante
+- BDP Burger Getafe
+- Pastrami Rolls
+- MAMBA LUXE
+- Ocean Shisha Lounge
+- My Lounge
+- Iztac
+- Can chan chán
+- ImPasta Santa Engracia
+- Hijos de Tomás
+- Burghetto
+- Döggo
+- Makitake Goya
+- Barhop Madrid
+- RED PROJECT SUSHI MADRID
+- Chihuahua Tacos y Tragos La Moraleja
+- Lobo Club
+- MR HOOKAH LOUNGE
+- Napoli Gang - Ópera
+- BiBi Burger
+- Big Cow
+- PlayBack Madrid
+- Luxury Monkey
+- The Dacri's Hookah
+- Fasfú burgers
+- Martinica Madrid
+- Sushitokyo
+- Rua Street Burger
+- Jersey Amarillo
+- La Cocina Bar
+- LOYALTY - RESTAURANT & CLUB
+- La Pica Lounge Bar
+- Restaurante El Gallo Campo de las Naciones
+- That's Amore
+- Monkey Lounge Pub
+- E-teon Lounge
+- Kamado Asian Food
+- El Cuento Bar
+- The Eight Burger
+- Knowmad Madrid - Príncipe de Vergara
+- WELKHOMEclub
+- Miss Sushi Serrano
+- Nitty Gritty
+- ILUSHION HOOKAH
+- Zento Gastro-Birreria
+- Revival Cafe Madrid
+- Maddock Madrid
+- TAKOMAMA
+- Pepe taco
+- Rude Burger
+- Amargo place to be
+- Maricastaña
+- KENZO RESTAURANTE CLUB&LOUNGE
+- The Stuyck Co
+- FAMOUS SHISHAS 2
+- Sotto Club - Discoteca y sala de eventos en Bernabéu
+- Los Costilla
+- Taxi a Manhattan
+- Black Diamond
+- Angelita Madrid Sky Bar
+- Vacaciones Cocktail Bar
+- My Way Madrid Sky Bar
+- Ático 11
+- Pointer Madrid
+- Gustami italia
+- MY Hookah Room - Shisha / Cachimba Madrid
+- Etnico Madrid
+
+## Sin categoría (0)
+- Nada 👍

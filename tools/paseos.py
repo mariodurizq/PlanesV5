@@ -84,6 +84,7 @@ def main():
         nombre_parque = tipo in ('parque', 'jardín') and re.match(r'(parque|jard[ií]n|jardines|quinta|dehesa|finca|real jard)', n, re.I)
         if not conocido and not nombre_parque: continue
         if tipo == 'iglesia' and not t.get('wikipedia'): continue
+        if not conocido and tipo in ('parque', 'jardín'): peso = 1   # parques de barrio: válidos, pero con menos prioridad
         out.append({'n': n, 'lat': round(c['lat'], 5), 'lon': round(c['lon'], 5), 'k': tipo,
                     'w': peso + (2 if t.get('wikipedia') else 1 if conocido else 0)})
     # quitar repetidos (mismo nombre a menos de 300 m) quedándose con el de más peso

@@ -4021,7 +4021,7 @@ const PD_CATS = [
 // Vocabulario ampliado: expresiones habituales → tipo de plan
 const PD_MORE_KW = {
   cafe:['merendar','churros','chocolate con churros','gofre','helado','heladeria','crepe','tortitas','pancake','tarta de queso','cheesecake','cafe de especialidad','cafecito','desayuno','bolleria','croissant','matcha','bubble tea','reposteria'],
-  ocio:['museo','exposicion','teatro','musical','concierto','monologo','comedia','stand up','espectaculo','minigolf','padel','escalada','rocodromo','spa','masaje','banos arabes','hammam','ping pong','dardos','videojuegos','realidad virtual','arcade','juegos de mesa','taller','clase de cocina','visita guiada','planetario','zoo','acuario','parque de atracciones','pasear','parque','senderismo','mirador','algo diferente','algo original','plan original','que hacer','actividad','musica en directo','jazz','flamenco','tablao'],
+  ocio:['museo','exposicion','teatro','musical','concierto','monologo','comedia','stand up','espectaculo','minigolf','padel','escalada','rocodromo','spa','masaje','banos arabes','hammam','ping pong','dardos','videojuegos','realidad virtual','arcade','juegos de mesa','taller','clase de cocina','visita guiada','planetario','zoo','acuario','parque de atracciones','parque','senderismo','mirador','algo diferente','algo original','plan original','que hacer','actividad','musica en directo','jazz','flamenco','tablao'],
   tapas:['birra','birras','canita','tercio','cervecita','picar','picoteo','raciones','racion','croqueta','bravas','bocata','bocadillo de calamares','calamares','pincho','pintxo','montadito','vermouth','taberna','tasca','castizo','de toda la vida','bar de barrio','vinito','vino','vinoteca','vinos'],
   esp:['ostra','marisqueria','marisco','pulpo','paella','arroz','arroceria','cocido','callos','gallego','asturiano','vasco','andaluz','castellano','cordero','cochinillo','tortilla','huevos rotos','jamon','iberico','casa de comidas','menu del dia'],
   asia:['dim sum','dumpling','gyoza','wok','bao','udon','katsu','poke','curry','pad thai','pho','kimchi','bibimbap','yakitori','omakase','nikkei'],
@@ -4257,29 +4257,58 @@ const PD_PASEOS = [
   ['Plaza de Olavide',40.4325,-3.7025,'la plaza de Chamberí'],['Museo Sorolla',40.4355,-3.6930,'casa y jardín del pintor'],
   ['Jardín Botánico',40.4111,-3.6913,'junto al Prado'],['Calle Huertas',40.4140,-3.6985,'bares y letras doradas']
 ].map(([n,lat,lon,b])=>({n,lat,lon,b}));
-function planWalkRoute(from, to){
+// Lugares para pasear de toda la Comunidad (paseos.json, OpenStreetMap) + los de arriba con descripción
+let PD_PASEOS_ALL = null;
+async function pdLoadPaseos(){
+  if(PD_PASEOS_ALL) return PD_PASEOS_ALL;
+  const base = PD_PASEOS.map(x=>Object.assign({w:6}, x));
+  try{
+    const r = await Promise.race([fetch('./paseos.json',{cache:'no-cache'}), new Promise((_,rej)=>setTimeout(()=>rej(new Error('t')),5000))]);
+    const j = r.ok ? await r.json() : null;
+    const extra = (j && j.lugares || []).filter(x=>!base.some(b=>haversine(b.lat,b.lon,x.lat,x.lon)<0.15))
+      .map(x=>({n:x.n, lat:x.lat, lon:x.lon, b:x.k, w:(['parque','jardín'].includes(x.k) && (x.w||1)<=3) ? 1 : (x.w||1), k:x.k}));
+    PD_PASEOS_ALL = base.concat(extra);
+  }catch(e){ PD_PASEOS_ALL = base; }
+  return PD_PASEOS_ALL;
+}
+// Ruta andando con sentido: solo lugares que pillan de camino. Si está demasiado lejos para ir andando,
+// se va en metro/taxi y se pasea por la zona de destino.
+function planWalkRoute(from, to, pool){
+  pool = pool || PD_PASEOS_ALL || PD_PASEOS;
   const km=(a,b)=>haversine(a.lat,a.lon,b.lat,b.lon);
-  let pts=[];
-  if(to && km(from,to)>0.6){
-    const dir=km(from,to);
-    const proj=l=>((l.lat-from.lat)*(to.lat-from.lat)+(l.lon-from.lon)*(to.lon-from.lon)*0.6)/(((to.lat-from.lat)**2+((to.lon-from.lon)**2)*0.6)||1);
-    const perp=l=>{ const t2=Math.max(0,Math.min(1,proj(l))); const q={lat:from.lat+(to.lat-from.lat)*t2, lon:from.lon+(to.lon-from.lon)*t2}; return km(l,q); };
-    const c=PD_PASEOS.filter(l=>km(from,l)>0.2 && km(l,to)>0.15 && proj(l)>0.03 && proj(l)<0.97 && perp(l) <= 0.35+dir*0.08);
-    const maxN = Math.max(2, Math.min(4, Math.round(dir/0.7)));
-    c.sort((a,b)=>perp(a)-perp(b));
-    c.forEach(l=>{ if(pts.length<maxN && pts.every(x=>km(x,l)>=0.4)) pts.push(l); });
+  const MAXWALK = 4.5;
+  let pts=[], transit=null, loopAt=null;
+  const dir = to ? km(from,to) : 0;
+  if(to && dir>0.6 && dir<=MAXWALK){
+    const kx=Math.cos(from.lat*Math.PI/180);
+    const vx=(to.lon-from.lon)*kx, vy=to.lat-from.lat, L2=vx*vx+vy*vy||1e-9;
+    const proj=l=>(((l.lon-from.lon)*kx)*vx+(l.lat-from.lat)*vy)/L2;
+    const perp=l=>{ const t=Math.max(0,Math.min(1,proj(l))); return km(l,{lat:from.lat+vy*t, lon:from.lon+(vx*t)/kx}); };
+    const lim = 0.22 + dir*0.04;
+    const c = pool.filter(l=>{ const pj=proj(l); return pj>0.04 && pj<0.96 && perp(l)<=lim; })
+      .map(l=>({l, sc:(l.w||1) - perp(l)*6}));
+    c.sort((a,b)=>b.sc-a.sc);
+    const maxN = Math.max(2, Math.min(5, Math.round(dir/0.6)));
+    c.forEach(({l})=>{ if(pts.length<maxN && pts.every(x=>km(x,l)>=0.35) && km(l,from)>0.15 && km(l,to)>0.15) pts.push(l); });
     pts.sort((a,b)=>proj(a)-proj(b));
+  } else {
+    if(to && dir>MAXWALK){ transit = {min: Math.min(55, Math.round(12 + dir*2.2)), km: dir}; loopAt = to; }
+    else loopAt = from;
+    let cur = loopAt;
+    const near = pool.filter(l=>km(loopAt,l)<=1.2 && km(loopAt,l)>0.1).map(l=>({l, sc:(l.w||1) - km(loopAt,l)}));
+    near.sort((a,b)=>b.sc-a.sc);
+    const pick=[]; near.forEach(({l})=>{ if(pick.length<4 && pick.every(x=>km(x,l)>=0.3)) pick.push(l); });
+    while(pick.length){ pick.sort((a,b)=>km(cur,a)-km(cur,b)); const nx=pick.shift(); pts.push(nx); cur=nx; }
   }
-  if(!pts.length){
-    let cur=from; const pool=PD_PASEOS.filter(l=>km(from,l)<=1.3 && km(from,l)>0.15 && (!to || km(l,to)<=km(from,to)+0.6));
-    while(pts.length<(to?2:4) && pool.length){ pool.sort((a,b)=>km(cur,a)-km(cur,b)); const nx=pool.shift(); if(!pts.length || km(pts[pts.length-1],nx)>=0.3){ pts.push(nx); cur=nx; } }
-  }
-  const end = to || pts[pts.length-1] || from;
-  const seq=[from].concat(pts, to?[to]:[]);
+  const start = transit ? to : from;
+  const end = (to && !transit) ? to : (pts[pts.length-1] || start);
+  const seq=[start].concat(pts, (to && !transit)?[to]:[]);
   let dist=0; for(let i=1;i<seq.length;i++) dist+=km(seq[i-1],seq[i]);
   const ll=x=>x.lat.toFixed(5)+','+x.lon.toFixed(5);
-  const url='https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ll(from)+'&destination='+ll(end)+(pts.length?'&waypoints='+encodeURIComponent(pts.filter(x=>x!==end).map(ll).join('|')):'');
-  return {pts, end, km:dist*1.2, url};
+  const way = pts.filter(x=>x!==end).slice(0,8);
+  const url='https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ll(start)+'&destination='+ll(end)+(way.length?'&waypoints='+encodeURIComponent(way.map(ll).join('|')):'');
+  const transitUrl = transit ? 'https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+ll(from)+'&destination='+ll(to) : '';
+  return {pts, end, start, km:dist*1.2, url, transit, transitUrl};
 }
 // Si no lo conocemos: lo que va tras "en/por/cerca de…", para buscarlo en el mapa
 const PD_NOT_PLACE = /^(pareja|grupo|familia|terraza|casa|coche|metro|bici|plan|serio|general|madrid|un |una |algun|cualquier|el centro comercial)/;
@@ -4407,7 +4436,8 @@ function pdParse(raw){
       p.twoMeals = true;
     } else if(meals.length>=2){ meals.sort((a,b)=>a._idx-b._idx); meals[0]._meal='comida'; meals[meals.length-1]._meal='cena'; p.twoMeals=true; }
     const walkM = text.match(/\b(pasear|paseo|paseito|dar una vuelta|dar un paseo|callejear|caminar|andar un rato)\b/);
-    if(walkM){ p.wants.push({id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur: /tranquil|largo|toda la tarde|tarde/.test(text)?100:60, _idx: walkM.index}); p.walk = true; }
+    if(walkM){ const oc=p.wants.find(w=>w.id==='ocio'); if(oc && !PD_CATS.find(c=>c.id==='ocio').kw.some(k=>k.trim()!=='pasear' && text.includes(k.trim()) && !/^pase/.test(k.trim()))) p.wants=p.wants.filter(w=>w!==oc);
+      p.wants.push({id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur: /tranquil|largo|toda la tarde|tarde/.test(text)?100:60, _idx: walkM.index}); p.walk = true; }
     const allPl = pdFindAllPlaces(text);
     const distinct = [...new Set(allPl.map(h=>h.pl.n))];
     if(distinct.length>=2 || p.walk){
@@ -4596,13 +4626,58 @@ function pdPlanInfo(d){
     ${d._why?`<div style="color:var(--ink,inherit);opacity:.9">💡 ${pdEsc(d._why.charAt(0).toUpperCase()+d._why.slice(1))}</div>`:''}
   </div>`;
 }
+// Mapa del plan: paradas numeradas, puntos del paseo y recorrido
+let pdPlanMapObj = null;
+function pdDrawPlanMap(stops){
+  const el = document.getElementById('pdPlanMap');
+  if(!el || typeof L==='undefined') { if(el) el.remove(); return; }
+  try{ if(pdPlanMapObj){ pdPlanMapObj.remove(); pdPlanMapObj=null; } }catch(e){}
+  const map = L.map(el, {zoomControl:true, scrollWheelZoom:false, dragging:true, tap:true, attributionControl:true});
+  pdPlanMapObj = map;
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  const tl = L.tileLayer(radarCartoTilesUrl(dark?'dark_all':'light_all'),{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  let errs=0; tl.on('tileerror',()=>{ if(++errs===4) tl.setUrl(radarCartoTilesUrl('voyager')); });
+  const bounds=[]; const walkLine=[]; const transitLines=[];
+  let n=0, last=null;
+  const icon=(html,cls)=>L.divIcon({className:'pm-icon '+cls, html, iconSize:null});
+  stops.forEach(s=>{
+    if(s._paseo){
+      const start = s.transit ? [s.startLat, s.startLon] : null;
+      if(s.transit && last) transitLines.push([last, start]);
+      let segStart = s.transit ? start : last;
+      const line = segStart ? [segStart] : [];
+      (s.route||[]).forEach((x,k)=>{
+        const ll=[x.lat,x.lon]; bounds.push(ll); line.push(ll);
+        L.marker(ll,{icon:icon('<span>'+String.fromCharCode(65+k)+'</span>','pm-walkpt'), keyboard:false}).addTo(map).bindTooltip(pdEsc(x.n)+(x.b?' · '+pdEsc(x.b):''),{direction:'top',offset:[0,-6]});
+      });
+      if(s.transit && start){ bounds.push(start); }
+      walkLine.push({line, open:true});
+      last = line.length ? line[line.length-1] : last;
+      return;
+    }
+    if(!planHasCoords(s)) return;
+    const ll=[s.lat,s.lon]; n++;
+    bounds.push(ll);
+    const open = walkLine.length && walkLine[walkLine.length-1].open ? walkLine[walkLine.length-1] : null;
+    if(open){ open.line.push(ll); open.open=false; }
+    else if(last){ const far = haversine(last[0],last[1],ll[0],ll[1])>2.5; (far?transitLines:walkLine).push(far?[last,ll]:{line:[last,ll]}); }
+    L.marker(ll,{icon:icon('<b>'+n+'</b>','pm-stopmk'), zIndexOffset:500}).addTo(map)
+      .bindPopup(`<b>${n}. ${pdEsc(s.n)}</b><br>${pdFmt(s._start)} · ${pdEsc(s.cd||s.cm||'')}${s.v?'<br>★ '+Number(s.v).toFixed(1):''}`);
+    last = ll;
+  });
+  walkLine.forEach(w=>{ if(w.line.length>1) L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.85}).addTo(map); });
+  transitLines.forEach(t=>L.polyline(t,{color:'#e8a24a',weight:3,opacity:.9,dashArray:'6 8'}).addTo(map));
+  if(bounds.length===1) map.setView(bounds[0], 15); else if(bounds.length) map.fitBounds(bounds,{padding:[28,28], maxZoom:16});
+  setTimeout(()=>map.invalidateSize(), 200);
+}
 function pdPaseoCard(s, when){
-  const list = (s.route||[]).map(x=>`<li><b>${pdEsc(x.n)}</b> <span style="opacity:.75">· ${pdEsc(x.b)}</span></li>`).join('');
+  const list = (s.route||[]).map(x=>`<li><b>${pdEsc(x.n)}</b>${x.b?` <span style="opacity:.75">· ${pdEsc(x.b)}</span>`:''}</li>`).join('');
   const km = s.km ? s.km.toFixed(1).replace('.',',') : '';
   return `<div class="tl"><span class="dot"></span><div class="when">${when}</div><div class="venue expanded pdPaseo" style="cursor:default;">
-    <h3>🚶 ${s.fromName&&s.toName&&s.fromName!==s.toName?'Paseo de '+pdEsc(s.fromName)+' a '+pdEsc(s.toName):s.toName?'Paseo hasta '+pdEsc(s.toName):s.fromName?'Paseo por '+pdEsc(s.fromName):'Paseo tranquilo'}</h3>
-    <div class="meta"><span>${km?km+' km · ':''}unos ${s.walkMin||20} min andando, sin prisa${s.toName?' · terminas cerca de la siguiente parada':''}</span></div>
-    ${list?`<ol style="margin:10px 0 4px 18px;padding:0;font-size:13px;line-height:1.6">${list}</ol>`:'<div style="margin-top:8px;font-size:13px">Callejea por la zona sin rumbo fijo.</div>'}
+    <h3>🚶 ${s.transit?'Paseo por '+pdEsc(s.toName):s.fromName&&s.toName&&s.fromName!==s.toName?'Paseo de '+pdEsc(s.fromName)+' a '+pdEsc(s.toName):s.toName?'Paseo hasta '+pdEsc(s.toName):s.fromName?'Paseo por '+pdEsc(s.fromName):'Paseo tranquilo'}</h3>
+    ${s.transit?`<div style="margin:6px 0 2px;font-size:13px">🚇 Primero metro o taxi hasta <b>${pdEsc(s.toName)}</b> (unos ${s.transit.min} min) · <a href="${s.transitUrl}" target="_blank" rel="noopener">cómo ir</a></div>`:''}
+    <div class="meta"><span>${km?km+' km · ':''}unos ${s.walkMin||20} min andando, sin prisa${s.toName && !s.transit?' · terminas cerca de la siguiente parada':''}</span></div>
+    ${list?`<ol type="A" style="margin:10px 0 4px 18px;padding:0;font-size:13px;line-height:1.6">${list}</ol>`:'<div style="margin-top:8px;font-size:13px">Callejea por la zona sin rumbo fijo.</div>'}
     <div class="mapbtns"><a class="mapbtn gmaps" href="${s.routeUrl}" target="_blank" rel="noopener">🗺️ Ver la ruta andando</a></div>
   </div></div>`;
 }
@@ -4743,7 +4818,7 @@ async function pdBuildPlan(p){
   if(p.time!=null) t = p.time;
   else if(morning) t = /brunch/.test(p.text||'') ? 11*60+30 : 10*60;
   else if(first.meal) t = (first._meal||meal)==='comida' ? 14*60 : 21*60;
-  else if(first.id==='paseo'){ const nx=wants.find(x=>x.id!=='paseo'); t = nx && (['cock','disco','shisha','roof'].includes(nx.id) || nx._meal==='cena' || (nx.meal && meal==='cena')) ? 18*60+30 : 17*60; }
+  else if(first.id==='paseo'){ const nx=wants.find(x=>x.id!=='paseo'); t = nx && nx.meal && (nx._meal||meal)==='comida' ? 12*60 : nx && (['cock','disco','shisha','roof'].includes(nx.id) || nx._meal==='cena' || (nx.meal && meal==='cena')) ? 18*60+30 : 17*60; }
   else if(first.id==='cafe') t = 17*60+30;
   else if(first.id==='ocio') t = 18*60;
   else if(first.id==='tapas') t = 20*60;
@@ -4759,12 +4834,14 @@ async function pdBuildPlan(p){
     if(w.id==='paseo'){
       const from = prev && planHasCoords(prev) ? {lat:prev.lat, lon:prev.lon} : (w._place || p.place || {lat:40.4169, lon:-3.7035});
       const to = nextW && nextW._place ? nextW._place : null;
+      await pdLoadPaseos();
       const r = planWalkRoute(from, to);
       const names = r.pts.map(x=>x.n);
       const walkMin = Math.round(r.km/4*60);
+      if(r.transit) out.notes.push(`De ${prev && !prev._paseo ? prev.n : 'la primera parada'} a ${to.n} hay ${r.transit.km.toFixed(1).replace('.',',')} km: demasiado para ir andando. Te propongo ir en metro o taxi (unos ${r.transit.min} min) y pasear por allí.`);
       const st = {_paseo:true, n: names.length ? 'Paseo: '+names.slice(0,3).join(' → ')+(names.length>3?'…':'') : 'Paseo por la zona', cm:'Paseo', cd:'Paseo',
-        route:r.pts, routeUrl:r.url, km:r.km, walkMin, toName: to?to.n:'', fromName: !prev && w._place ? w._place.n : '', lat:r.end.lat, lon:r.end.lon, locationVerified:true};
-      st._start = planR15(t); st._end = st._start + Math.max(w.dur, walkMin+30);
+        route:r.pts, routeUrl:r.url, km:r.km, walkMin, toName: to?to.n:'', fromName: !prev && w._place ? w._place.n : '', transit:r.transit, transitUrl:r.transitUrl, startLat:r.start.lat, startLon:r.start.lon, lat:r.end.lat, lon:r.end.lon, locationVerified:true};
+      st._start = planR15(t); st._end = st._start + Math.max(w.dur, walkMin+30) + (r.transit ? r.transit.min : 0);
       out.stops.push(st); prev = st; t = st._end; continue;
     }
     // "tomar algo antes de cenar": a última hora de la tarde, pegado a la cena
@@ -4772,7 +4849,7 @@ async function pdBuildPlan(p){
     // después de comer, a media tarde: bar o terraza (las coctelerías abren hacia las 19:00)
     if(w.id==='cock' && i>0 && t<18*60 && !(nextW && nextW._meal==='cena')){
       const bar = PD_CATS.find(c=>c.id==='tapas');
-      if(bar && !wants.includes(bar)){ w = bar; out.notes.push('Después de comer te propongo un bar o terraza para tomar algo: las coctelerías suelen abrir a partir de las 19:00.'); }
+      if(bar && !wants.some(x=>x.id==='tapas')){ w = Object.assign({}, bar, {_place:w._place, _idx:w._idx}); out.notes.push('Después de comer te propongo un bar o terraza para tomar algo: las coctelerías suelen abrir a partir de las 19:00.'); }
     }
     // franjas realistas
     if(w.meal){
@@ -5050,6 +5127,8 @@ async function pdRun(shuffle){
       if(out.stops.length){
         const title = `Plan${p.dayLabel?' de '+p.dayLabel:''}${p.zoneLabels.length?' · '+p.zoneLabels.join(', '):''}`;
         html += `<div class="secTitle">🧭 ${pdEsc(title)} <small>${pdFmt(out.stops[0]._start)} → ${pdFmt(out.stops[out.stops.length-1]._end)}</small></div>`;
+        if(out.stops.filter(s=>planHasCoords(s)).length>=1) html += `<div id="pdPlanMap" class="pdPlanMap" aria-label="Mapa del plan"></div><div class="pdPlanLegend"><span><i class="pm-stop"></i> Paradas</span><span><i class="pm-walk"></i> Puntos del paseo</span><span><i class="pm-line"></i> Recorrido andando</span>${out.stops.some(s=>s.transit)||out.stops.some((s,i)=>i&&planHasCoords(s)&&planHasCoords(out.stops[i-1])&&haversine(s.lat,s.lon,out.stops[i-1].lat,out.stops[i-1].lon)>2.5)?'<span><i class="pm-transit"></i> Metro/taxi</span>':''}</div>`;
+        pdRun._mapStops = out.stops;
         html += `<div class="timeline">` + out.stops.map(s=>(s._walk||'')+(s._paseo ? pdPaseoCard(s, `${pdFmt(s._start)} – ${pdFmt(s._end)} · Paseo`) : pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`}))).join('') + `</div>`;
         pdRun._items = out.stops;
         html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-share-query>🔗 Compartir</button><a class="ghostBtn wa" style="text-decoration:none;text-align:center;" href="${pdWhatsAppPlan(out.stops,title)}" target="_blank" rel="noopener">💬 Enviar plan</a></div>`;
@@ -5057,6 +5136,7 @@ async function pdRun(shuffle){
     }
     const uniq = Array.from(new Set(notes));
     resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + (p._evHtml||'') + html;
+    if(document.getElementById('pdPlanMap') && pdRun._mapStops) setTimeout(()=>pdDrawPlanMap(pdRun._mapStops), 30);
     const sh = document.getElementById('pideShuffle'); if(sh) sh.onclick = ()=>pdRun(true);
     // Después, sin bloquear: sitios nuevos que no tienes guardados
     if(mode==='lista'){
@@ -6897,6 +6977,18 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
   }catch(e){}
 })();
 </script>
+<style id="renta-planmap-css">
+.pdPlanMap{height:280px;border-radius:16px;overflow:hidden;margin:10px 0 6px;border:1px solid var(--line,rgba(255,255,255,.12));z-index:0}
+.pdPlanLegend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted,#9aa);margin:0 0 12px}
+.pdPlanLegend i{display:inline-block;vertical-align:middle;margin-right:4px}
+.pdPlanLegend .pm-stop{width:12px;height:12px;border-radius:50%;background:#2ec4b6;border:2px solid #fff}
+.pdPlanLegend .pm-walk{width:9px;height:9px;border-radius:50%;background:#c5e3a0;border:1.5px solid #12201a}
+.pdPlanLegend .pm-line{width:18px;height:4px;border-radius:2px;background:#2ec4b6}
+.pdPlanLegend .pm-transit{width:18px;height:0;border-top:3px dashed #e8a24a}
+.pm-icon{background:none;border:0}
+.pm-stopmk b{display:grid;place-items:center;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:#2ec4b6;color:#06231f;font:800 14px/1 system-ui;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pm-walkpt span{display:grid;place-items:center;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#c5e3a0;color:#12201a;font:800 10px/1 system-ui;border:1.5px solid #12201a}
+</style>
 <style id="renta-aviso-css">
 .rnt-avisar{background:transparent!important;border:1px dashed var(--line,rgba(255,255,255,.2))!important;color:var(--muted,#9aa)!important;font-size:11.5px!important}
 .mapbtns>.rnt-mini{flex:0 0 46px!important;min-width:46px!important;max-width:46px!important;padding-left:0!important;padding-right:0!important;font-size:15px!important}

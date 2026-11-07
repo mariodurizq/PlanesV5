@@ -712,7 +712,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script src="plan-share.js?v=2" defer></script>
+<script src="plan-share.js?v=3" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
@@ -1677,11 +1677,11 @@ header.top.scrolled .tagline{max-height:0}
   <div class="radar-panel-head"><div><span class="radar-lab-kicker">RADAR / FILTRO EN VIVO</span><h2>Encuentra tu siguiente parada</h2><p>Filtros sobre la ficha local; los horarios no se consultan en tiempo real.</p></div><button type="button" class="radar-close-inline" data-radar-close-live>✕</button></div>
   <div class="radar-live-controls">
     <label>Presupuesto por persona<select id="radarLivePrice"><option value="any">Cualquier precio</option><option value="15">Hasta 15 €</option><option value="20">Hasta 20 €</option><option value="30">Hasta 30 €</option><option value="50">Hasta 50 €</option></select></label>
-    <label>Valoración mínima<select id="radarLiveRating"><option value="0">Cualquiera</option><option value="4">4,0+</option><option value="4.5">4,5+</option><option value="4.7">4,7+</option></select></label>
+    <label>Nivel mínimo<select id="radarLiveRating"><option value="0">Cualquiera</option><option value="4">Bueno</option><option value="4.5">Muy bueno</option><option value="4.7">Excelente</option></select></label>
     <label>Estado en ficha<select id="radarLiveOpen"><option value="any">Todos</option><option value="open">Marcado como abierto</option><option value="closed">Cerrado temporalmente</option></select></label>
     <label>Tipo de sitio<select id="radarLiveType"><option value="any">Todos los tipos</option><option value="food">Comer</option><option value="drinks">Copas / bares</option><option value="fun">Ocio</option><option value="coffee">Café / dulce</option></select></label>
     <label>Zona contiene<input id="radarLiveZone" type="search" placeholder="Ej. Malasaña, Centro…"></label>
-    <label>Ordenar por<select id="radarLiveSort"><option value="score">Mejor combinación</option><option value="rating">Valoración</option><option value="price">Precio</option><option value="distance">Distancia GPS (si hay coordenadas)</option></select></label>
+    <label>Ordenar por<select id="radarLiveSort"><option value="score">Mejor combinación</option><option value="rating">Selección RENTA</option><option value="price">Precio</option><option value="distance">Distancia GPS (si hay coordenadas)</option></select></label>
   </div>
   <div class="radar-live-note">“Abierto” procede del dato guardado, no de una consulta de horario actual. Las coordenadas del catálogo pueden ser aproximadas; la distancia es orientativa.</div>
   <div class="radar-live-results" id="radarLiveResults"></div>
@@ -1832,7 +1832,7 @@ header.top.scrolled .tagline{max-height:0}
 <button type="button" id="rfToggle" class="rf-toggle" aria-expanded="false" aria-controls="rentaFoodOffline">🍽️ Abrir catálogo gastronómico offline <span>＋</span></button>
 <section class="renta-food" id="rentaFoodOffline" aria-labelledby="rentaFoodTitle">
   <div class="renta-catalog-head"><div><p class="eyebrow">CATÁLOGO LOCAL · SIN CONEXIÓN</p><h3 id="rentaFoodTitle">Dónde comer en Madrid</h3><p>Elige una categoría o busca un restaurante para ver resultados. La lista se carga por tandas para que la página no se haga interminable. Google Maps requiere conexión.</p></div></div>
-  <div class="rf-cats" id="rfModes"><button type="button" class="rf-cat active" data-mode="reseñas">⭐ Mejores reseñas</button><button type="button" class="rf-cat" data-mode="calidad-precio">💶 Calidad-precio</button></div>
+  <div class="rf-cats" id="rfModes"><button type="button" class="rf-cat active" data-mode="reseñas">🏆 Imprescindibles</button><button type="button" class="rf-cat" data-mode="calidad-precio">💶 Calidad-precio</button></div>
   <div class="rf-controls">
     <input id="rfSearch" type="search" placeholder="Buscar restaurante, zona o plato…" aria-label="Buscar restaurantes">
     <select id="rfOrder" aria-label="Ordenar selección"><option value="reviews">Mejor base de datos verificada</option><option value="value">Precio orientativo</option><option value="alpha">Orden alfabético</option></select>
@@ -2017,7 +2017,7 @@ header.top.scrolled .tagline{max-height:0}
       <label class="sr-only" for="sortResults">Ordenar resultados</label>
       <select id="sortResults" aria-label="Ordenar resultados">
         <option value="rating">Mejor valorados</option>
-        <option value="reviews">Más opiniones</option>
+        <option value="reviews">Más populares</option>
         <option value="price">Precio más bajo</option>
         <option value="distance">Más cercanos</option>
         <option value="name">Nombre A–Z</option>
@@ -2030,7 +2030,7 @@ header.top.scrolled .tagline{max-height:0}
         <option value="outdoor">☀️ Al aire libre y terrazas</option>
         <option value="open">Abiertos según los datos</option>
         <option value="closed">🔒 Cerrados (se conservan en tu lista)</option>
-        <option value="top">Valoración 4,5 o más</option>
+        <option value="top">🏆 Los mejores</option>
         <option value="budget">Hasta 20 € aprox.</option>
       </select>
     </div>
@@ -2101,7 +2101,7 @@ header.top.scrolled .tagline{max-height:0}
 
   <footer class="foot">
     DATOS DE LA LISTA + OPENSTREETMAP<br>
-    Los horarios, precios y algunos puntos deben comprobarse antes de ir · Valoraciones: Google Maps · Mapa © OpenStreetMap · © CARTO · <a href="mejores/" style="color:inherit">Los mejores sitios por zona</a> · <a href="legal.html" style="color:inherit">Aviso legal y privacidad</a>
+    Los horarios, precios y algunos puntos deben comprobarse antes de ir · Mapa © OpenStreetMap · © CARTO · <a href="mejores/" style="color:inherit">Los mejores sitios por zona</a> · <a href="legal.html" style="color:inherit">Aviso legal y privacidad</a>
   </footer>
 </div>
 
@@ -2145,10 +2145,10 @@ header.top.scrolled .tagline{max-height:0}
           <div class="lab-field"><label for="labPlanName">Nombre del plan</label><input type="text" id="labPlanName" maxlength="80" placeholder="Ej. Sábado de terrazas"></div>
           <div id="labStopsList"></div>
           <div class="lab-row" style="margin-top:12px"><button class="lab-primary" id="labShareBtn">↗ Compartir plan</button><button class="lab-secondary" id="labIcsBtn">＋ Calendario (.ics)</button><button class="lab-secondary" id="labExportBtn">⇩ Copia de seguridad</button></div>
-          <div class="lab-row" style="margin-top:8px"><button class="lab-secondary" id="labSortBtn">★ Ordenar por valoración</button><button class="lab-danger" id="labClearBtn">Vaciar plan</button></div>
+          <div class="lab-row" style="margin-top:8px"><button class="lab-secondary" id="labSortBtn">🏆 Ordenar por selección</button><button class="lab-danger" id="labClearBtn">Vaciar plan</button></div>
         </section>
         <section style="display:grid;gap:14px;align-content:start">
-          <div class="lab-card"><h3>⚖️ Comparador de sitios</h3><p class="lab-muted">Elige hasta tres lugares y compáralos por valoración, precio, zona y votos del grupo.</p><div id="labCompareList" class="lab-compare"></div><div class="lab-row" style="margin-top:10px"><button class="lab-secondary" id="labClearCompareBtn">Limpiar comparador</button></div></div>
+          <div class="lab-card"><h3>⚖️ Comparador de sitios</h3><p class="lab-muted">Elige hasta tres lugares y compáralos por sellos, precio, zona y votos del grupo.</p><div id="labCompareList" class="lab-compare"></div><div class="lab-row" style="margin-top:10px"><button class="lab-secondary" id="labClearCompareBtn">Limpiar comparador</button></div></div>
           <div class="lab-card"><h3>🗒️ Diario de descubrimientos</h3><p class="lab-muted">Guarda notas personales, marca sitios visitados y ponles una valoración privada. Todo se guarda en este navegador.</p><div class="lab-field"><label for="labJournalSearch">Buscar entre mis notas</label><input id="labJournalSearch" type="search" placeholder="Nombre del sitio…"></div><div id="labJournalList"></div><div class="lab-row" style="margin-top:10px"><button class="lab-secondary" id="labExportJournalBtn">Exportar diario (.json)</button><button class="lab-secondary" id="labImportBtn">Importar copia</button><input id="labImportFile" type="file" accept="application/json,.json" hidden></div></div>
         </section>
       </div>
@@ -2433,6 +2433,52 @@ const DATA = [{"n": "Ni-Fu Ni-Fa", "cm": "Coctelería", "cd": "Coctelería", "z"
 const RENTA_MIS_SITIOS_KEY = 'renta-mis-sitios';
 function rentaMisSitios(){ try{ return JSON.parse(localStorage.getItem(RENTA_MIS_SITIOS_KEY)||'[]'); }catch(e){ return []; } }
 try{ rentaMisSitios().forEach(d=>{ if(d && d.n && !DATA.some(x=>x.n===d.n)) DATA.push(Object.assign({e:'Abierto', mine:true}, d)); }); }catch(e){}
+// ── Sellos de RENTA ──
+// Las valoraciones externas solo se usan por dentro para ordenar; lo que se enseña son sellos propios, nunca números.
+const RENTA_SELLOS = {
+  top:    {i:'🏆', t:'Imprescindible', d:'De lo mejor de toda la selección de RENTA'},
+  zona:   {i:'📍', t:'Top de la zona', d:'Entre los 3 mejores de su tipo en esta zona'},
+  joya:   {i:'💎', t:'Joya escondida', d:'Muy bueno y todavía poco conocido'},
+  nuevo:  {i:'✨', t:'Nuevo', d:'Recién incorporado a RENTA'},
+  michelin:{i:'🎖️', t:'Guía Michelin', d:'Aparece en la Guía Michelin'},
+  tuyo:   {i:'⭐', t:'Guardado por ti', d:'Lo añadiste tú a tu lista'},
+  sel:    {i:'✓', t:'Selección RENTA', d:'Elegido a mano para RENTA'},
+  mapa:   {i:'🗺️', t:'Del mapa', d:'Encontrado en OpenStreetMap; aún no está en la selección'}
+};
+let _rsCache = null, _rsN = -1;
+function rentaScore(d){ return d && d.v ? Number(d.v) + Math.log10(Math.max(Number(d.nr)||1,1))*0.25 : 0; }
+function rentaSellosAll(){
+  if(_rsCache && _rsN===DATA.length) return _rsCache;
+  const open = DATA.filter(d=>d.e!=='Cerrado definitivamente' && !d.cerradoDesde && d.v);
+  const sorted = open.map(rentaScore).sort((a,b)=>b-a);
+  const cut = sorted[Math.max(0, Math.floor(sorted.length*0.12)-1)] || 99;
+  const groups = {};
+  open.forEach(d=>{ if(!d.z) return; const k=d.z+'|'+d.cm; (groups[k]=groups[k]||[]).push(d); });
+  const zona = new Set();
+  Object.values(groups).forEach(g=>{ if(g.length<4) return; g.sort((a,b)=>rentaScore(b)-rentaScore(a)).slice(0,3).forEach(d=>zona.add(d.n)); });
+  const m = new Map();
+  DATA.forEach(d=>{
+    const b=[];
+    if(/michelin/i.test((d.cd||'')+' '+(d.cm||''))) b.push('michelin');
+    if(d.v && rentaScore(d)>=cut) b.push('top');
+    if(zona.has(d.n)) b.push('zona');
+    if(d.v>=4.6 && d.nr>=20 && d.nr<250) b.push('joya');
+    if(d.nuevo) b.push('nuevo');
+    if(d.mine) b.push('tuyo');
+    m.set(d.n, b);
+  });
+  _rsCache = m; _rsN = DATA.length; return m;
+}
+function rentaSellos(d){
+  if(!d) return [];
+  let b = (rentaSellosAll().get(d.n) || []).slice();
+  if(!DATA.some(x=>x.n===d.n)) b = (d.src==='osm'||d.fromMap) ? ['mapa'] : b;
+  if(!b.length) b = (d.src==='osm'||d.fromMap) && !DATA.some(x=>x.n===d.n) ? ['mapa'] : ['sel'];
+  return b;
+}
+function rentaSellosText(d, max){ return rentaSellos(d).slice(0, max||2).map(k=>RENTA_SELLOS[k].i+' '+RENTA_SELLOS[k].t).join(' · '); }
+function rentaSellosHtml(d, max){ return rentaSellos(d).slice(0, max||3).map(k=>`<span class="sello sello-${k}" title="${RENTA_SELLOS[k].d}">${RENTA_SELLOS[k].i} ${RENTA_SELLOS[k].t}</span>`).join(''); }
+function rentaSelloBox(d){ const k=rentaSellos(d)[0]; const S=RENTA_SELLOS[k]; return `<div class="rating sellobox" title="${S.d}">${S.i}<small>${S.t}</small></div>`; }
 const ZONE_COORDS = {"Centro": [40.4168, -3.7038], "Arganzuela": [40.3959, -3.6975], "Retiro": [40.4079, -3.6763], "Salamanca": [40.4283, -3.6835], "Chamartín": [40.4531, -3.6774], "Tetuán": [40.4589, -3.6997], "Chamberí": [40.435, -3.704], "Fuencarral-El Pardo": [40.482, -3.725], "Moncloa-Aravaca": [40.435, -3.735], "Latina": [40.398, -3.746], "Carabanchel": [40.383, -3.728], "Usera": [40.38, -3.706], "Puente de Vallecas": [40.39, -3.665], "Moratalaz": [40.408, -3.647], "Ciudad Lineal": [40.446, -3.656], "Hortaleza": [40.475, -3.642], "Villaverde": [40.347, -3.708], "Villa de Vallecas": [40.372, -3.628], "Vicálvaro": [40.403, -3.606], "San Blas-Canillejas": [40.437, -3.607], "Barajas": [40.472, -3.58], "Alcalá de Henares": [40.482, -3.363], "Alcobendas": [40.541, -3.642], "Alcorcón": [40.346, -3.825], "Arroyomolinos": [40.276, -3.901], "Boadilla del Monte": [40.403, -3.876], "Coslada": [40.424, -3.561], "Fuenlabrada": [40.283, -3.794], "Getafe": [40.305, -3.732], "Las Rozas": [40.492, -3.873], "Leganés": [40.327, -3.764], "Majadahonda": [40.473, -3.872], "Móstoles": [40.322, -3.865], "Navalcarnero": [40.34, -4.009], "Paracuellos de Jarama": [40.506, -3.524], "Pinto": [40.248, -3.698], "Pozuelo de Alarcón": [40.434, -3.813], "Rivas-Vaciamadrid": [40.33, -3.538], "San Sebastián de los Reyes": [40.546, -3.628], "Torrejón de Ardoz": [40.46, -3.477], "Valdemoro": [40.19, -3.677], "Velilla de San Antonio": [40.355, -3.421], "Villaviciosa de Odón": [40.357, -3.899]};
 
 // Sugerencias investigadas manualmente (no viven en tu lista original de Google Maps).
@@ -2486,7 +2532,7 @@ const SUGGERIDOS = [
 
   // --- Carnes/Parrilla ---
   {n:"Lana", cm:"Carnes/Parrilla", cd:"Asador argentino de alto nivel", z:"Centro", info:"Puesto nº5 mundial en World's 101 Best Steak Restaurants 2026. Bife de chorizo excepcional."},
-  {n:"CARVONE Grill Steakhouse", cm:"Carnes/Parrilla", cd:"Steakhouse", z:"Madrid", info:"Uno de los asadores mejor valorados de la ciudad según TheFork (9.4/10)."},
+  {n:"CARVONE Grill Steakhouse", cm:"Carnes/Parrilla", cd:"Steakhouse", z:"Madrid", info:"Uno de los asadores mejor valorados de la ciudad según TheFork."},
   {n:"Sur Madrid Steakhouse", cm:"Carnes/Parrilla", cd:"Steakhouse", z:"Madrid", info:"Muy bien valorado, referencia entre los steakhouse de tendencia."},
   {n:"Nuevo Gerardo", cm:"Carnes/Parrilla", cd:"Asador", z:"Chamartín", info:"Uno de los asadores más populares de Chamartín (9.4/10 en TheFork)."},
   {n:"Rubaiyat Madrid", cm:"Carnes/Parrilla", cd:"Asador/Rodizio", z:"Chamartín", info:"Carnes de calidad en zona norte, ambiente elegante."},
@@ -2861,7 +2907,7 @@ function renderResults(){
       <div class="venue-photo" style="background-image:linear-gradient(180deg,transparent 40%,rgba(5,10,18,.52)),url('${String(d.photo||venuePhoto(d.cm)).replace(/'/g,'%27')}')">
         <span class="photo-category">${CAT_ICONS[d.cm]||'✦'} ${d.cd || d.cm}</span>
         <span class="photo-note">Imagen orientativa</span>
-        ${d.v ? `<span class="photo-rating">★ ${d.v.toFixed(1)}</span>` : ''}
+        ${rentaSellos(d)[0]!=='sel' ? `<span class="photo-rating sello-photo">${rentaSellosText(d,1)}</span>` : ''}
       </div>
       <div class="row1">
         <div>
@@ -2873,7 +2919,7 @@ function renderResults(){
             ${d.p ? `<span>· ${d.p}€</span>` : ''}
           </div>
         </div>
-        <div class="rating" title="Valoración en Google Maps">${d.v ? '★ '+d.v.toFixed(1) : '—'}<small>${d.nr ? d.nr+' en Google' : ''}</small></div>
+        ${rentaSelloBox(d)}
       </div>
       <div class="expand-content">
         <div>${statusLabel(d.e)}${d.z ? ' · '+d.z : ''}</div>
@@ -3293,7 +3339,7 @@ document.getElementById('liveSearchBtn').onclick = async ()=>{
     } else {
       box.innerHTML = filtered.map(p=>{
         const name = p.displayName?.text || 'Sin nombre';
-        const rating = p.rating ? `★ ${p.rating.toFixed(1)} Google` : '';
+        const rating = '';
         const nr = p.userRatingCount ? `(${p.userRatingCount} rev.)` : '';
         const addr = p.formattedAddress || '';
         const uri = p.googleMapsUri || '#';
@@ -3424,7 +3470,7 @@ document.getElementById('eventsLiveBtn').onclick = async ()=>{
   } else {
     box.innerHTML = allResults.map(p=>{
       const name = p.displayName?.text || 'Sin nombre';
-      const rating = p.rating ? `★ ${p.rating.toFixed(1)} Google` : '';
+      const rating = '';
       const addr = p.formattedAddress || '';
       const uri = p.googleMapsUri || '#';
       return `<div class="aiResult">
@@ -3965,7 +4011,7 @@ document.getElementById('planBtn').onclick = async ()=>{
     if(s._live){
       const p = s._live;
       const name = p.displayName?.text || 'Sitio encontrado';
-      const rating = p.rating ? `★ ${p.rating.toFixed(1)} Google` : '';
+      const rating = '';
       const addr = p.formattedAddress || '';
       const uri = p.googleMapsUri || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name+' '+addr)}`;
       waText += `${s._time} — ${s._label}: ${name}\n`;
@@ -4007,7 +4053,7 @@ document.getElementById('planBtn').onclick = async ()=>{
                 ${s.p ? `<span>· ${s.p}€</span>` : ''}
               </div>
             </div>
-            <div class="rating">${s.v ? '★ '+s.v.toFixed(1) : '—'}</div>
+            ${rentaSelloBox(s)}
           </div>
           <div class="mapbtns" style="margin-top:10px;">
             <a class="mapbtn gmaps" href="${links.gmapsView}" target="_blank" rel="noopener">📍 Ver</a>
@@ -4715,7 +4761,7 @@ function pdCard(d, opt){
       <h3>${pdEsc(d.n)}${badge}</h3>
       <div class="meta"><span class="tagpill">${CAT_ICONS[d.cm]||'📍'} ${pdEsc(d.cd||d.cm||'Sitio')}</span><span>${pdEsc(d.z||d.addr||'')}${dist}${price}</span></div>
     </div>
-    <div class="rating" title="Valoración en Google Maps">${d.v?'★ '+Number(d.v).toFixed(1):'—'}<small>${d.nr?d.nr+' en Google':''}</small></div></div>
+    ${rentaSelloBox(d)}</div>
     ${opt.when ? pdPlanInfo(d) : ''}
     ${d.info?`<div style="margin-top:9px;font-size:12px;color:var(--muted);line-height:1.5;">${pdEsc(d.info)}</div>`:''}
     ${d.openNote?`<div style="margin-top:6px;font-size:11.5px;color:var(--green);">${pdEsc(d.openNote)}</div>`:''}
@@ -4735,7 +4781,7 @@ function planWhy(item, anchor, anchorName, t){
   try{
     const why=[];
     if(anchorName && planHasCoords(item) && anchor){ const dk=haversine(anchor[0],anchor[1],item.lat,item.lon); why.push(dk<0.15?'Justo en '+anchorName:'A '+(dk<0.95?Math.round(dk*1000/50)*50+' m':dk.toFixed(1).replace('.',',')+' km')+' de '+anchorName); }
-    if(item.v>=4.7 && item.nr>=300) why.push('de lo mejor valorado de la zona');
+    const sl = rentaSellos(item); if(sl.includes('top')) why.push('imprescindible de RENTA'); else if(sl.includes('zona')) why.push('de lo mejor de la zona'); else if(sl.includes('joya')) why.push('joya escondida');
     const op = planOpenAt(item, t); if(op===true) why.push('abierto a esa hora');
     item._why = why.join(' · '); item._open = op;
   }catch(e){}
@@ -4743,7 +4789,7 @@ function planWhy(item, anchor, anchorName, t){
 // Más información en las paradas del plan: valoración, qué es, si está abierto y por qué se eligió
 function pdPlanInfo(d){
   const bits=[];
-  if(d.v) bits.push(`<b>★ ${Number(d.v).toFixed(1).replace('.',',')}</b>${d.nr?` <span style="opacity:.75">(${Number(d.nr).toLocaleString('es-ES')} reseñas en Google)</span>`:''}`);
+  const sh = rentaSellosHtml(d,3); if(sh) bits.push(sh);
   if(d._open===true) bits.push('<span style="color:var(--green)">🟢 Abierto a esa hora</span>');
   else if(d._open===false) bits.push('<span style="color:#e8a24a">🟠 Revisa el horario</span>');
   const what = [d.osmCuisine && !String(d.cd||'').toLowerCase().includes(String(d.osmCuisine).toLowerCase()) ? String(d.osmCuisine).replace(/;/g,', ') : '', d.no].filter(Boolean).join(' · ');
@@ -4890,7 +4936,7 @@ function pdDrawPlanMap(stops){
     if(open){ open.line.push(ll); open.open=false; }
     else if(last){ const far = haversine(last[0],last[1],ll[0],ll[1])>2.5; (far?transitLines:walkLine).push(far?[last,ll]:{line:[last,ll]}); }
     L.marker(ll,{icon:icon('<b>'+n+'</b>','pm-stopmk'), zIndexOffset:500}).addTo(map)
-      .bindPopup(`<b>${n}. ${pdEsc(s.n)}</b><br>${pdFmt(s._start)} · ${pdEsc(s.cd||s.cm||'')}${s.v?'<br>★ '+Number(s.v).toFixed(1):''}`);
+      .bindPopup(`<b>${n}. ${pdEsc(s.n)}</b><br>${pdFmt(s._start)} · ${pdEsc(s.cd||s.cm||'')}<br>${pdEsc(rentaSellosText(s,2))}`);
     last = ll;
   });
   walkLine.forEach(w=>{ if(w.line.length>1) L.polyline(w.line,{color:'#2ec4b6',weight:4,opacity:.85}).addTo(map); });
@@ -5442,7 +5488,7 @@ async function pdRun(shuffle){
       pdRun._sections = out.sections; pdRun._p = p; pdRun._rej = new Set();
       out.sections.forEach((s,si)=>{
         if(out.sections.length>1 || p.wants.length>1) html += `<div class="secTitle">${s.want.label} <small>${s.items.length} opciones</small></div>`;
-        else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por valoración${p.near&&userCoords?' y cercanía':''}</small></div>`;
+        else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por selección de RENTA${p.near&&userCoords?' y cercanía':''}</small></div>`;
         html += s.items.length ? s.items.map((d,ii)=>pdCard(d,{swap:'L:'+si+':'+ii})).join('') : `<div class="emptystate">Nada con esos filtros 😕</div>`;
       });
       pdRun._items = out.sections.flatMap(s=>s.items);
@@ -5782,7 +5828,7 @@ function radarBudget(d){
 function radarPopupHtml(d){
   const links=mapLinks(d.n,d.z);
   const isFav=favoriteNames.has(d.n);
-  const rating=d.v ? `★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones en Google`:''}` : 'Valoración no disponible';
+  const rating=rentaSellosText(d,2);
   const category=CAT_ICONS[d.cm]||'✦';
   const zone=d.z || 'Madrid';
   const desc=d.osm ? 'Lugar encontrado en OpenStreetMap. Comprueba su ficha antes de ir.' : (d.verifiedAt ? 'Ubicación verificada en el mapa.' : 'Fotografía ilustrativa. Comprueba la ubicación y los datos antes de desplazarte.');
@@ -5960,7 +6006,7 @@ function openDiscover(){
     feed.innerHTML=discoverItems.map((d,i)=>{
       const links=mapLinks(d.n,d.z);
       const photo=d.photo || (realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm);
-      const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones en Google`:''}`:'Valoración no disponible';
+      const rating=rentaSellosText(d,2);
       const budget=radarBudget(d);
       const saved=favoriteNames.has(d.n);
       const blurb=d.no || (d.cm==='Ocio/Espacios no gastronómicos'?'Una idea para salir de la rutina y descubrir algo distinto.':'Una opción para guardar y tener a mano cuando quieras organizar un plan.');
@@ -6088,7 +6134,7 @@ function showSurprise(){
   document.getElementById('surprisePhoto').style.backgroundImage=`linear-gradient(180deg,transparent,rgba(0,0,0,.08)),url('${String(pick.photo||venuePhoto(pick.cm)).replace(/'/g,'%27')}')`;
   document.getElementById('surpriseCategory').textContent=`${CAT_ICONS[pick.cm]||'✦'} ${pick.cd||pick.cm}`;
   document.getElementById('surpriseTitle').textContent=pick.n;
-  document.getElementById('surpriseMeta').textContent=[pick.z||'Madrid',pick.p?`${pick.p} € por persona`:'precio por consultar',pick.v?`★ ${pick.v.toFixed(1)}${pick.nr?` · ${pick.nr} opiniones`:''}`:'valoración no disponible'].join(' · ');
+  document.getElementById('surpriseMeta').textContent=[pick.z||'Madrid',pick.p?`${pick.p} € por persona`:'precio por consultar',rentaSellosText(pick,2)].join(' · ');
   document.getElementById('surpriseDescription').textContent='Elegido al azar entre los resultados que encajan con tu búsqueda. Revisa el horario y el precio antes de ir.';
   document.getElementById('surpriseMapLink').href=links.gmapsView;
   document.getElementById('surpriseOverlay').hidden=false;
@@ -6230,11 +6276,11 @@ function labEditNote(name){const current=labNotes[name]||'';const note=prompt('T
 function openPlanLab(){const overlay=document.getElementById('planLabOverlay');if(!overlay)return;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';const settings=labLoad().settings||{};const date=document.getElementById('labPlanDate');if(date&&!date.value){const d=new Date();d.setDate(d.getDate()+((6-d.getDay()+7)%7||7));date.value=d.toISOString().slice(0,10)}['labStartTime','labBudgetPerPerson','labPeople','labPlanName'].forEach((id,i)=>{const el=document.getElementById(id);const key=['time','budget','people','name'][i];if(el&&settings[key]&&(!el.value||el.value===({time:'19:30',budget:'60',people:'2',name:''}[key])))el.value=settings[key]});labUpdate();document.getElementById('closePlanLabBtn').focus()}
 function closePlanLab(){const overlay=document.getElementById('planLabOverlay');overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow=''}
 function labUpdate(){const planList=document.getElementById('labStopsList');if(!planList)return;const budget=Number(document.getElementById('labBudgetPerPerson')?.value||60);const people=Math.max(1,Number(document.getElementById('labPeople')?.value||2));const approx=labPlan.reduce((sum,item)=>{const d=labPlace(item.name);const m=(d?.p||'').match(/(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?/);return sum+(m?(Number(m[1])+Number(m[2]||m[1]))/2:0)},0);document.getElementById('labStopsStat').textContent=labPlan.length;document.getElementById('labBudgetStat').textContent=Math.round((approx||budget)*people)+' €';document.getElementById('labVisitedStat').textContent=labVisited.size;document.getElementById('labCompareStat').textContent=labCompare.length+'/3';
-if(!labPlan.length)planList.innerHTML='<div class="lab-empty">Tu itinerario está vacío.<br>Vuelve a las tarjetas y pulsa “＋ Mi plan”.</div>';else planList.innerHTML=labPlan.map((item,i)=>{const d=labPlace(item.name);return `<div class="lab-stop"><div class="lab-stop-num">${i+1}</div><div><h4>${labEscape(item.name)}</h4><small>${labEscape(d?.z||'Madrid')} · ${labEscape(d?.cd||d?.cm||'Sitio')} · ${d?.p?labEscape(d.p)+' €':'precio por confirmar'}${d?.v?' · ★ '+Number(d.v).toFixed(1):''}</small><div class="lab-field" style="margin:8px 0 0"><input type="time" aria-label="Hora de ${labEscape(item.name)}" data-lab-time="${labEscape(item.name)}" value="${labEscape(item.time||'')}" style="padding:7px 8px;max-width:145px"><input type="text" aria-label="Nota para ${labEscape(item.name)}" data-lab-stopnote="${labEscape(item.name)}" value="${labEscape(item.note||'')}" placeholder="Nota / reserva / recordatorio" style="margin-top:6px;padding:8px"></div><label class="lab-check" style="margin-top:7px"><input type="checkbox" data-lab-done="${labEscape(item.name)}" ${item.done?'checked':''}> Parada completada</label></div><div class="lab-stop-actions"><button class="lab-icon-btn" data-lab-up="${i}" title="Subir">↑</button><button class="lab-icon-btn" data-lab-down="${i}" title="Bajar">↓</button><button class="lab-icon-btn" data-lab-remove="${labEscape(item.name)}" title="Quitar">×</button></div></div>`}).join('');
-const compare=document.getElementById('labCompareList');if(!labCompare.length)compare.innerHTML='<div class="lab-empty" style="grid-column:1/-1">Añade hasta 3 sitios desde sus tarjetas.</div>';else compare.innerHTML=labCompare.map(name=>{const d=labPlace(name)||{};const votes=Number(labVotes[name]||0);return `<div class="lab-compare-item"><h4>${labEscape(name)}</h4><p>★ ${d.v?Number(d.v).toFixed(1):'—'} ${d.nr?'· '+Number(d.nr).toLocaleString('es-ES')+' opiniones en Google':''}</p><p>€ ${labEscape(d.p||'Por confirmar')}</p><p>⌖ ${labEscape(d.z||'Madrid')}</p><p>${labEscape(d.cd||d.cm||'Lugar')}</p><p>Tu nota: ${labRatings[name]?'★'.repeat(labRatings[name]):'—'}</p><div class="lab-votes"><button data-lab-vote="${labEscape(name)}" data-vote="-1">−</button><strong>${votes} votos</strong><button data-lab-vote="${labEscape(name)}" data-vote="1">＋</button></div><button class="lab-icon-btn" style="margin-top:8px" data-lab-removecompare="${labEscape(name)}">Quitar</button></div>`}).join('');
+if(!labPlan.length)planList.innerHTML='<div class="lab-empty">Tu itinerario está vacío.<br>Vuelve a las tarjetas y pulsa “＋ Mi plan”.</div>';else planList.innerHTML=labPlan.map((item,i)=>{const d=labPlace(item.name);return `<div class="lab-stop"><div class="lab-stop-num">${i+1}</div><div><h4>${labEscape(item.name)}</h4><small>${labEscape(d?.z||'Madrid')} · ${labEscape(d?.cd||d?.cm||'Sitio')} · ${d?.p?labEscape(d.p)+' €':'precio por confirmar'}${d?' · '+rentaSellosText(d,1):''}</small><div class="lab-field" style="margin:8px 0 0"><input type="time" aria-label="Hora de ${labEscape(item.name)}" data-lab-time="${labEscape(item.name)}" value="${labEscape(item.time||'')}" style="padding:7px 8px;max-width:145px"><input type="text" aria-label="Nota para ${labEscape(item.name)}" data-lab-stopnote="${labEscape(item.name)}" value="${labEscape(item.note||'')}" placeholder="Nota / reserva / recordatorio" style="margin-top:6px;padding:8px"></div><label class="lab-check" style="margin-top:7px"><input type="checkbox" data-lab-done="${labEscape(item.name)}" ${item.done?'checked':''}> Parada completada</label></div><div class="lab-stop-actions"><button class="lab-icon-btn" data-lab-up="${i}" title="Subir">↑</button><button class="lab-icon-btn" data-lab-down="${i}" title="Bajar">↓</button><button class="lab-icon-btn" data-lab-remove="${labEscape(item.name)}" title="Quitar">×</button></div></div>`}).join('');
+const compare=document.getElementById('labCompareList');if(!labCompare.length)compare.innerHTML='<div class="lab-empty" style="grid-column:1/-1">Añade hasta 3 sitios desde sus tarjetas.</div>';else compare.innerHTML=labCompare.map(name=>{const d=labPlace(name)||{};const votes=Number(labVotes[name]||0);return `<div class="lab-compare-item"><h4>${labEscape(name)}</h4><p>${labEscape(rentaSellosText(d,2))}</p><p>€ ${labEscape(d.p||'Por confirmar')}</p><p>⌖ ${labEscape(d.z||'Madrid')}</p><p>${labEscape(d.cd||d.cm||'Lugar')}</p><p>Tu nota: ${labRatings[name]?'★'.repeat(labRatings[name]):'—'}</p><div class="lab-votes"><button data-lab-vote="${labEscape(name)}" data-vote="-1">−</button><strong>${votes} votos</strong><button data-lab-vote="${labEscape(name)}" data-vote="1">＋</button></div><button class="lab-icon-btn" style="margin-top:8px" data-lab-removecompare="${labEscape(name)}">Quitar</button></div>`}).join('');
 const q=(document.getElementById('labJournalSearch')?.value||'').toLocaleLowerCase('es');const journalNames=[...new Set([...Object.keys(labNotes),...labVisited,...Object.keys(labRatings)])].filter(n=>n.toLocaleLowerCase('es').includes(q)).sort((a,b)=>a.localeCompare(b,'es'));const journal=document.getElementById('labJournalList');journal.innerHTML=journalNames.length?journalNames.map(name=>`<div class="lab-stop"><div class="lab-stop-num">${labVisited.has(name)?'✓':'✎'}</div><div><h4>${labEscape(name)}</h4><small>${labVisited.has(name)?'Visitado':'Pendiente'}${labRatings[name]?' · Tu nota: '+'★'.repeat(labRatings[name]):''}</small><p style="font-size:12px;line-height:1.5;margin:6px 0 0;overflow-wrap:anywhere">${labEscape(labNotes[name]||'Sin nota personal')}</p></div><div class="lab-stop-actions"><button class="lab-icon-btn" data-lab-note="${labEscape(name)}">Editar</button><button class="lab-icon-btn" data-lab-visited="${labEscape(name)}">${labVisited.has(name)?'Desmarcar':'Visitado'}</button></div></div>`).join(''):'<div class="lab-empty">Todavía no hay notas ni visitas guardadas.</div>';
 const checklist=document.querySelectorAll('#labChecklist [data-test]');let checked=0;checklist.forEach(el=>{el.checked=!!labChecklist[el.dataset.test];if(el.checked)checked++});document.getElementById('labChecklistProgress').textContent=checked+' de '+checklist.length+' comprobaciones';document.getElementById('planCountBadge').textContent=labPlan.length;}
-function labPlanText(){const date=document.getElementById('labPlanDate')?.value||'';const title=(document.getElementById('labPlanName')?.value||'Mi plan RADAR').trim();const people=document.getElementById('labPeople')?.value||'2';let out=`${title}\n${date?`Fecha: ${date}\n`:''}Personas: ${people}\n\n`;if(!labPlan.length)out+='Todavía no hay paradas en el itinerario.';labPlan.forEach((it,i)=>{const d=labPlace(it.name);out+=`${i+1}. ${it.time?it.time+' · ':''}${it.name}\n   ${d?.z||'Madrid'} · ${d?.p||'Precio por confirmar'}${d?.v?' · ★ '+d.v:''}\n   ${mapLinks(it.name,d?.z).gmapsView}\n`;if(it.note)out+=`   Nota: ${it.note}\n`;});out+=`\nPresupuesto orientativo: ${document.getElementById('labBudgetPerPerson')?.value||60} € por persona`;return out}
+function labPlanText(){const date=document.getElementById('labPlanDate')?.value||'';const title=(document.getElementById('labPlanName')?.value||'Mi plan RADAR').trim();const people=document.getElementById('labPeople')?.value||'2';let out=`${title}\n${date?`Fecha: ${date}\n`:''}Personas: ${people}\n\n`;if(!labPlan.length)out+='Todavía no hay paradas en el itinerario.';labPlan.forEach((it,i)=>{const d=labPlace(it.name);out+=`${i+1}. ${it.time?it.time+' · ':''}${it.name}\n   ${d?.z||'Madrid'} · ${d?.p||'Precio por confirmar'}${d?' · '+rentaSellosText(d,1):''}\n   ${mapLinks(it.name,d?.z).gmapsView}\n`;if(it.note)out+=`   Nota: ${it.note}\n`;});out+=`\nPresupuesto orientativo: ${document.getElementById('labBudgetPerPerson')?.value||60} € por persona`;return out}
 async function labShare(){const txt=labPlanText();try{if(navigator.share){await navigator.share({title:document.getElementById('labPlanName').value||'Mi plan RADAR',text:txt});labToast('Panel de compartir abierto')}else{await labCopy(txt);labToast('Plan copiado para compartir')}}catch(e){if(e.name!=='AbortError'){labCopy(txt);labToast('Plan copiado para compartir')}}}
 async function labCopy(txt){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(txt);return true}}catch(e){}const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(!ok)prompt('Copia el contenido del plan:',txt);return ok}
 function labDownload(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
@@ -6306,7 +6352,7 @@ renderResults();
     return s;
   }
   function makeCard(d,reason,actions='assistant'){
-    const href=maps(d), p=priceText(d), rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones en Google`:''}`:'Valoración sin dato';
+    const href=maps(d), p=priceText(d), rating=rentaSellosText(d,2);
     return `<article class="radar-feature-card"><div class="radar-feature-emoji">${categoryEmoji(d)}</div><div><h3>${escapeHtmlSafe(d.n)}</h3><p>${escapeHtmlSafe([d.z||'Zona por confirmar',p,rating,reason||''].filter(Boolean).join(' · '))}</p><div class="radar-feature-card-actions"><a href="${href}" target="_blank" rel="noopener">Ver ficha ↗</a><button type="button" data-radar-add="${escapeHtmlSafe(d.n)}">＋ Añadir al plan</button><button type="button" data-radar-like="${escapeHtmlSafe(d.n)}" data-radar-type="${escapeHtmlSafe(d.cm||'')}">Me gusta ♥</button></div></div></article>`;
   }
   function escapeHtmlSafe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -6377,7 +6423,7 @@ renderResults();
   function renderLive(){
     const arr=liveCandidates(),out=$('radarLiveResults');
     if(!arr.length){out.innerHTML='<p class="radar-feature-disclaimer">No hay resultados con esos filtros. Amplía el presupuesto o cambia la zona.</p>';return}
-    out.innerHTML=arr.map(d=>`<article class="radar-live-item"><h3>${escapeHtmlSafe(d.n)}</h3><p>${escapeHtmlSafe([d.z||'Zona por confirmar',priceText(d),d.v?'★ '+Number(d.v).toFixed(1):'Sin valoración',d.e||'Estado no disponible'].join(' · '))}</p><button type="button" data-radar-add="${escapeHtmlSafe(d.n)}">＋ Mi plan</button> <button type="button" data-radar-like="${escapeHtmlSafe(d.n)}" data-radar-type="${escapeHtmlSafe(d.cm||'')}">♥ Me gusta</button> <a href="${maps(d)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--accent);font-weight:800">Mapa ↗</a></article>`).join('');
+    out.innerHTML=arr.map(d=>`<article class="radar-live-item"><h3>${escapeHtmlSafe(d.n)}</h3><p>${escapeHtmlSafe([d.z||'Zona por confirmar',priceText(d),rentaSellosText(d,1),d.e||'Estado no disponible'].join(' · '))}</p><button type="button" data-radar-add="${escapeHtmlSafe(d.n)}">＋ Mi plan</button> <button type="button" data-radar-like="${escapeHtmlSafe(d.n)}" data-radar-type="${escapeHtmlSafe(d.cm||'')}">♥ Me gusta</button> <a href="${maps(d)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--accent);font-weight:800">Mapa ↗</a></article>`).join('');
   }
   ['radarLivePrice','radarLiveRating','radarLiveOpen','radarLiveType','radarLiveSort'].forEach(id=>$(id).addEventListener('change',renderLive));
   $('radarLiveZone').addEventListener('input',renderLive);
@@ -6435,7 +6481,7 @@ renderResults();
       crewShortlist=safeData().filter(d=>priceWithin(d,budget)&& (group==='any'||typeGroup(d)===group)&&!((labPrefs.dislikedNames||[]).includes(d.n)))
         .sort((a,b)=>score(b,{budget,group})-score(a,{budget,group})).slice(0,6);
     }
-    out.innerHTML=crewShortlist.map(d=>`<article class="radar-feature-card"><div class="radar-feature-emoji">${categoryEmoji(d)}</div><div><h3>${escapeHtmlSafe(d.n)}</h3><p>${escapeHtmlSafe([d.z||'Zona por confirmar',priceText(d),d.v?'★ '+Number(d.v).toFixed(1):'Sin valoración'].join(' · '))}</p><div class="radar-vote-row"><button type="button" class="radar-vote-btn" data-crew-vote="${escapeHtmlSafe(d.n)}">👍 Votar</button><span class="radar-vote-count">${Number(crewVotes[d.n]||0)} votos</span><button type="button" class="radar-vote-btn" data-radar-add="${escapeHtmlSafe(d.n)}">＋ Añadir</button></div></div></article>`).join('');
+    out.innerHTML=crewShortlist.map(d=>`<article class="radar-feature-card"><div class="radar-feature-emoji">${categoryEmoji(d)}</div><div><h3>${escapeHtmlSafe(d.n)}</h3><p>${escapeHtmlSafe([d.z||'Zona por confirmar',priceText(d),rentaSellosText(d,1)].join(' · '))}</p><div class="radar-vote-row"><button type="button" class="radar-vote-btn" data-crew-vote="${escapeHtmlSafe(d.n)}">👍 Votar</button><span class="radar-vote-count">${Number(crewVotes[d.n]||0)} votos</span><button type="button" class="radar-vote-btn" data-radar-add="${escapeHtmlSafe(d.n)}">＋ Añadir</button></div></div></article>`).join('');
   }
   $('radarCrewBuild').addEventListener('click',()=>{crewShortlist=[];renderCrew()});
   $('radarCrewReset').addEventListener('click',()=>{crewShortlist.forEach(d=>delete crewVotes[d.n]);write(CREW_STORE,crewVotes);renderCrew()});
@@ -6580,7 +6626,7 @@ renderResults();
   }
   function renderMatchCard(d){
     if(!recentShown.length||recentShown[recentShown.length-1].n!==d.n){recentShown.push({n:d.n,cm:d.cm,type:type(d)});if(recentShown.length>12)recentShown.shift();}
-    const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?' · '+Number(d.nr).toLocaleString('es-ES')+' opiniones en Google':''}`:(d.rating?`★ ${Number(d.rating).toFixed(1)}`:'Valoración no disponible');
+    const rating=rentaSellosText(d,2);
     const address=d.address||d.z||'Madrid';
     const status=d.e||d.businessStatus||'Horario por confirmar';
     const photo=imageFor(d);
@@ -6724,7 +6770,7 @@ renderResults();
     el.innerHTML=smartPlan.map((d,i)=>{
       const time=`${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;mins+=i===0?90:75;
       const cost=pMid(d)||0;
-      const reason=d.v?`★ ${Number(d.v).toFixed(1)}`:'Valoración por confirmar';
+      const reason=rentaSellosText(d,1);
       return `<div class="radar-smart-stop"><div class="stop-number">${i+1}</div><div><h4>${time} · ${esc(d.n)}</h4><p>${esc(d.z||d.address||'Madrid')} · ${esc(priceLabel(d))} · ${reason}</p><div class="stop-actions"><a href="${mapUrl(d)}" target="_blank" rel="noopener" class="radar-feature-secondary" style="text-decoration:none">Mapa ↗</a><button type="button" data-plan-swap="${i}">↻ Cambiar parada</button><button type="button" data-plan-remove="${i}">Quitar</button></div></div></div>`;
     }).join('');
     const total=smartPlan.reduce((s,d)=>s+(pMid(d)||0),0),people=Math.max(1,Number($('radarPlanPeople').value)||1),budget=Number($('radarPlanBudget').value);
@@ -7073,7 +7119,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     return o;
   }
   const card=(n,i,sel)=>{const d=find(n)||{};const g=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(n+' '+(d.z||'Madrid'))}`;
-    return `<label class="vote-item ${sel?'on':''}"><input type="checkbox" data-vi="${i}" ${sel?'checked':''}><span class="vote-main"><b>${esc(n)}</b><small>${esc([d.cd||d.cm,d.z,d.p?d.p+' €':'',d.v?'★ '+d.v:''].filter(Boolean).join(' · '))}</small></span><a href="${g}" target="_blank" rel="noopener" class="vote-map">Maps ↗</a></label>`;};
+    return `<label class="vote-item ${sel?'on':''}"><input type="checkbox" data-vi="${i}" ${sel?'checked':''}><span class="vote-main"><b>${esc(n)}</b><small>${esc([d.cd||d.cm,d.z,d.p?d.p+' €':'',rentaSellosText(d,1)].filter(Boolean).join(' · '))}</small></span><a href="${g}" target="_blank" rel="noopener" class="vote-map">Maps ↗</a></label>`;};
 
   // Compartir búsqueda de Pídeme
   document.addEventListener('click',e=>{
@@ -7305,6 +7351,13 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
   }catch(e){}
 })();
 </script>
+<style id="renta-sellos-css">
+.sello{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:999px;margin:2px 4px 2px 0;background:rgba(197,227,160,.12);color:var(--ink,#eee);border:1px solid rgba(197,227,160,.25);white-space:nowrap}
+.sello-top{background:rgba(242,201,76,.16);border-color:rgba(242,201,76,.45)}.sello-michelin{background:rgba(232,90,79,.14);border-color:rgba(232,90,79,.4)}
+.sello-joya{background:rgba(120,170,255,.14);border-color:rgba(120,170,255,.4)}.sello-mapa{background:transparent;opacity:.8}
+.rating.sellobox{font-size:20px;text-align:center;line-height:1.1;min-width:64px}.rating.sellobox small{display:block;font-size:10px;font-weight:700;opacity:.8;white-space:normal;max-width:76px;margin:3px auto 0}
+.photo-rating.sello-photo{font-size:10.5px;white-space:nowrap;top:12px;left:12px;bottom:auto;right:auto}
+</style>
 <style id="renta-planshare-css">
 #pdShareSheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 #pdShareSheet .sheet{width:min(520px,100%);background:var(--bg2,#121a17);color:var(--ink,#f3f1ea);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}

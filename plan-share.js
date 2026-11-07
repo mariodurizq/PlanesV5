@@ -17,7 +17,7 @@
       } : {
         n: s.n, c: s.cd || s.cm || '', z: s.z || '', a: s.addr ? String(s.addr).replace(/, España$/, '').replace(/, \d{5} Madrid$/, '') : '',
         la: s.lat != null ? r5(s.lat) : null, lo: s.lon != null ? r5(s.lon) : null, s: s._start, e: s._end,
-        v: s.v || null, nr: s.nr || null, w: s._why || '', p0: s.p || ''
+        b: (typeof rentaSellosText==='function' ? rentaSellosText(s,2) : ''), w: s._why || '', p0: s.p || ''
       })
     };
   }
@@ -146,13 +146,13 @@
       } else {
         num++;
         ctx.fillStyle = C.ink; ctx.font = `700 34px ${F}`; nameL.forEach((t, i) => ctx.fillText((i ? '' : num + '. ') + t, tx, y + 50 + i * 42));
-        const meta = [s.c, s.z, s.v ? '★ ' + String(Number(s.v).toFixed(1)).replace('.', ',') : '', s.p0 ? s.p0 + ' €' : ''].filter(Boolean).join(' · ');
-        ctx.fillStyle = C.mut; ctx.font = `400 25px ${F}`; ctx.fillText(meta.slice(0, 60), tx, y + 50 + nameL.length * 42);
+        const meta = [s.c, s.z, s.p0 ? s.p0 + ' €' : ''].filter(Boolean).join(' · ') + (s.b ? '   ' + s.b : '');
+        ctx.fillStyle = C.mut; ctx.font = `400 25px ${F}`; ctx.fillText(meta.slice(0, 70), tx, y + 50 + nameL.length * 42);
       }
       y += h + 18;
     });
     ctx.fillStyle = C.mut; ctx.font = `500 24px ${F}`; ctx.fillText('Hecho con RENTA · ' + BASE.replace(/^https?:\/\//, ''), PAD, H - 62);
-    ctx.font = `400 20px ${F}`; ctx.fillText('Valoraciones: Google Maps · Mapa © OpenStreetMap · © CARTO', PAD, H - 30);
+    ctx.font = `400 20px ${F}`; ctx.fillText('Mapa © OpenStreetMap · © CARTO', PAD, H - 30);
     return await new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/png'); } catch (e) { rej(e); } });
   }
   async function pngSafe(plan) { try { return await png(plan); } catch (e) { return await png(plan, {tiles: false}); } }

@@ -60,7 +60,7 @@ def cargar():
         except Exception as ex:
             print('nuevos.json no se pudo leer:', ex)
     vivos = [d for d in data if d.get('e') != 'Cerrado definitivamente' and not d.get('cerradoDesde')
-             and d.get('v') and d.get('nr')]
+             and d.get('v') and d.get('nr') and not re.search(r'negativ|evitar|no recomend|mala experiencia', d.get('no') or '', re.I)]
     # zona: la que tenga o la del sitio con zona más cercano (≤1,2 km)
     con_z = [d for d in vivos if d.get('z') and d.get('lat')]
     for d in vivos:
@@ -75,6 +75,32 @@ def puntuacion(d):
     return (d.get('v') or 0) + math.log10(max(d.get('nr') or 1, 1)) * 0.25
 
 
+SELLOS = {'top': '🏆 Imprescindible', 'zona': '📍 Top de la zona', 'joya': '💎 Joya escondida', 'michelin': '🎖️ Guía Michelin', 'nuevo': '✨ Nuevo'}
+_SELLOS = {}
+
+
+def calcular_sellos(sitios):
+    """Los mismos sellos que la web: las notas externas solo se usan para ordenar, nunca se publican."""
+    con = [d for d in sitios if d.get('v')]
+    orden = sorted((puntuacion(d) for d in con), reverse=True)
+    corte = orden[max(0, int(len(orden) * 0.12) - 1)] if orden else 99
+    grupos = {}
+    for d in con:
+        if d.get('z'): grupos.setdefault((d['z'], d.get('cm')), []).append(d)
+    zona = set()
+    for g in grupos.values():
+        if len(g) >= 4:
+            for d in sorted(g, key=puntuacion, reverse=True)[:3]: zona.add(d['n'])
+    for d in sitios:
+        b = []
+        if re.search('michelin', (d.get('cd') or '') + (d.get('cm') or ''), re.I): b.append('michelin')
+        if d.get('v') and puntuacion(d) >= corte: b.append('top')
+        if d['n'] in zona: b.append('zona')
+        if (d.get('v') or 0) >= 4.6 and 20 <= (d.get('nr') or 0) < 250: b.append('joya')
+        if d.get('nuevo'): b.append('nuevo')
+        _SELLOS[d['n']] = b
+
+
 def pagina(path, titulo, h1, intro, sitios, otras, tipo):
     url = BASE + path
     items = []
@@ -83,10 +109,10 @@ def pagina(path, titulo, h1, intro, sitios, otras, tipo):
             f"{d['lat']},{d['lon']}" if d.get('lat') else e(d['n'] + ' ' + (d.get('addr') or 'Madrid')))
         precio = f" · {e(d['p'])} €" if d.get('p') else ''
         web = f' · <a href="{e(d["web"])}" rel="nofollow noopener" target="_blank">Web</a>' if d.get('web') else ''
-        desc = e(d.get('info') or d.get('no') or '')
+        desc = e(d.get('info') or '')   # las notas internas (no) no se publican
         items.append(f'''<li class="s"><div class="n"><span class="pos">{i}</span><div><h2>{e(d['n'])}</h2>
 <p class="m">{e(d.get('cd') or d.get('cm'))} · {e(d.get('z') or 'Madrid')}{precio}</p>
-<p class="r">★ {float(d['v']):.1f} <small>({int(d['nr'])} reseñas en Google)</small></p>
+{('<p class="r">' + ' '.join(SELLOS[k] for k in _SELLOS.get(d['n'], [])[:3]) + '</p>') if _SELLOS.get(d['n']) else '<p class="r"><small>✓ Selección RENTA</small></p>'}
 {f'<p class="d">{desc}</p>' if desc else ''}<p class="a">{e(d.get('addr') or '')}</p>
 <p class="l"><a href="{maps}" target="_blank" rel="noopener">📍 Cómo llegar</a>{web} · <a href="../?sitio={e(d['n'])}">Ver en {MARCA}</a></p></div></div></li>''')
     ld = {'@context': 'https://schema.org', '@type': 'ItemList', 'name': h1, 'url': url, 'numberOfItems': len(sitios),
@@ -116,12 +142,13 @@ footer{{margin-top:30px;font-size:12.5px;color:#7f8a83}}</style></head><body><ma
 <a class="cta" href="../">✨ Monta tu plan con {MARCA}</a>
 <ol>{''.join(items)}</ol>
 <nav class="rel"><h3>Más listas</h3>{rel}</nav>
-<footer>Actualizado en {FECHA}. Valoraciones y número de reseñas según Google Maps; horarios y precios pueden cambiar, compruébalos antes de ir.
+<footer>Actualizado en {FECHA}. Lista elaborada por {MARCA}; horarios y precios pueden cambiar, compruébalos antes de ir.
 ¿Algún dato mal? Avísanos desde la ficha del sitio en {MARCA}. · <a href="../legal.html">Aviso legal y privacidad</a></footer></main></body></html>'''
 
 
 def main():
     sitios = cargar()
+    calcular_sellos(sitios)
     out = SITE / 'mejores'; out.mkdir(parents=True, exist_ok=True)
     zonas = {}
     for d in sitios:
@@ -149,10 +176,9 @@ def main():
         por_zona.setdefault(p[2], []).append(p); por_cat.setdefault(p[3], []).append(p)
 
     for fn, h1, z, cat, lista, tipo, ico in plan:
-        media = sum(d['v'] for d in lista) / len(lista)
-        reseñas = sum(int(d['nr']) for d in lista)
-        intro = (f'{len(lista)} sitios elegidos por su valoración en Google (media {media:.1f} ★ con {reseñas:,} reseñas en total)'
-                 f'{"" if z == "Madrid" else " en la zona de " + z}. Lista revisada en {FECHA}.').replace(',', '.')
+        imp = sum(1 for d in lista if 'top' in _SELLOS.get(d['n'], []))
+        intro = (f'Los {len(lista)} imprescindibles de {MARCA}{"" if z == "Madrid" else " en la zona de " + z}, elegidos y ordenados por nuestra selección'
+                 f'{f" ({imp} con sello 🏆 Imprescindible)" if imp else ""}. Lista revisada en {FECHA}.')
         otras = [(q[0], q[1]) for q in por_zona.get(z, []) if q[0] != fn][:10]
         otras += [(q[0], q[1]) for q in por_cat.get(cat, []) if q[0] != fn and q[2] != z][:12]
         titulo = f'{h1} ({MESES[HOY.month - 1]} {HOY.year}) | {MARCA}'
@@ -167,12 +193,12 @@ def main():
         bloques.append(f'<h2>{e("Toda Madrid" if z == "Madrid" else z)}</h2><ul>{enl}</ul>')
     idx = f'''<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Los mejores sitios de Madrid por zona y tipo | {MARCA}</title>
-<meta name="description" content="Listas de las mejores coctelerías, shishas, restaurantes, rooftops y discotecas de Madrid por barrio, según valoraciones en Google. Actualizado en {FECHA}.">
+<meta name="description" content="Listas de las mejores coctelerías, shishas, restaurantes, rooftops y discotecas de Madrid por barrio,, elegidos por RENTA. Actualizado en {FECHA}.">
 <link rel="canonical" href="{BASE}mejores/"><link rel="icon" href="../icon-192.png">
 <style>body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:#0b100e;color:#f1efe8;line-height:1.55}}main{{max-width:760px;margin:0 auto;padding:20px 16px 60px}}
 a{{color:#c5e3a0}}h1{{font-size:28px}}h2{{font-size:19px;margin-top:26px}}ul{{padding-left:18px}}</style></head><body><main>
 <a href="../" style="font-weight:900;font-size:22px;color:#f1efe8;text-decoration:none">{MARCA}</a>
-<h1>Los mejores sitios de Madrid</h1><p>Listas por zona y tipo, ordenadas por valoración en Google. Actualizado en {FECHA}.</p>
+<h1>Los mejores sitios de Madrid</h1><p>Listas por zona y tipo, ordenadas por la selección de RENTA. Actualizado en {FECHA}.</p>
 {''.join(bloques)}</main></body></html>'''
     (out / 'index.html').write_text(idx, encoding='utf-8')
 

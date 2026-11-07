@@ -13,7 +13,7 @@
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="plan-share.js?v=2"></script>
+<script src="plan-share.js?v=3"></script>
 <style>
 :root{--bg:#0b100e;--card:#141c18;--ink:#f1efe8;--mut:#9aa59e;--acc:#2ec4b6;--lime:#c5e3a0;--or:#e8a24a;--line:#24302b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;line-height:1.45}
@@ -41,7 +41,7 @@ ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
 <main>
   <header><a href="./">RENTA</a><span>· Planes en Madrid</span></header>
   <div id="app"><div class="err">Cargando el plan…</div></div>
-  <p class="cta">¿Quieres montar el tuyo? <a href="./">Prueba RENTA</a> y pídele lo que te apetezca.<br><a href="legal.html" style="color:var(--mut);font-weight:400">Aviso legal y privacidad</a> · Mapa © OpenStreetMap · © CARTO · Valoraciones: Google Maps</p>
+  <p class="cta">¿Quieres montar el tuyo? <a href="./">Prueba RENTA</a> y pídele lo que te apetezca.<br><a href="legal.html" style="color:var(--mut);font-weight:400">Aviso legal y privacidad</a> · Mapa © OpenStreetMap · © CARTO</p>
 </main>
 <script>
 (async function(){
@@ -68,7 +68,7 @@ ol.r{margin:6px 0 0 18px;padding:0;font-size:13.5px}ol.r li{margin:2px 0}
     n++;
     return `<div class="stop"><div class="t"><b>${fmt(s.s)}</b><small>${fmt(s.e)}</small></div><div class="b">
       <h2><span class="num">${n}</span>${esc(s.n)}</h2>
-      <div class="m">${esc([s.c, s.z, s.v?'★ '+String(Number(s.v).toFixed(1)).replace('.',',')+(s.nr?' ('+Number(s.nr).toLocaleString('es-ES')+' en Google)':' Google'):'', s.p0?s.p0+' €':''].filter(Boolean).join(' · '))}</div>
+      <div class="m">${esc([s.c, s.z, s.p0?s.p0+' €':'', s.b||''].filter(Boolean).join(' · '))}</div>
       ${s.a?`<div class="m">📍 ${esc(s.a)}</div>`:''}${s.w?`<div class="w">💡 ${esc(s.w.charAt(0).toUpperCase()+s.w.slice(1))}</div>`:''}
       <div class="btns"><a href="${gm(s)}" target="_blank" rel="noopener">📍 Ver en Maps</a><a href="${nav(s)}" target="_blank" rel="noopener">🧭 Google Maps</a><a href="${ap(s)}" target="_blank" rel="noopener">🍎 Apple Maps</a></div></div></div>`;
   }).join('');

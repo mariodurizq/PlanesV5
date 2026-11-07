@@ -117,7 +117,7 @@ footer{{margin-top:30px;font-size:12.5px;color:#7f8a83}}</style></head><body><ma
 <ol>{''.join(items)}</ol>
 <nav class="rel"><h3>Más listas</h3>{rel}</nav>
 <footer>Actualizado en {FECHA}. Valoraciones y número de reseñas según Google Maps; horarios y precios pueden cambiar, compruébalos antes de ir.
-¿Algún dato mal? Avísanos desde la ficha del sitio en {MARCA}.</footer></main></body></html>'''
+¿Algún dato mal? Avísanos desde la ficha del sitio en {MARCA}. · <a href="../legal.html">Aviso legal y privacidad</a></footer></main></body></html>'''
 
 
 def main():

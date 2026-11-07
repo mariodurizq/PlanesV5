@@ -8,7 +8,7 @@
 """
 import json, re, sys, time, unicodedata, pathlib, urllib.request, urllib.parse, datetime
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from ubicar import load_data, km  # noqa: E402
+from ubicar import load_data, km, sim, http, overpass_pois, UA  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SERVIDORES = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter',
@@ -96,6 +96,40 @@ def main():
             if p in nombres and p != 'madrid': return nombres[p]
         return None
 
+    # 1) coordenadas de OpenStreetMap en vez de las de Google (las de Google no se pueden guardar indefinidamente)
+    a_osm = []
+    try:
+        pois = overpass_pois(data)
+        idx = {}
+        for k, po in enumerate(pois):
+            for t in re.findall(r'[a-z0-9]{4,}', strip(po['name'])): idx.setdefault(t, []).append(k)
+        for d in data:
+            if d.get('locSrc') != 'google' or not isinstance(d.get('lat'), (int, float)): continue
+            best = None
+            for k in {k for t in re.findall(r'[a-z0-9]{4,}', strip(d['n'])) for k in idx.get(t, [])}:
+                po = pois[k]; sc = sim(d['n'], po['name']); dist = km(d['lat'], d['lon'], po['lat'], po['lon'])
+                if sc >= .85 and dist <= .25 and (not best or sc - dist > best[0]): best = (sc - dist, po)
+            if best:
+                d['lat'], d['lon'] = round(best[1]['lat'], 6), round(best[1]['lon'], 6); d['locSrc'] = 'osm'; d['locationVerified'] = True
+                a_osm.append(d['n'])
+    except SystemExit as e:
+        print('Sin OpenStreetMap para coordenadas:', e)
+    # 2) sitios sin coordenadas: buscarlos por nombre en OpenStreetMap (Nominatim, 1 petición por segundo)
+    geocod = []
+    for d in [d for d in data if not isinstance(d.get('lat'), (int, float)) and d.get('e') != 'Cerrado definitivamente'][:60]:
+        q = d['n'] + ', ' + (d.get('addr') or d.get('z') or 'Madrid')
+        try:
+            url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode({'q': q, 'format': 'jsonv2', 'limit': 3, 'countrycodes': 'es', 'viewbox': '-4.6,41.2,-3.0,39.8', 'bounded': 1})
+            res = json.loads(http(url))
+        except Exception as e:
+            print('Nominatim falló', d['n'], e); time.sleep(2); continue
+        time.sleep(1.1)
+        for r in res:
+            nm = r.get('name') or r.get('display_name', '').split(',')[0]
+            if sim(d['n'], nm) >= .8:
+                d['lat'], d['lon'] = round(float(r['lat']), 6), round(float(r['lon']), 6); d['locSrc'] = 'osm'; d['locationVerified'] = True
+                geocod.append(f"{d['n']} → {nm}"); break
+
     cambios, sospechosas, fuera, sin_coords, vacias_ok = [], [], [], [], 0
     for d in data:
         if not isinstance(d.get('lat'), (int, float)) or not isinstance(d.get('lon'), (int, float)):
@@ -132,9 +166,11 @@ def main():
     md = (f"# Repaso de la lista de sitios — {datetime.date.today().isoformat()}\n\n"
           f"Sitios: **{len(data)}** · zonas corregidas: **{len(cambios)}** (de ellas {vacias_ok} estaban vacías) · "
           f"coordenadas sospechosas: **{len(sospechosas)}** · fuera de la Comunidad: **{len(fuera)}** · sin coordenadas: **{len(sin_coords)}** · "
-          f"posibles duplicados: **{len(dup)}** · cerrados: **{len(cerrados)}**\n\n"
+          f"posibles duplicados: **{len(dup)}** · cerrados: **{len(cerrados)}** · coordenadas pasadas de Google a OpenStreetMap: **{len(a_osm)}** · "
+          f"ubicados ahora por nombre: **{len(geocod)}** · aún con coordenadas de Google: **{sum(1 for d in data if d.get('locSrc') == 'google')}**\n\n"
           "La zona se calcula con los límites oficiales de distritos y municipios de OpenStreetMap. "
           "Si la dirección dice otra zona, no se toca nada y se apunta aquí para revisarlo a mano.\n"
+          + bloque('Ubicados ahora con OpenStreetMap (no tenían coordenadas)', geocod)
           + bloque('Zonas corregidas', cambios) + bloque('Coordenadas sospechosas (revisar a mano)', sospechosas)
           + bloque('Fuera de la Comunidad de Madrid', fuera) + bloque('Sin coordenadas', sin_coords)
           + bloque('Posibles duplicados', dup) + bloque('Marcados como cerrados (se ocultan en la web, no se borran)', cerrados)

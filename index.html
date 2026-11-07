@@ -12,8 +12,17 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-title" content="RENTA"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 
 <title>RENTA · Planes en Madrid</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style id="fuentes-locales">/* Fuentes servidas desde la propia web (sin conexión a Google Fonts, por privacidad) */
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/space-grotesk-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/space-grotesk-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/space-grotesk-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/space-grotesk-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
+</style>
 <style>
   :root{
     --bg:#0A0F1C; --panel:#101929; --panel2:#141F35; --grid:#1D2942;
@@ -703,7 +712,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script src="plan-share.js?v=1" defer></script>
+<script src="plan-share.js?v=2" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
@@ -2092,7 +2101,7 @@ header.top.scrolled .tagline{max-height:0}
 
   <footer class="foot">
     DATOS DE LA LISTA + OPENSTREETMAP<br>
-    Los horarios, precios y algunos puntos deben comprobarse antes de ir · <a href="mejores/" style="color:inherit">Los mejores sitios por zona</a>
+    Los horarios, precios y algunos puntos deben comprobarse antes de ir · Valoraciones: Google Maps · Mapa © OpenStreetMap · © CARTO · <a href="mejores/" style="color:inherit">Los mejores sitios por zona</a> · <a href="legal.html" style="color:inherit">Aviso legal y privacidad</a>
   </footer>
 </div>
 
@@ -2864,7 +2873,7 @@ function renderResults(){
             ${d.p ? `<span>· ${d.p}€</span>` : ''}
           </div>
         </div>
-        <div class="rating">${d.v ? '★ '+d.v.toFixed(1) : '—'}<small>${d.nr ? d.nr+' rev.' : ''}</small></div>
+        <div class="rating" title="Valoración en Google Maps">${d.v ? '★ '+d.v.toFixed(1) : '—'}<small>${d.nr ? d.nr+' en Google' : ''}</small></div>
       </div>
       <div class="expand-content">
         <div>${statusLabel(d.e)}${d.z ? ' · '+d.z : ''}</div>
@@ -3284,7 +3293,7 @@ document.getElementById('liveSearchBtn').onclick = async ()=>{
     } else {
       box.innerHTML = filtered.map(p=>{
         const name = p.displayName?.text || 'Sin nombre';
-        const rating = p.rating ? `★ ${p.rating.toFixed(1)}` : '';
+        const rating = p.rating ? `★ ${p.rating.toFixed(1)} Google` : '';
         const nr = p.userRatingCount ? `(${p.userRatingCount} rev.)` : '';
         const addr = p.formattedAddress || '';
         const uri = p.googleMapsUri || '#';
@@ -3415,7 +3424,7 @@ document.getElementById('eventsLiveBtn').onclick = async ()=>{
   } else {
     box.innerHTML = allResults.map(p=>{
       const name = p.displayName?.text || 'Sin nombre';
-      const rating = p.rating ? `★ ${p.rating.toFixed(1)}` : '';
+      const rating = p.rating ? `★ ${p.rating.toFixed(1)} Google` : '';
       const addr = p.formattedAddress || '';
       const uri = p.googleMapsUri || '#';
       return `<div class="aiResult">
@@ -3956,7 +3965,7 @@ document.getElementById('planBtn').onclick = async ()=>{
     if(s._live){
       const p = s._live;
       const name = p.displayName?.text || 'Sitio encontrado';
-      const rating = p.rating ? `★ ${p.rating.toFixed(1)}` : '';
+      const rating = p.rating ? `★ ${p.rating.toFixed(1)} Google` : '';
       const addr = p.formattedAddress || '';
       const uri = p.googleMapsUri || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name+' '+addr)}`;
       waText += `${s._time} — ${s._label}: ${name}\n`;
@@ -4706,7 +4715,7 @@ function pdCard(d, opt){
       <h3>${pdEsc(d.n)}${badge}</h3>
       <div class="meta"><span class="tagpill">${CAT_ICONS[d.cm]||'📍'} ${pdEsc(d.cd||d.cm||'Sitio')}</span><span>${pdEsc(d.z||d.addr||'')}${dist}${price}</span></div>
     </div>
-    <div class="rating">${d.v?'★ '+Number(d.v).toFixed(1):'—'}<small>${d.nr?d.nr+' rev.':''}</small></div></div>
+    <div class="rating" title="Valoración en Google Maps">${d.v?'★ '+Number(d.v).toFixed(1):'—'}<small>${d.nr?d.nr+' en Google':''}</small></div></div>
     ${opt.when ? pdPlanInfo(d) : ''}
     ${d.info?`<div style="margin-top:9px;font-size:12px;color:var(--muted);line-height:1.5;">${pdEsc(d.info)}</div>`:''}
     ${d.openNote?`<div style="margin-top:6px;font-size:11.5px;color:var(--green);">${pdEsc(d.openNote)}</div>`:''}
@@ -4734,7 +4743,7 @@ function planWhy(item, anchor, anchorName, t){
 // Más información en las paradas del plan: valoración, qué es, si está abierto y por qué se eligió
 function pdPlanInfo(d){
   const bits=[];
-  if(d.v) bits.push(`<b>★ ${Number(d.v).toFixed(1).replace('.',',')}</b>${d.nr?` <span style="opacity:.75">(${Number(d.nr).toLocaleString('es-ES')} reseñas)</span>`:''}`);
+  if(d.v) bits.push(`<b>★ ${Number(d.v).toFixed(1).replace('.',',')}</b>${d.nr?` <span style="opacity:.75">(${Number(d.nr).toLocaleString('es-ES')} reseñas en Google)</span>`:''}`);
   if(d._open===true) bits.push('<span style="color:var(--green)">🟢 Abierto a esa hora</span>');
   else if(d._open===false) bits.push('<span style="color:#e8a24a">🟠 Revisa el horario</span>');
   const what = [d.osmCuisine && !String(d.cd||'').toLowerCase().includes(String(d.osmCuisine).toLowerCase()) ? String(d.osmCuisine).replace(/;/g,', ') : '', d.no].filter(Boolean).join(' · ');
@@ -5773,7 +5782,7 @@ function radarBudget(d){
 function radarPopupHtml(d){
   const links=mapLinks(d.n,d.z);
   const isFav=favoriteNames.has(d.n);
-  const rating=d.v ? `★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones`:''}` : 'Valoración no disponible';
+  const rating=d.v ? `★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones en Google`:''}` : 'Valoración no disponible';
   const category=CAT_ICONS[d.cm]||'✦';
   const zone=d.z || 'Madrid';
   const desc=d.osm ? 'Lugar encontrado en OpenStreetMap. Comprueba su ficha antes de ir.' : (d.verifiedAt ? 'Ubicación verificada en el mapa.' : 'Fotografía ilustrativa. Comprueba la ubicación y los datos antes de desplazarte.');
@@ -5951,7 +5960,7 @@ function openDiscover(){
     feed.innerHTML=discoverItems.map((d,i)=>{
       const links=mapLinks(d.n,d.z);
       const photo=d.photo || (realPhotosEnabled && getRealPhoto(d)?.url) || venuePhoto(d.cm);
-      const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones`:''}`:'Valoración no disponible';
+      const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones en Google`:''}`:'Valoración no disponible';
       const budget=radarBudget(d);
       const saved=favoriteNames.has(d.n);
       const blurb=d.no || (d.cm==='Ocio/Espacios no gastronómicos'?'Una idea para salir de la rutina y descubrir algo distinto.':'Una opción para guardar y tener a mano cuando quieras organizar un plan.');
@@ -6222,7 +6231,7 @@ function openPlanLab(){const overlay=document.getElementById('planLabOverlay');i
 function closePlanLab(){const overlay=document.getElementById('planLabOverlay');overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow=''}
 function labUpdate(){const planList=document.getElementById('labStopsList');if(!planList)return;const budget=Number(document.getElementById('labBudgetPerPerson')?.value||60);const people=Math.max(1,Number(document.getElementById('labPeople')?.value||2));const approx=labPlan.reduce((sum,item)=>{const d=labPlace(item.name);const m=(d?.p||'').match(/(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?/);return sum+(m?(Number(m[1])+Number(m[2]||m[1]))/2:0)},0);document.getElementById('labStopsStat').textContent=labPlan.length;document.getElementById('labBudgetStat').textContent=Math.round((approx||budget)*people)+' €';document.getElementById('labVisitedStat').textContent=labVisited.size;document.getElementById('labCompareStat').textContent=labCompare.length+'/3';
 if(!labPlan.length)planList.innerHTML='<div class="lab-empty">Tu itinerario está vacío.<br>Vuelve a las tarjetas y pulsa “＋ Mi plan”.</div>';else planList.innerHTML=labPlan.map((item,i)=>{const d=labPlace(item.name);return `<div class="lab-stop"><div class="lab-stop-num">${i+1}</div><div><h4>${labEscape(item.name)}</h4><small>${labEscape(d?.z||'Madrid')} · ${labEscape(d?.cd||d?.cm||'Sitio')} · ${d?.p?labEscape(d.p)+' €':'precio por confirmar'}${d?.v?' · ★ '+Number(d.v).toFixed(1):''}</small><div class="lab-field" style="margin:8px 0 0"><input type="time" aria-label="Hora de ${labEscape(item.name)}" data-lab-time="${labEscape(item.name)}" value="${labEscape(item.time||'')}" style="padding:7px 8px;max-width:145px"><input type="text" aria-label="Nota para ${labEscape(item.name)}" data-lab-stopnote="${labEscape(item.name)}" value="${labEscape(item.note||'')}" placeholder="Nota / reserva / recordatorio" style="margin-top:6px;padding:8px"></div><label class="lab-check" style="margin-top:7px"><input type="checkbox" data-lab-done="${labEscape(item.name)}" ${item.done?'checked':''}> Parada completada</label></div><div class="lab-stop-actions"><button class="lab-icon-btn" data-lab-up="${i}" title="Subir">↑</button><button class="lab-icon-btn" data-lab-down="${i}" title="Bajar">↓</button><button class="lab-icon-btn" data-lab-remove="${labEscape(item.name)}" title="Quitar">×</button></div></div>`}).join('');
-const compare=document.getElementById('labCompareList');if(!labCompare.length)compare.innerHTML='<div class="lab-empty" style="grid-column:1/-1">Añade hasta 3 sitios desde sus tarjetas.</div>';else compare.innerHTML=labCompare.map(name=>{const d=labPlace(name)||{};const votes=Number(labVotes[name]||0);return `<div class="lab-compare-item"><h4>${labEscape(name)}</h4><p>★ ${d.v?Number(d.v).toFixed(1):'—'} ${d.nr?'· '+Number(d.nr).toLocaleString('es-ES')+' opiniones':''}</p><p>€ ${labEscape(d.p||'Por confirmar')}</p><p>⌖ ${labEscape(d.z||'Madrid')}</p><p>${labEscape(d.cd||d.cm||'Lugar')}</p><p>Tu nota: ${labRatings[name]?'★'.repeat(labRatings[name]):'—'}</p><div class="lab-votes"><button data-lab-vote="${labEscape(name)}" data-vote="-1">−</button><strong>${votes} votos</strong><button data-lab-vote="${labEscape(name)}" data-vote="1">＋</button></div><button class="lab-icon-btn" style="margin-top:8px" data-lab-removecompare="${labEscape(name)}">Quitar</button></div>`}).join('');
+const compare=document.getElementById('labCompareList');if(!labCompare.length)compare.innerHTML='<div class="lab-empty" style="grid-column:1/-1">Añade hasta 3 sitios desde sus tarjetas.</div>';else compare.innerHTML=labCompare.map(name=>{const d=labPlace(name)||{};const votes=Number(labVotes[name]||0);return `<div class="lab-compare-item"><h4>${labEscape(name)}</h4><p>★ ${d.v?Number(d.v).toFixed(1):'—'} ${d.nr?'· '+Number(d.nr).toLocaleString('es-ES')+' opiniones en Google':''}</p><p>€ ${labEscape(d.p||'Por confirmar')}</p><p>⌖ ${labEscape(d.z||'Madrid')}</p><p>${labEscape(d.cd||d.cm||'Lugar')}</p><p>Tu nota: ${labRatings[name]?'★'.repeat(labRatings[name]):'—'}</p><div class="lab-votes"><button data-lab-vote="${labEscape(name)}" data-vote="-1">−</button><strong>${votes} votos</strong><button data-lab-vote="${labEscape(name)}" data-vote="1">＋</button></div><button class="lab-icon-btn" style="margin-top:8px" data-lab-removecompare="${labEscape(name)}">Quitar</button></div>`}).join('');
 const q=(document.getElementById('labJournalSearch')?.value||'').toLocaleLowerCase('es');const journalNames=[...new Set([...Object.keys(labNotes),...labVisited,...Object.keys(labRatings)])].filter(n=>n.toLocaleLowerCase('es').includes(q)).sort((a,b)=>a.localeCompare(b,'es'));const journal=document.getElementById('labJournalList');journal.innerHTML=journalNames.length?journalNames.map(name=>`<div class="lab-stop"><div class="lab-stop-num">${labVisited.has(name)?'✓':'✎'}</div><div><h4>${labEscape(name)}</h4><small>${labVisited.has(name)?'Visitado':'Pendiente'}${labRatings[name]?' · Tu nota: '+'★'.repeat(labRatings[name]):''}</small><p style="font-size:12px;line-height:1.5;margin:6px 0 0;overflow-wrap:anywhere">${labEscape(labNotes[name]||'Sin nota personal')}</p></div><div class="lab-stop-actions"><button class="lab-icon-btn" data-lab-note="${labEscape(name)}">Editar</button><button class="lab-icon-btn" data-lab-visited="${labEscape(name)}">${labVisited.has(name)?'Desmarcar':'Visitado'}</button></div></div>`).join(''):'<div class="lab-empty">Todavía no hay notas ni visitas guardadas.</div>';
 const checklist=document.querySelectorAll('#labChecklist [data-test]');let checked=0;checklist.forEach(el=>{el.checked=!!labChecklist[el.dataset.test];if(el.checked)checked++});document.getElementById('labChecklistProgress').textContent=checked+' de '+checklist.length+' comprobaciones';document.getElementById('planCountBadge').textContent=labPlan.length;}
 function labPlanText(){const date=document.getElementById('labPlanDate')?.value||'';const title=(document.getElementById('labPlanName')?.value||'Mi plan RADAR').trim();const people=document.getElementById('labPeople')?.value||'2';let out=`${title}\n${date?`Fecha: ${date}\n`:''}Personas: ${people}\n\n`;if(!labPlan.length)out+='Todavía no hay paradas en el itinerario.';labPlan.forEach((it,i)=>{const d=labPlace(it.name);out+=`${i+1}. ${it.time?it.time+' · ':''}${it.name}\n   ${d?.z||'Madrid'} · ${d?.p||'Precio por confirmar'}${d?.v?' · ★ '+d.v:''}\n   ${mapLinks(it.name,d?.z).gmapsView}\n`;if(it.note)out+=`   Nota: ${it.note}\n`;});out+=`\nPresupuesto orientativo: ${document.getElementById('labBudgetPerPerson')?.value||60} € por persona`;return out}
@@ -6297,7 +6306,7 @@ renderResults();
     return s;
   }
   function makeCard(d,reason,actions='assistant'){
-    const href=maps(d), p=priceText(d), rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones`:''}`:'Valoración sin dato';
+    const href=maps(d), p=priceText(d), rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?` · ${Number(d.nr).toLocaleString('es-ES')} opiniones en Google`:''}`:'Valoración sin dato';
     return `<article class="radar-feature-card"><div class="radar-feature-emoji">${categoryEmoji(d)}</div><div><h3>${escapeHtmlSafe(d.n)}</h3><p>${escapeHtmlSafe([d.z||'Zona por confirmar',p,rating,reason||''].filter(Boolean).join(' · '))}</p><div class="radar-feature-card-actions"><a href="${href}" target="_blank" rel="noopener">Ver ficha ↗</a><button type="button" data-radar-add="${escapeHtmlSafe(d.n)}">＋ Añadir al plan</button><button type="button" data-radar-like="${escapeHtmlSafe(d.n)}" data-radar-type="${escapeHtmlSafe(d.cm||'')}">Me gusta ♥</button></div></div></article>`;
   }
   function escapeHtmlSafe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -6571,7 +6580,7 @@ renderResults();
   }
   function renderMatchCard(d){
     if(!recentShown.length||recentShown[recentShown.length-1].n!==d.n){recentShown.push({n:d.n,cm:d.cm,type:type(d)});if(recentShown.length>12)recentShown.shift();}
-    const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?' · '+Number(d.nr).toLocaleString('es-ES')+' opiniones':''}`:(d.rating?`★ ${Number(d.rating).toFixed(1)}`:'Valoración no disponible');
+    const rating=d.v?`★ ${Number(d.v).toFixed(1)}${d.nr?' · '+Number(d.nr).toLocaleString('es-ES')+' opiniones en Google':''}`:(d.rating?`★ ${Number(d.rating).toFixed(1)}`:'Valoración no disponible');
     const address=d.address||d.z||'Madrid';
     const status=d.e||d.businessStatus||'Horario por confirmar';
     const photo=imageFor(d);

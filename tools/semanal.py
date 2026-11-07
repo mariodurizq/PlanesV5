@@ -118,8 +118,9 @@ def main():
                 if not token: break
     if not CALLS['n']:
         print('Google no respondió: no se toca nuevos.json'); return
-    # Se quitan los que llevan 8 semanas sin aparecer (cerrados o que bajaron de nota)
-    limite = (datetime.date.today() - datetime.timedelta(weeks=8)).isoformat()
+    # Se quitan los que llevan más de 30 días sin volver a verse en Google (condiciones de Google: no se guardan
+    # sus datos más de 30 días sin refrescar; además así salen los que cerraron o bajaron de nota)
+    limite = (datetime.date.today() - datetime.timedelta(days=30)).isoformat()
     sitios = sorted((s for s in por_id.values() if s.get('visto', hoy) >= limite), key=lambda s: (-s['v'], -s['nr']))
     path.write_text(json.dumps({'actualizado': hoy, 'criterio': f'≥{MIN_NOTA} ★ y ≥{MIN_RESENAS} reseñas en Google · Comunidad de Madrid', 'sitios': sitios}, ensure_ascii=False), encoding='utf-8')
     nuevos = sum(1 for s in sitios if s.get('desde') == hoy)

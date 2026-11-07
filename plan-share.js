@@ -151,7 +151,8 @@
       }
       y += h + 18;
     });
-    ctx.fillStyle = C.mut; ctx.font = `500 24px ${F}`; ctx.fillText('Hecho con RENTA · ' + BASE.replace(/^https?:\/\//, ''), PAD, H - 50);
+    ctx.fillStyle = C.mut; ctx.font = `500 24px ${F}`; ctx.fillText('Hecho con RENTA · ' + BASE.replace(/^https?:\/\//, ''), PAD, H - 62);
+    ctx.font = `400 20px ${F}`; ctx.fillText('Valoraciones: Google Maps · Mapa © OpenStreetMap · © CARTO', PAD, H - 30);
     return await new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/png'); } catch (e) { rej(e); } });
   }
   async function pngSafe(plan) { try { return await png(plan); } catch (e) { return await png(plan, {tiles: false}); } }

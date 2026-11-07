@@ -4131,6 +4131,9 @@ const PD_PLACES = [
   {n:'Bernabéu',a:['bernabeu','santiago bernabeu'],lat:40.4531,lon:-3.6883,r:0.8},
   {n:'Castellana',a:['castellana','paseo de la castellana'],lat:40.4450,lon:-3.6900,r:1.5},
   {n:'Goya',a:['goya'],lat:40.4243,lon:-3.6760,r:0.7},
+  {n:'Velázquez',a:['velazquez','calle velazquez'],lat:40.4262,lon:-3.6838,r:0.6},
+  {n:'Núñez de Balboa',a:['nunez de balboa'],lat:40.4299,lon:-3.6795,r:0.5},
+  {n:'Lista',a:['diego de leon','lista'],lat:40.4300,lon:-3.6760,r:0.5,p:true},
   {n:'Serrano',a:['serrano','calle serrano','jorge juan'],lat:40.4260,lon:-3.6870,r:0.8},
   {n:'Lista',a:['lista','ortega y gasset'],lat:40.4305,lon:-3.6760,r:0.6,p:true},
   {n:'Recoletos',a:['recoletos','colon','plaza de colon'],lat:40.4240,lon:-3.6905,r:0.6},
@@ -4321,7 +4324,8 @@ function pdGuessPlace(text){
 }
 
 function pdParse(raw){
-  const text = pdNorm(raw);
+  // "no sé qué hacer" no es pedir ocio ni eventos (se borra conservando posiciones)
+  const text = pdNorm(raw).replace(/\bno (se|tengo claro|tengo ni idea de?) (que|lo que) (hacer|haremos|hago|hacemos)\b/g, m=>' '.repeat(m.length));
   const p = {raw, text, wants:[], qty:null, time:null, zones:[], zoneLabels:[], city:null, price:null, near:false, newOnes:false, meal:null, dayLabel:'', modeHint:null, subs:[], notes:[]};
 
   // cantidad
@@ -4436,12 +4440,40 @@ function pdParse(raw){
       p.wants.push(Object.assign({}, food, {label: lunchFirst?'🌙 Cena':'☀️ Comida', _meal: lunchFirst?'cena':'comida', _idx: lunchFirst?dinnerM.index:lunchM.index, _second:true}));
       p.twoMeals = true;
     } else if(meals.length>=2){ meals.sort((a,b)=>a._idx-b._idx); meals[0]._meal='comida'; meals[meals.length-1]._meal='cena'; p.twoMeals=true; }
+    // segunda copa: "tomar algo…, cenar… y luego una copa"
+    { const dr = PD_CATS.find(c=>c.id==='cock'); const re=/\b(tomar algo|tomar unas? (copas?|cervezas?|canas?|vinos?)|una copa|unas copas|copas?|cocteles?|coctel|gin ?tonic|cocktails?)\b/g; const occ=[]; let m2; while((m2=re.exec(text))) occ.push(m2.index);
+      const mealIdx = p.wants.filter(w=>w.meal).map(w=>w._idx);
+      if(occ.length>=2 && mealIdx.some(mi=>mi>occ[0] && mi<occ[occ.length-1])){
+        const first = p.wants.find(w=>w.id==='cock'||w.id==='tapas') || Object.assign({}, dr);
+        if(!p.wants.includes(first)) p.wants.push(Object.assign(first,{_idx:occ[0]}));
+        else first._idx = Math.min(first._idx, occ[0]);
+        p.wants.push(Object.assign({}, dr, {label:'🍸 Copa después', _idx: occ[occ.length-1], _second:true}));
+        p.twoDrinks = true;
+      } }
+    // un sitio concreto por su nombre: "cenar en el Ornella de Velázquez"
+    { const cands=[];
+      DATA.forEach(d=>{ const nn=pdNorm(d.n).replace(/^(restaurante|bar|taberna|cafe|cafeteria) /,'').replace(/[^a-z0-9ñ ]/g,' ').replace(/\s+/g,' ').trim();
+        if(nn.length<5 || PD_PLACES.some(pl=>pl.a.includes(nn)) || /^(madrid|centro|la terraza|el patio|la taberna|el rincon|casa)$/.test(nn)) return;
+        const esc=nn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const m3=text.match(new RegExp('\\b(?:en|al|del|de) (?:el |la |los |las )?'+esc+'(?![a-z])'));
+        if(m3) cands.push({d, i:m3.index, len:nn.length, nn});
+      });
+      cands.sort((a,b)=>b.len-a.len);
+      cands.forEach(c=>{
+        // si hay varias sedes con el mismo nombre, la de la zona que diga el texto
+        const same = DATA.filter(x=>pdNorm(x.n).includes(c.nn));
+        const zoneHint = pdFindAllPlaces(text.slice(c.i, c.i+c.len+30))[0];
+        let d = c.d; if(same.length>1 && zoneHint){ same.sort((a,b)=>(a.lat?haversine(a.lat,a.lon,zoneHint.pl.lat,zoneHint.pl.lon):99)-(b.lat?haversine(b.lat,b.lon,zoneHint.pl.lat,zoneHint.pl.lon):99)); d=same[0]; }
+        const near = p.wants.filter(w=>w.id!=='paseo' && !w._fixed).sort((a,b)=>Math.abs(a._idx-c.i)-Math.abs(b._idx-c.i))[0];
+        if(near && Math.abs(near._idx-c.i)<40){ near._fixed = d; p.fixedNames=(p.fixedNames||[]).concat(d.n); }
+      });
+    }
     const walkM = text.match(/\b(pasear|paseo|paseito|dar una vuelta|dar un paseo|callejear|caminar|andar un rato)\b/);
     if(walkM){ const oc=p.wants.find(w=>w.id==='ocio'); if(oc && !PD_CATS.find(c=>c.id==='ocio').kw.some(k=>k.trim()!=='pasear' && text.includes(k.trim()) && !/^pase/.test(k.trim()))) p.wants=p.wants.filter(w=>w!==oc);
       p.wants.push({id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur: /tranquil|largo|toda la tarde|tarde/.test(text)?100:60, _idx: walkM.index}); p.walk = true; }
     const allPl = pdFindAllPlaces(text);
     const distinct = [...new Set(allPl.map(h=>h.pl.n))];
-    if(distinct.length>=2 || p.walk){
+    if(distinct.length>=2 || p.walk || p.twoDrinks || p.fixedNames){
       const cuts=[0]; const re=/,|;|\.|\b(y )?(luego|despues|mas tarde|para acabar|al final)\b/g; let m; while((m=re.exec(text))) cuts.push(m.index); cuts.push(text.length);
       const clauseOf=i=>{ let a=0,b=text.length; cuts.forEach(c=>{ if(c<=i && c>a) a=c; if(c>i && c<b) b=c; }); return [a,b]; };
       const ordered = p.wants.slice().sort((a,b)=>a._idx-b._idx);
@@ -4454,14 +4486,17 @@ function pdParse(raw){
           return;
         }
         const [a,b]=clauseOf(w._idx); const h=allPl.filter(x=>x.i>=a && x.i<b).pop();
+        const hereZone = /\b(por la zona|por ahi|por alli|cerca|alrededor|al lado)\b/.test(text.slice(a,b));
+        if(w._fixed){ if(w._fixed.lat) last={n:w._fixed.n, lat:w._fixed.lat, lon:w._fixed.lon, r:0.6, a:[]}; return; }
+        if(!h && hereZone){ w._here = true; return; }   // "una copa por la zona": cerca de la parada anterior
         const pl = h ? h.pl : last;
         if(pl){ w._place={n:pl.n, lat:pl.lat, lon:pl.lon, r:pl.r, aliases:pl.a}; last=pl; }
       });
       // lo que va antes del primer lugar con nombre, al primer lugar
-      const firstPl = ordered.find(w=>w._place); if(firstPl) ordered.forEach(w=>{ if(w.id!=='paseo' && !w._place) w._place=firstPl._place; });
+      const firstPl = ordered.find(w=>w._place); if(firstPl) ordered.forEach(w=>{ if(w.id!=='paseo' && !w._place && !w._here && !w._fixed) w._place=firstPl._place; });
       if(distinct.length>=2){ p.zoneLabels = distinct; p.multiPlace = true; }
     }
-    p.textOrder = !!(p.walk || p.twoMeals || p.multiPlace) || /\b(antes de|primero|para empezar)\b/.test(text);
+    p.textOrder = !!(p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames) || /\b(antes de|primero|para empezar)\b/.test(text);
     if(p.textOrder) p.wants.sort((a,b)=>a._idx-b._idx);
     if(p.walk && !p.wants.some(w=>w.id!=='paseo')) p.wants.unshift(Object.assign({}, PD_CATS.find(c=>c.id==='cafe'), {_idx:-1}));
   }
@@ -4475,7 +4510,7 @@ function pdParse(raw){
   else p.modeHint='lista';
   if(listWords && p.qty) p.modeHint='lista';
   if(planWords && p.wants.length>=2 && !p.qty) p.modeHint='plan';
-  if((p.walk || p.twoMeals || p.multiPlace) && p.wants.length>=2 && !p.qty) p.modeHint='plan';
+  if((p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames) && p.wants.length>=2 && !p.qty) p.modeHint='plan';
 
   // plan sin categorías: cena + copas por defecto
   if(p.modeHint==='plan' && p.wants.length===0 && /\btarde\b/.test(text) && !/\bnoche\b/.test(text)){
@@ -4882,6 +4917,7 @@ async function pdBuildPlan(p){
   else if(morning) t = /brunch/.test(p.text||'') ? 11*60+30 : 10*60;
   else if(first.meal) t = (first._meal||meal)==='comida' ? 14*60 : 21*60;
   else if(first.id==='paseo'){ const nx=wants.find(x=>x.id!=='paseo'); t = nx && nx.meal && (nx._meal||meal)==='comida' ? 12*60 : nx && (['cock','disco','shisha','roof'].includes(nx.id) || nx._meal==='cena' || (nx.meal && meal==='cena')) ? 18*60+30 : 17*60; }
+  else if(['cock','tapas','roof'].includes(first.id) && wants[1] && (wants[1]._meal||(wants[1].meal?meal:null))==='cena') t = 19*60+30;
   else if(first.id==='cafe') t = 17*60+30;
   else if(first.id==='ocio') t = 18*60;
   else if(first.id==='tapas') t = 20*60;
@@ -4908,9 +4944,11 @@ async function pdBuildPlan(p){
       out.stops.push(st); prev = st; t = st._end; continue;
     }
     // "tomar algo antes de cenar": a última hora de la tarde, pegado a la cena
-    if(['cock','tapas','roof'].includes(w.id) && nextW && nextW._meal==='cena' && t<19*60) t = 19*60;
+    const nextMeal = nextW && (nextW._meal || (nextW.meal ? meal : null));
+    if(['cock','tapas','roof'].includes(w.id) && nextMeal==='cena' && t<19*60) t = 19*60;
+    if(['cock','tapas','roof'].includes(w.id) && i===0 && nextMeal==='cena' && p.time==null) t = 19*60+30;
     // después de comer, a media tarde: bar o terraza (las coctelerías abren hacia las 19:00)
-    if(w.id==='cock' && i>0 && t<18*60 && !(nextW && nextW._meal==='cena')){
+    if(w.id==='cock' && i>0 && t<18*60 && nextMeal!=='cena'){
       const bar = PD_CATS.find(c=>c.id==='tapas');
       if(bar && !wants.some(x=>x.id==='tapas')){ w = Object.assign({}, bar, {_place:w._place, _idx:w._idx}); out.notes.push('Después de comer te propongo un bar o terraza para tomar algo: las coctelerías suelen abrir a partir de las 19:00.'); }
     }
@@ -4927,7 +4965,11 @@ async function pdBuildPlan(p){
       if(win && t<win[0] && !(i===0&&p.time!=null)) t = win[0]; }
     t = planR15(t);
     let item=null, anchor=null, anchorName='', pw=p;
-    if(p.city){
+    if(w._fixed){
+      item = Object.assign({src:'lista'}, w._fixed);
+      anchor = item.lat ? [item.lat,item.lon] : null; anchorName = item.n;
+      out.notes.push(`${w.meal?((w._meal||meal)==='comida'?'Comes':'Cenas'):'Vas'} en ${item.n}, como dijiste; el resto del plan va alrededor.`);
+    } else if(p.city){
       
       const r = await pdLive(w, p, p.city, 6);
       if(r.error) out.notes.push('Mapa: '+r.error);
@@ -4938,7 +4980,7 @@ async function pdBuildPlan(p){
       const f = pdFilter(w, pw, used, 3, false);
       if(p.subs.some(x=>x.dish && x.on===w.id)){ const ex=f.items.filter(d=>d._tier<3); if(ex.length) f.items=ex; else out.notes.push(`No tengo sitios de «${p.subs.find(x=>x.dish&&x.on===w.id).label}» en tu lista; te pongo lo más parecido.`); }
       if(p.zones.length && !p.place) f.items = f.items.filter(d=>d._tier<2);   // el plan se queda en la zona pedida
-      else out.notes.push(...f.notes);
+      // (las notas de «aflojé la distancia» sobran en un plan: cada parada ya dice a cuánto está)
       const farFromPrev = w._place && prev && planHasCoords(prev) && haversine(prev.lat,prev.lon,w._place.lat,w._place.lon) > Math.max(1, w._place.r*1.3);
       anchor = (w._place && (!prev || farFromPrev)) ? [w._place.lat,w._place.lon] : prev && planHasCoords(prev) ? [prev.lat,prev.lon] : (p.place?[p.place.lat,p.place.lon]:(p.near&&userCoords?[userCoords.lat,userCoords.lon]:(p.zones.length?null:[40.4200,-3.7000])));   // sin zona: centro de Madrid
       anchorName = (w._place && (!prev || farFromPrev)) ? w._place.n : prev ? (prev._paseo ? 'el final del paseo' : prev.n) : (p.place ? p.place.n : 'el centro');
@@ -4964,7 +5006,8 @@ async function pdBuildPlan(p){
     item = Object.assign({}, item);
     item._start = t; item._end = t + w.dur;
     planWhy(item, anchor, anchorName, t);
-    item._ctx = {w, pw, anchor, anchorName, t, city:p.city||null};
+    item._ctx = w._fixed ? null : {w, pw, anchor, anchorName, t, city:p.city||null};
+    if(w._fixed) item._why = 'El sitio que elegiste';
     if(prev && planHasCoords(prev) && planHasCoords(item)) item._walk = planWalkHtml([prev,item],1);
     if(planOpenAt(item, t)===false) out.notes.push(`⚠ ${item.n} podría estar cerrado a las ${pdFmt(t)} según su horario; compruébalo.`);
     out.stops.push(item);
@@ -4988,6 +5031,7 @@ function pdUnderstoodHTML(p, mode){
   p.wants.forEach(w=>chips.push(w.label));
   p.subs.forEach(s=>chips.push('🏷️ '+s.label));
   if(p.zoneLabels.length) chips.push('📍 '+p.zoneLabels.join(', '));
+  (p.fixedNames||[]).forEach(n=>chips.push('📌 '+n));
   if(p.m30) chips.push('📍 Dentro de la M-30');
   if(p.city) chips.push('🌍 '+p.city.replace(/\b\w/g,c=>c.toUpperCase()));
   if(p.time!=null) chips.push('🕘 '+pdFmt(p.time));
@@ -5032,7 +5076,11 @@ function pdEvRange(text){
 }
 async function pdEventsFor(p){
   const text = p.text;
-  const intent = PD_EV_INTENT.test(text) && !/\b(sitio|restaurante|bar|local) (de|con) (cine|teatro)\b/.test(text);
+  const tx = text.replace(/\bno (se|tengo claro|tengo ni idea de?) (que|lo que) (hacer|haremos|hago)\b/g,' ');
+  const generic = /\b(que hay|que hacer|que se puede hacer|agenda|actividad(es)?)\b/;
+  const strong = PD_EV_INTENT.source.replace(/que hay\|que hacer\|que se puede hacer\|agenda\|actividad\(es\)\?\|/,'');
+  const otherWants = p.wants.some(w=>w.id!=='ocio');
+  const intent = (otherWants ? new RegExp(strong).test(tx) : PD_EV_INTENT.test(tx)) && !/\b(sitio|restaurante|bar|local) (de|con) (cine|teatro)\b/.test(tx);
   const evWords = PD_EV_CATS.filter(([,re])=>re.test(text)).map(([c])=>c);
   const dated = /\b(hoy|manana|finde|fin de semana|sabado|domingo|viernes|esta semana|esta tarde|esta noche)\b/.test(text);
   if(!(intent || evWords.includes('Infantil') || (evWords.length && dated))) return null;

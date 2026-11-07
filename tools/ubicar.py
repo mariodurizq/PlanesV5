@@ -193,7 +193,7 @@ def main():
             key = f"{d['lat']:.3f},{d['lon']:.3f}"; shared[key] = shared.get(key, 0) + 1
     found = closed = nomi = 0; missing = []
     for d in data:
-        if d.get('verifiedAt') or d.get('locSrc') == 'google': continue   # lo ubicado por Google se conserva
+        if d.get('verifiedAt') or d.get('locSrc') in ('google', 'manual'): continue   # lo ubicado por Google o a mano se conserva
         # Cada ejecución empieza de cero desde el centro de barrio original
         if d.get('zlat') is not None:
             d['lat'], d['lon'] = d['zlat'], d['zlon']

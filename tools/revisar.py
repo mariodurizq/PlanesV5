@@ -137,6 +137,13 @@ def main():
         real = zona_de(d['lat'], d['lon'])
         if not real:
             fuera.append(f"{d['n']} ({d['lat']:.4f}, {d['lon']:.4f})"); continue
+        # el nombre dice otro municipio ("Valhalla Las Rozas" ubicado en Rivas) → coordenadas sospechosas
+        nn = ' ' + strip(d['n']) + ' '
+        otro = next((m['n'] for m in municipios if len(strip(m['n']).replace(' de madrid', '')) >= 6
+                     and strip(m['n']).replace(' de madrid', '') not in ('madrid', 'alcala de henares', 'fuencarral')
+                     and ' ' + strip(m['n']).replace(' de madrid', '') + ' ' in nn and strip(m['n']) != strip(real)), None)
+        if otro and d.get('locSrc') != 'manual':
+            sospechosas.append(f"{d['n']}: el nombre apunta a **{otro}** pero las coordenadas caen en **{real}**"); continue
         por_dir = zona_direccion(d.get('addr'))
         if por_dir and strip(por_dir) != strip(real):
             sospechosas.append(f"{d['n']}: la dirección dice **{por_dir}** pero las coordenadas caen en **{real}** — {d.get('addr','')}")

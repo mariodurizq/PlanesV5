@@ -36,9 +36,10 @@ jobs:
       - name: Preparar archivos de la web
         run: |
           mkdir _site
-          cp -r index.html verificar.html plan.html legal.html plan-share.js fonts osm manifest.webmanifest service-worker.js .nojekyll *.png *.json _site/ 2>/dev/null || true
+          cp -r index.html verificar.html plan.html legal.html plan-share.js fonts osm widget manifest.webmanifest service-worker.js .nojekyll *.png *.json _site/ 2>/dev/null || true
           [ -d icons ] && cp -r icons _site/ || true
           python3 tools/paginas.py _site || echo "AVISO: no se pudieron generar las páginas por zona"
+          python3 tools/widget.py _site || echo "AVISO: no se pudo generar widget.json"
           ls _site
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -595,7 +595,7 @@ header.top{position:sticky;top:0;margin:0 -22px 22px;padding:16px 22px;backgroun
 .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
 select.zonesel,input[type=text],input[type=time],input[type=date],textarea{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-radius:13px!important;padding:13px 14px!important}
 .discovery-hero{position:relative;min-height:390px;overflow:hidden;border-radius:30px;background:#252d27;margin:0 0 22px;color:white;box-shadow:var(--shadow);isolation:isolate}
-.hero-photo{position:absolute;inset:0;z-index:-2;background-image:linear-gradient(90deg,rgba(15,23,18,.82),rgba(15,23,18,.35) 57%,rgba(15,23,18,.05)),url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=88');background-size:cover;background-position:center 54%;transform:scale(1.01)}
+.hero-photo{position:absolute;inset:0;z-index:-2;background-image:linear-gradient(90deg,rgba(15,23,18,.82),rgba(15,23,18,.35) 57%,rgba(15,23,18,.05));background-size:cover;background-position:center 54%;transform:scale(1.01)}
 .hero-copy{max-width:570px;padding:clamp(28px,5vw,54px)}
 .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.8px;display:flex;align-items:center;gap:8px;color:#e3e8d5}
 .eyebrow-dot{width:7px;height:7px;background:#c2df83;border-radius:50%;box-shadow:0 0 0 5px #c2df8325}
@@ -609,8 +609,8 @@ select.zonesel,input[type=text],input[type=time],input[type=date],textarea{backg
 .hero-index{position:absolute;bottom:19px;right:23px;left:23px;display:flex;justify-content:space-between;color:#ffffffb5;font:9px Inter,sans-serif;letter-spacing:1.3px}
 #guiadoPanel,#directoPanel{position:relative;overflow:hidden}
 #guiadoPanel:before,#directoPanel:before{content:"";display:block;height:145px;margin:-22px -22px 20px;background-size:cover;background-position:center;mask-image:linear-gradient(#000 65%,transparent);opacity:.95}
-#guiadoPanel:before{background-image:linear-gradient(90deg,#16231ed9,#16231e20),url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=80')}
-#directoPanel:before{background-image:linear-gradient(90deg,#16231ed9,#16231e20),url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80')}
+#guiadoPanel:before{background-image:linear-gradient(90deg,#16231ed9,#16231e20)}
+#directoPanel:before{background-image:linear-gradient(90deg,#16231ed9,#16231e20)}
 #guiadoPanel .label,#directoPanel .label{font-size:12px;color:var(--ink);letter-spacing:.4px}
 .radarBox{padding:0}
 canvas#radar{max-width:350px}
@@ -709,12 +709,9 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 
 </style>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="vendor/leaflet.css?v=1">
 <script src="plan-share.js?v=4" defer></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="vendor/leaflet.js?v=1"></script>
 
 <style id="radar-v6-lab-styles">
 :root{--lab-accent:#b8f36a;--lab-border:rgba(140,160,180,.22)}
@@ -1591,8 +1588,8 @@ header.top.scrolled .tagline{max-height:0}
       <h1>RENTA</h1>
       <div class="header-tools">
         <button type="button" class="header-shortcut" id="headerFavoritesBtn" aria-label="Abrir favoritos" title="Mis favoritos">♥ <span id="headerFavoriteCount">0</span></button>
-        <button type="button" class="header-shortcut" id="headerMapBtn" aria-label="Abrir mapa" title="Abrir mapa">⌖ Mapa</button>
-        <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" aria-label="Abrir RENTA Discover" title="Abrir RENTA Discover">▶ Discover</button>
+        <button type="button" class="header-shortcut" id="headerMapBtn" hidden aria-label="Abrir mapa" title="Abrir mapa">⌖ Mapa</button>
+        <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" hidden aria-label="Abrir RENTA Discover" title="Abrir RENTA Discover">▶ Discover</button>
         <button type="button" class="header-shortcut plan-shortcut" id="openPlanLabBtn" aria-label="Abrir mi plan" title="Mi plan">＋ Mi plan <span id="planCountBadge">0</span></button>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">☼</button>
         <div class="readout" id="clockReadout">MADRID<br><span class="dot" id="gpsDot"></span><span id="gpsTxt">SIN GPS</span></div>
@@ -1662,15 +1659,15 @@ header.top.scrolled .tagline{max-height:0}
 
 
 <section id="radarLabTabPanel" class="radar-lab-tab-panel" style="display:none" aria-label="RADAR Lab">
-  <div class="pide-modes"><button type="button" class="pide-mode" data-go-tab="pide">✨ Pídeme</button><button type="button" class="pide-mode" data-go-tab="autoplan">🧭 Plan paso a paso</button><button type="button" class="pide-mode active">✦ Herramientas</button></div>
+  <button type="button" class="pide-back" data-go-tab="pide">← Volver a Pídeme</button>
 <section class="radar-lab-launcher" id="radarLabLauncher" aria-label="Herramientas RADAR">
-  <div class="radar-lab-head"><div><span class="radar-lab-kicker">RADAR LAB · NUEVO</span><h2>De una idea a un plan.</h2><p>Herramientas para decidir, descubrir y organizarte.</p></div><span class="radar-lab-orb">✦</span></div>
+  <div class="radar-lab-head"><div><span class="radar-lab-kicker">MÁS HERRAMIENTAS</span><h2>Tu espacio</h2><p>Filtra a fondo, guarda colecciones y decidid el plan en grupo.</p></div><span class="radar-lab-orb">✦</span></div>
   <div class="radar-lab-grid">
-    <button type="button" data-radar-open="assistant"><span>✦</span><b>Plan con RADAR</b><small>Cuéntame qué te apetece</small></button>
+    <button type="button" data-radar-open="assistant" hidden><span>✦</span><b>Plan con RADAR</b><small>Cuéntame qué te apetece</small></button>
     <button type="button" data-radar-open="live"><span>⌁</span><b>Radar en vivo</b><small>Filtra y compara lugares</small></button>
     <button type="button" data-radar-open="discover"><span>◉</span><b>Discover</b><small>Desliza y afina tus gustos</small></button>
     <button type="button" data-radar-open="crew"><span>♧</span><b>RADAR Crew</b><small>Elegid el plan en grupo</small></button>
-    <button type="button" data-radar-open="autoplan"><span>⤳</span><b>Autoplan inteligente</b><small>Varias paradas, menos vueltas</small></button>
+    <button type="button" data-radar-open="autoplan" hidden><span>⤳</span><b>Autoplan inteligente</b><small>Varias paradas, menos vueltas</small></button>
   </div>
 </section>
 <section class="radar-live-panel" id="radarLivePanel" hidden>
@@ -1846,25 +1843,25 @@ header.top.scrolled .tagline{max-height:0}
   </div>
 
   <div class="aiBox" id="pideBox" style="display:none;">
-    <div class="pide-modes"><button type="button" class="pide-mode active">✨ Pídeme</button><button type="button" class="pide-mode" data-go-tab="autoplan">🧭 Plan paso a paso</button><button type="button" class="pide-mode" data-go-tab="radarlab">✦ Herramientas</button></div>
     <div class="label">✨ Pídeme lo que quieras</div>
-    <div class="aiHint">Escríbelo como se lo dirías a un amigo. Si pides varias opciones de una cosa te doy una lista; si pides varias cosas seguidas (cena + copas…) te monto el plan con horarios.</div>
-    <textarea id="pideText" rows="3" placeholder='Ej: "10 opciones para cenar japonés en Chamberí" o "plan para sábado noche: cena italiana a las 21:30 y luego copas"'></textarea>
+    <div class="aiHint">Escríbelo como se lo dirías a un amigo: qué te apetece, dónde y cuándo. <button type="button" class="linklike" data-renta-welcome>¿Cómo funciona?</button></div>
+    <textarea id="pideText" rows="3" placeholder='Ej: "cena y copas en Malasaña" o "comer en Chamberí, pasear y tomar algo en Lavapiés"'></textarea>
     <div class="pideEx" id="pideExamples">
-      <div class="chip" data-q="10 opciones para cenar japonés en Chamberí">🍣 10 cenas japonesas</div>
       <div class="chip" data-q="plan de sábado noche: cena italiana a las 21:30, luego copas y después discoteca en el centro">🌙 Sábado noche</div>
+      <div class="chip" data-q="comer en Chamberí, pasear y tomar algo en Lavapiés">🚶 Comida, paseo y cañas</div>
+      <div class="chip" data-q="conciertos este finde">🎟️ Conciertos este finde</div>
+      <div class="chip" data-q="una coctelería a menos de 500 metros de Sol">🍸 Cóctel cerca de Sol</div>
+      <div class="chip" data-q="brunch el domingo en Salamanca">🥞 Brunch</div>
       <div class="chip" data-q="5 rooftops con buenas vistas en el centro">🌇 5 rooftops</div>
-      <div class="chip" data-q="comida barata en Malasaña, dame 8 sitios">💸 Comida barata</div>
-      <div class="chip" data-q="plan de tarde: escape room, luego hamburguesa y copas">🎯 Tarde de ocio</div>
-      <div class="chip" data-q="brunch en Salamanca">🥞 Brunch</div>
     </div>
     <button class="aiBtn" id="pideBtn" style="margin-top:12px;">✨ Pensar</button>
     <div id="pideUnderstood"></div>
     <div id="pideResults"></div>
+    <div class="pide-more">Otras formas: <button type="button" class="linklike" data-go-tab="autoplan">🧭 elegir paso a paso con botones</button> · <button type="button" class="linklike" data-go-tab="radarlab">▤ colecciones, gustos y plan en grupo</button></div>
   </div>
 
   <div class="aiBox" id="autoplanBox" style="display:none;">
-    <div class="pide-modes"><button type="button" class="pide-mode" data-go-tab="pide">✨ Pídeme</button><button type="button" class="pide-mode active">🧭 Plan paso a paso</button><button type="button" class="pide-mode" data-go-tab="radarlab">✦ Herramientas</button></div>
+    <button type="button" class="pide-back" data-go-tab="pide">← Volver a Pídeme</button>
     <div class="label">🧭 Autoplan</div>
     <div class="aiHint">Contesta un par de cosas y te armo un plan con horarios, encadenando paradas cercanas entre sí.</div>
 
@@ -6289,6 +6286,7 @@ const searchSections = ['catCard','guiadoPanel','directoPanel','resultsHead','re
 document.addEventListener('click',e=>{const b=e.target.closest('#exploreSwitch [data-explore]');if(b)switchTab(b.dataset.explore);const g=e.target.closest('[data-go-tab]');if(g)switchTab(g.dataset.goTab);});
 function switchTab(tab){
   activeTab = tab;
+  document.body.dataset.tab = tab;
   if(tab==='guiado' || tab==='directo') mode = tab;
 
   Object.entries(tabButtons).forEach(([key, id])=>{
@@ -7301,10 +7299,11 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     const msg=hoy.plan==='interior'?`${hoy.icono} ${hoy.texto.toLowerCase()} y ${hoy.max}° hoy: mejor a cubierto`:hoy.plan==='exterior'?`${hoy.icono} ${hoy.max}° y ${hoy.texto.toLowerCase()}: día de terraza`:`${hoy.icono} ${hoy.texto} · ${hoy.min}°–${hoy.max}°`;
     const btn=hoy.plan==='interior'?'<button type="button" data-weather-filter="indoor">🏠 Ver planes a cubierto</button>':hoy.plan==='exterior'?'<button type="button" data-weather-filter="outdoor">☀️ Ver terrazas y aire libre</button>':'';
     const box=document.createElement('section');box.className='renta-weather';box.id='rentaWeather';
-    box.innerHTML=`<div class="rw-main"><b>${esc(msg)}</b>${btn}</div><div class="rw-days">${dias.map(x=>`<span class="rw-day rw-${x.plan}" title="${esc(x.texto)} · lluvia ${x.lluvia}%"><small>${fmt(x.fecha)}</small>${x.icono}<b>${x.max}°</b><i>${x.lluvia>=40?'💧'+x.lluvia+'%':''}</i></span>`).join('')}</div>`+
+    box.classList.add('rw-compact');
+    box.innerHTML=`<div class="rw-main"><b role="button" tabindex="0" data-rw-toggle title="Ver la previsión">${esc(msg)} <span class="rw-chev">▾</span></b>${btn}</div><div class="rw-days">${dias.map(x=>`<span class="rw-day rw-${x.plan}" title="${esc(x.texto)} · lluvia ${x.lluvia}%"><small>${fmt(x.fecha)}</small>${x.icono}<b>${x.max}°</b><i>${x.lluvia>=40?'💧'+x.lluvia+'%':''}</i></span>`).join('')}</div>`+
       (finde.length?`<p class="rw-finde">Finde: ${finde.map(x=>`${fmt(x.fecha)} ${x.icono} ${x.max}°`).join(' · ')}${finde.some(x=>x.plan==='interior')?' — lleva paraguas o reserva dentro':''}</p>`:'');
     const sw=document.getElementById('exploreSwitch');if(sw)sw.after(box);
-    box.addEventListener('click',e=>{const b=e.target.closest('[data-weather-filter]');if(!b)return;const q=document.getElementById('quickFilter');q.value=b.dataset.weatherFilter;q.dispatchEvent(new Event('change'));document.getElementById('resultsCount')?.scrollIntoView({behavior:'smooth',block:'center'});});
+    box.addEventListener('click',e=>{if(e.target.closest('[data-rw-toggle]')){box.classList.toggle('rw-compact');return;}const b=e.target.closest('[data-weather-filter]');if(!b)return;const q=document.getElementById('quickFilter');q.value=b.dataset.weatherFilter;q.dispatchEvent(new Event('change'));document.getElementById('resultsCount')?.scrollIntoView({behavior:'smooth',block:'center'});});
   }).catch(()=>{});
 })();
 </script>
@@ -7440,6 +7439,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
     const safari=/Safari/.test(ua)&&!/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/.test(ua);
     if(!ios||standalone||localStorage.getItem('renta-install-hint')) return;
     setTimeout(()=>{
+      if(document.getElementById('rentaWelcome')) return;
       const d=document.createElement('div'); d.id='rentaInstall'; d.setAttribute('role','dialog');
       d.innerHTML=safari
         ? '<b>📲 Ten RENTA como app</b>Pulsa <span class="ri-share">Compartir ⬆️</span> abajo y luego <b style="display:inline;font-size:14px">«Añadir a pantalla de inicio»</b>.<button class="ri-x" aria-label="Cerrar">×</button>'
@@ -7553,6 +7553,94 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
   document.addEventListener('click',e=>{ const b=e.target.closest('.rnt-avisar'); if(!b) return; e.preventDefault(); e.stopPropagation(); const n=nombreDe(b); if(n) abrir(n.trim()); },true);
   let pend=false; new MutationObserver(()=>{ if(pend) return; pend=true; requestAnimationFrame(()=>{ pend=false; poner(document); marcar(); }); }).observe(document.body,{childList:true,subtree:true});
   poner(document);
+})();
+</script>
+<style id="renta-simple-css">
+/* Menos ruido: el tiempo y el lema solo en Explorar; el tiempo en una línea */
+body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) #rentaWeather,
+body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .tagline{display:none!important}
+.renta-weather.rw-compact .rw-days,.renta-weather.rw-compact .rw-finde{display:none!important}
+.renta-weather.rw-compact{padding-top:10px!important;padding-bottom:10px!important}
+.renta-weather.rw-compact .rw-main{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.renta-weather.rw-compact .rw-main b{font-size:14px}
+.renta-weather [data-rw-toggle]{cursor:pointer}.rw-chev{opacity:.6;font-size:12px;display:inline-block;transition:transform .2s}
+.renta-weather:not(.rw-compact) .rw-chev{transform:rotate(180deg)}
+.header-shortcut[hidden],.radar-lab-grid button[hidden]{display:none!important}
+.linklike{background:none;border:0;padding:0;margin:0;font:inherit;color:var(--accent,#c5e3a0);text-decoration:underline;cursor:pointer}
+.pide-more{margin-top:22px;padding-top:12px;border-top:1px solid var(--line,rgba(255,255,255,.1));font-size:12.5px;color:var(--muted,#9aa);line-height:1.7}
+.pide-back{display:inline-block;margin:0 0 12px;padding:8px 12px;border-radius:999px;border:1px solid var(--line,rgba(255,255,255,.15));background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+/* Bienvenida */
+#rentaWelcome{position:fixed;inset:0;z-index:5000;background:rgba(5,8,7,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center}
+#rentaWelcome .rw-card{width:min(520px,100%);max-height:92vh;overflow:auto;background:#121a17;color:#f1efe8;border-radius:24px 24px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 50px rgba(0,0,0,.5)}
+@media(min-width:700px){#rentaWelcome{align-items:center}#rentaWelcome .rw-card{border-radius:24px}}
+#rentaWelcome .rw-skip{float:right;background:none;border:0;color:#9aa59e;font:inherit;font-size:13px;padding:4px 0 8px 12px;cursor:pointer}
+#rentaWelcome .rw-slide{display:none}#rentaWelcome .rw-slide.on{display:block}
+#rentaWelcome .rw-emoji{font-size:38px;line-height:1;margin-bottom:10px}
+#rentaWelcome h2{font-size:24px;line-height:1.15;margin:0 0 8px;letter-spacing:-.3px}
+#rentaWelcome p{margin:0 0 14px;color:#c9cdc6;font-size:15px;line-height:1.5}
+#rentaWelcome .rw-ex{display:grid;gap:8px;margin:0 0 6px}
+#rentaWelcome .rw-ex button{text-align:left;padding:12px 14px;border-radius:14px;border:1px solid rgba(197,227,160,.3);background:rgba(197,227,160,.08);color:#f1efe8;font:inherit;font-size:14.5px;cursor:pointer}
+#rentaWelcome .rw-ex button small{display:block;color:#9aa59e;font-size:12px;margin-top:2px}
+#rentaWelcome .rw-ex-t{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9aa59e;margin:0 0 8px}
+#rentaWelcome ul{margin:0 0 14px;padding:0;list-style:none;display:grid;gap:8px}#rentaWelcome li{font-size:14.5px;color:#e4e2da;line-height:1.4}
+#rentaWelcome .rw-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+#rentaWelcome .rw-dots{display:flex;gap:6px}#rentaWelcome .rw-dots i{width:7px;height:7px;border-radius:50%;background:#34423c}#rentaWelcome .rw-dots i.on{background:#c5e3a0;width:18px;border-radius:4px}
+#rentaWelcome .rw-next{padding:12px 20px;border-radius:14px;border:0;background:#c5e3a0;color:#0b1210;font:inherit;font-weight:800;font-size:15px;cursor:pointer}
+#rentaWelcome .rw-back{background:none;border:0;color:#9aa59e;font:inherit;font-size:14px;cursor:pointer;padding:8px 4px}
+#rentaUpdate{position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:3500;background:#16231e;color:#f3f1ea;border:1px solid rgba(197,227,160,.4);border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#rentaUpdate button{border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;background:#c5e3a0;color:#0b1210;cursor:pointer}
+#rentaUpdate .x{background:none;color:inherit;font-weight:400;padding:8px 6px}
+</style>
+<script id="renta-bienvenida">
+// Bienvenida de 3 pantallas con ejemplos que se pueden tocar (solo la primera vez; se reabre desde «¿Cómo funciona?»)
+(function(){
+  const KEY='renta-bienvenida';
+  const S=[
+    {e:'✨', h:'Dile lo que te apetece', p:'Escríbelo como a un amigo y RENTA te monta el plan: sitios, horas, mapa y cuánto se tarda entre paradas.',
+     ex:[['Cena y copas en Malasaña','Plan con horarios'],['Comer en Chamberí, pasear y tomar algo en Lavapiés','Con paseo por sitios bonitos de camino']]},
+    {e:'🎯', h:'Tan concreto como quieras', p:'Toda la Comunidad de Madrid: zonas, platos, sitios por su nombre, distancia máxima andando o eventos.',
+     ex:[['Conciertos este finde','Agenda del Ayuntamiento'],['Una coctelería a menos de 500 metros de Sol','Solo lo que está cerca'],['Cena vegana en Malasaña','Busca también en el mapa']]},
+    {e:'📤', h:'Cámbialo y compártelo', p:'El plan es tuyo:', li:['🔄 <b>Cambiar</b>: si un sitio no te convence, te propone otro cerca.','📤 <b>Compartir</b>: mándalo por WhatsApp con mapa, o como imagen.','⭐ <b>Guardar</b>: añade a tu lista los sitios que descubras.','🏆 Los <b>sellos</b> marcan los imprescindibles de cada zona.'], last:true}
+  ];
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function done(){ try{localStorage.setItem(KEY,'1');}catch(e){} const o=document.getElementById('rentaWelcome'); if(o) o.remove(); }
+  function run(q){ done(); try{ switchTab('pide'); const t=document.getElementById('pideText'); t.value=q; pdRun(false); t.scrollIntoView({block:'start'}); }catch(e){} }
+  function open(){
+    if(document.getElementById('rentaWelcome')) return;
+    let i=0; const o=document.createElement('div'); o.id='rentaWelcome'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','Cómo funciona RENTA');
+    o.innerHTML=`<div class="rw-card"><button type="button" class="rw-skip">Saltar</button>${S.map((s,k)=>`<div class="rw-slide${k?'':' on'}"><div class="rw-emoji">${s.e}</div><h2>${s.h}</h2><p>${s.p}</p>${s.li?`<ul>${s.li.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}${s.ex?`<div class="rw-ex-t">Toca un ejemplo para probarlo</div><div class="rw-ex">${s.ex.map(x=>`<button type="button" data-q="${esc(x[0])}">“${esc(x[0])}”<small>${esc(x[1])}</small></button>`).join('')}</div>`:''}</div>`).join('')}
+      <div class="rw-foot"><button type="button" class="rw-back" style="visibility:hidden">← Atrás</button><div class="rw-dots">${S.map((_,k)=>`<i class="${k?'':'on'}"></i>`).join('')}</div><button type="button" class="rw-next">Siguiente</button></div></div>`;
+    document.body.appendChild(o);
+    const show=()=>{ o.querySelectorAll('.rw-slide').forEach((el,k)=>el.classList.toggle('on',k===i)); o.querySelectorAll('.rw-dots i').forEach((el,k)=>el.classList.toggle('on',k===i)); o.querySelector('.rw-back').style.visibility=i?'visible':'hidden'; o.querySelector('.rw-next').textContent = i===S.length-1 ? '✨ Probar Pídeme' : 'Siguiente'; o.querySelector('.rw-card').scrollTop=0; };
+    o.addEventListener('click',e=>{
+      if(e.target===o || e.target.closest('.rw-skip')) return done();
+      const q=e.target.closest('[data-q]'); if(q) return run(q.dataset.q);
+      if(e.target.closest('.rw-back')){ i=Math.max(0,i-1); return show(); }
+      if(e.target.closest('.rw-next')){ if(i===S.length-1){ done(); try{ switchTab('pide'); document.getElementById('pideText').focus(); }catch(err){} } else { i++; show(); } }
+    });
+    let x0=null; o.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+    o.addEventListener('touchend',e=>{ if(x0==null) return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)<60) return; i=Math.max(0,Math.min(S.length-1,i+(dx<0?1:-1))); show(); },{passive:true});
+  }
+  window.rentaBienvenida=open;
+  document.addEventListener('click',e=>{ if(e.target.closest('[data-renta-welcome]')){ e.preventDefault(); open(); } });
+  try{
+    const q=new URLSearchParams(location.search);
+    const forced=q.has('bienvenida');
+    const deep=['pide','sitio','votar','voto'].some(k=>q.has(k));
+    if(forced || (!localStorage.getItem(KEY) && !deep && !navigator.webdriver)) window.addEventListener('load',()=>setTimeout(open, forced?0:900));
+  }catch(e){}
+})();
+</script>
+<script id="renta-actualizar">
+// La web abre al instante desde la copia guardada; si hay versión nueva, se avisa para actualizar con un toque
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.addEventListener('message',e=>{
+    if(!e.data || e.data.type!=='renta-nueva-version' || document.getElementById('rentaUpdate')) return;
+    const d=document.createElement('div'); d.id='rentaUpdate'; d.innerHTML='<span>Hay una versión nueva ✨</span><span><button type="button" class="go">Actualizar</button><button type="button" class="x" aria-label="Cerrar">×</button></span>';
+    d.querySelector('.go').onclick=()=>location.reload(); d.querySelector('.x').onclick=()=>d.remove();
+    document.body.appendChild(d);
+  });
 })();
 </script>
 </body>

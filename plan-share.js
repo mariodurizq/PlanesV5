@@ -1,4 +1,4 @@
-/* Compartir un plan de RENTA: enlace a una página solo con el plan (plan.html#…) e imagen PNG.
+/* Compartir un plan de Me Renta: enlace a una página solo con el plan (plan.html#…) e imagen PNG.
    Lo usan index.html (al compartir) y plan.html (al abrir el enlace). */
 (function () {
   const BASE = (location.origin + location.pathname).replace(/[^/]*$/, '');
@@ -77,7 +77,7 @@
   async function png(plan, opts) {
     opts = opts || {};
     const W = 1080, PAD = 56, MAPH = 640, F = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
-    const C = {bg: '#0b100e', card: '#141c18', ink: '#f1efe8', mut: '#9aa59e', acc: '#2ec4b6', lime: '#c5e3a0', or: '#e8a24a', line: '#24302b'};
+    const C = {bg: '#0b0b0b', card: '#161616', ink: '#f5f5f5', mut: '#a9a3a3', acc: '#e3263c', lime: '#f6c7cd', or: '#e8a24a', line: '#2e2e2e'};
     // medir alto
     const m = document.createElement('canvas').getContext('2d');
     const rows = plan.s.map(s => {
@@ -90,8 +90,9 @@
     const ctx = cv.getContext('2d');
     ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
     // cabecera
-    ctx.fillStyle = C.ink; ctx.font = `900 40px ${F}`; ctx.fillText('RENTA', PAD, 86);
-    ctx.fillStyle = C.mut; ctx.font = `500 26px ${F}`; ctx.fillText('· Planes en Madrid', PAD + 150, 86);
+    ctx.fillStyle = C.ink; ctx.font = `900 40px ${F}`; ctx.fillText('Me ', PAD, 86); const wMe = ctx.measureText('Me ').width;
+    ctx.fillStyle = C.acc; ctx.fillText('Renta', PAD + wMe, 86); const wT = wMe + ctx.measureText('Renta').width;
+    ctx.fillStyle = C.mut; ctx.font = `500 26px ${F}`; ctx.fillText('· Planes en Madrid', PAD + wT + 14, 86);
     ctx.fillStyle = C.ink; ctx.font = `800 52px ${F}`;
     const tl = wrap(ctx, plan.t.replace(/^Plan · /, 'Plan · '), W - PAD * 2); tl.slice(0, 2).forEach((l, i) => ctx.fillText(l, PAD, 160 + i * 58));
     const first = plan.s[0], lastS = plan.s[plan.s.length - 1];
@@ -100,7 +101,7 @@
     const my = 250, mx = PAD, mw = W - PAD * 2, mh = MAPH;
     const g = geometry(plan);
     ctx.save(); rr(ctx, mx, my, mw, mh, 28); ctx.clip();
-    ctx.fillStyle = '#1b2420'; ctx.fillRect(mx, my, mw, mh);
+    ctx.fillStyle = '#1c1c1c'; ctx.fillRect(mx, my, mw, mh);
     let z = 16, proj = null;
     if (g.all.length) {
       const lats = g.all.map(p => p[0]), lons = g.all.map(p => p[1]);
@@ -131,7 +132,7 @@
           ctx.fillStyle = C.or; rr(ctx, x - tw / 2 - 12, y - 20, tw + 24, 40, 20); ctx.fill(); ctx.fillStyle = '#1b1206'; ctx.fillText(txt, x - tw / 2, y + 9); } });
       // marcadores
       g.stops.forEach(p => { const [x, y] = proj(p.ll); const r = p.walk ? 17 : 27;
-        ctx.fillStyle = p.walk ? C.lime : C.acc; ctx.strokeStyle = p.walk ? '#12201a' : '#fff'; ctx.lineWidth = p.walk ? 3 : 5;
+        ctx.fillStyle = p.walk ? C.lime : C.acc; ctx.strokeStyle = p.walk ? '#1a1a1a' : '#fff'; ctx.lineWidth = p.walk ? 3 : 5;
         ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#0b1d19'; ctx.font = `800 ${p.walk ? 20 : 28}px ${F}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.label, x, y + 1); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; });
     }
@@ -157,7 +158,7 @@
       }
       y += h + 18;
     });
-    ctx.fillStyle = C.mut; ctx.font = `500 24px ${F}`; ctx.fillText('Hecho con RENTA · ' + BASE.replace(/^https?:\/\//, ''), PAD, H - 62);
+    ctx.fillStyle = C.mut; ctx.font = `500 24px ${F}`; ctx.fillText('Hecho con Me Renta · ' + BASE.replace(/^https?:\/\//, ''), PAD, H - 62);
     ctx.font = `400 20px ${F}`; ctx.fillText('Mapa © OpenStreetMap · © CARTO', PAD, H - 30);
     return await new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/png'); } catch (e) { rej(e); } });
   }

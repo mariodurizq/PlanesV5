@@ -1,10 +1,10 @@
-// RENTA · widget para iPhone (app Scriptable)
+// Me Renta · widget para iPhone (app Scriptable)
 // Sugiere un sitio según la hora, el tiempo y dónde estés, y te dice el tiempo y un evento de hoy.
 // Lee https://mariodurizq.github.io/PlanesV5/widget.json (se actualiza solo cada día). Sin claves ni cuentas.
 // Tamaños: pequeño (1 sugerencia), mediano (sugerencia + tiempo + evento) y grande (3 sugerencias + eventos).
 
 const BASE = 'https://mariodurizq.github.io/PlanesV5/';
-const C = { bg1: '#0b100e', bg2: '#17241f', ink: '#f1efe8', mut: '#9aa59e', acc: '#2ec4b6', lime: '#c5e3a0', or: '#e8a24a' };
+const C = { bg1: '#0b0b0b', bg2: '#2a0a10', ink: '#f5f5f5', mut: '#a9a3a3', acc: '#e3263c', lime: '#f6c7cd', or: '#e8a24a' };
 const SELLO = { top: '🏆 Imprescindible', zona: '📍 Top de la zona', joya: '💎 Joya escondida', michelin: '🎖️ Guía Michelin', nuevo: '✨ Nuevo' };
 const ICON = { cafe: '☕', comer: '🍽️', canas: '🍺', terraza: '🌇', copas: '🍸', shisha: '💨', fiesta: '🪩' };
 const SOL = { latitude: 40.4169, longitude: -3.7035 };
@@ -67,7 +67,7 @@ function txt(stack, s, size, color, weight, lines) {
 }
 function cabecera(w, fr) {
   const h = w.addStack(); h.centerAlignContent();
-  txt(h, 'RENTA', 11, C.lime, 'b'); h.addSpacer(5); txt(h, '· ' + fr.t, 11, C.mut, 'm', 1);
+  txt(h, 'Me Renta', 11, C.lime, 'b'); h.addSpacer(5); txt(h, '· ' + fr.t, 11, C.mut, 'm', 1);
 }
 function sugerencia(stack, s, grande) {
   stack.url = BASE + '?sitio=' + encodeURIComponent(s.n);
@@ -93,7 +93,7 @@ async function crear() {
   const w = new ListWidget(); fondo(w); w.setPadding(14, 14, 12, 14);
   w.refreshAfterDate = new Date(Date.now() + 30 * 60 * 1000);
   const d = await datos();
-  if (!d) { txt(w, 'RENTA', 12, C.lime, 'b'); w.addSpacer(6); txt(w, 'Sin conexión: vuelve a intentarlo en un rato.', 13, C.ink, 'm'); return w; }
+  if (!d) { txt(w, 'Me Renta', 12, C.lime, 'b'); w.addSpacer(6); txt(w, 'Sin conexión: vuelve a intentarlo en un rato.', 13, C.ink, 'm'); return w; }
   const loc = (await ubicacion()) || SOL;
   const t = (d.tiempo || []).find(x => x.fecha === hoyIso()) || (d.tiempo || [])[0];
   const lluvia = t && (t.plan === 'interior' || t.lluvia >= 60);

@@ -1,4 +1,4 @@
-const VERSION = 'renta-shell-v30';
+const VERSION = 'renta-shell-v31';
 const APP_FILES = [
   './',
   './index.html',
@@ -7,9 +7,13 @@ const APP_FILES = [
   './icon-512.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
+  './brand/emblema-96.png',
+  './brand/nombre-light.png',
+  './brand/nombre-dark.png',
+  './brand/nombre-white.png',
   './vendor/leaflet.css?v=1',
   './vendor/leaflet.js?v=1',
-  './plan-share.js?v=4',
+  './plan-share.js?v=5',
   './fonts/inter-latin-400-normal.woff2',
   './fonts/inter-latin-600-normal.woff2',
   './fonts/space-grotesk-latin-700-normal.woff2'

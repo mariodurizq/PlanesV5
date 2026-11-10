@@ -9,7 +9,7 @@ import html, json, math, pathlib, re, sys, unicodedata, datetime
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ROOT / '_site')
 BASE = 'https://mariodurizq.github.io/PlanesV5/'
-MARCA = 'RENTA'
+MARCA = 'Me Renta'
 HOY = datetime.date.today()
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 FECHA = f'{MESES[HOY.month - 1]} de {HOY.year}'
@@ -112,7 +112,7 @@ def pagina(path, titulo, h1, intro, sitios, otras, tipo):
         desc = e(d.get('info') or '')   # las notas internas (no) no se publican
         items.append(f'''<li class="s"><div class="n"><span class="pos">{i}</span><div><h2>{e(d['n'])}</h2>
 <p class="m">{e(d.get('cd') or d.get('cm'))} · {e(d.get('z') or 'Madrid')}{precio}</p>
-{('<p class="r">' + ' '.join(SELLOS[k] for k in _SELLOS.get(d['n'], [])[:3]) + '</p>') if _SELLOS.get(d['n']) else '<p class="r"><small>✓ Selección RENTA</small></p>'}
+{('<p class="r">' + ' '.join(SELLOS[k] for k in _SELLOS.get(d['n'], [])[:3]) + '</p>') if _SELLOS.get(d['n']) else '<p class="r"><small>✓ Selección Me Renta</small></p>'}
 {f'<p class="d">{desc}</p>' if desc else ''}<p class="a">{e(d.get('addr') or '')}</p>
 <p class="l"><a href="{maps}" target="_blank" rel="noopener">📍 Cómo llegar</a>{web} · <a href="../?sitio={e(d['n'])}">Ver en {MARCA}</a></p></div></div></li>''')
     ld = {'@context': 'https://schema.org', '@type': 'ItemList', 'name': h1, 'url': url, 'numberOfItems': len(sitios),
@@ -126,16 +126,16 @@ def pagina(path, titulo, h1, intro, sitios, otras, tipo):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(titulo)}</title><meta name="description" content="{e(desc_meta)}">
 <link rel="canonical" href="{e(url)}"><meta property="og:title" content="{e(titulo)}"><meta property="og:description" content="{e(desc_meta)}">
-<meta property="og:type" content="article"><meta property="og:url" content="{e(url)}"><meta name="theme-color" content="#0A0F1C">
+<meta property="og:type" content="article"><meta property="og:url" content="{e(url)}"><meta name="theme-color" content="#0b0b0b">
 <link rel="icon" href="../icon-192.png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
-<style>body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:#0b100e;color:#f1efe8;line-height:1.5}}
-main{{max-width:760px;margin:0 auto;padding:20px 16px 60px}}a{{color:#c5e3a0}}header a.brand{{font-weight:900;font-size:22px;text-decoration:none;color:#f1efe8;letter-spacing:-.5px}}
-h1{{font-size:28px;line-height:1.15;margin:18px 0 8px}}.intro{{color:#b9c0b8}}.cta{{display:inline-block;margin:12px 0 18px;padding:12px 16px;border-radius:12px;background:#c5e3a0;color:#0b1210;font-weight:800;text-decoration:none}}
-ol{{list-style:none;padding:0;margin:0}}.s{{border:1px solid #24302b;border-radius:16px;padding:14px;margin:10px 0;background:#121a17}}.n{{display:flex;gap:12px}}
-.pos{{flex:0 0 32px;height:32px;border-radius:50%;background:#1f2b26;display:grid;place-items:center;font-weight:800}}h2{{font-size:18px;margin:2px 0}}
-.m,.a{{color:#9aa59e;font-size:13.5px;margin:2px 0}}.r{{margin:4px 0;font-weight:700}}.r small{{font-weight:400;color:#9aa59e}}.d{{font-size:14px;margin:6px 0}}.l{{font-size:14px;margin:8px 0 0}}
-nav.rel{{margin-top:30px}}nav.rel h3{{font-size:16px}}nav.rel a{{display:inline-block;margin:4px 6px 4px 0;padding:7px 11px;border:1px solid #24302b;border-radius:999px;text-decoration:none;font-size:13.5px}}
+<style>body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:#0b0b0b;color:#f5f5f5;line-height:1.5}}
+main{{max-width:760px;margin:0 auto;padding:20px 16px 60px}}a{{color:#f6c7cd}}header a.brand{{font-weight:900;font-size:22px;text-decoration:none;color:#f5f5f5;letter-spacing:-.5px}}
+h1{{font-size:28px;line-height:1.15;margin:18px 0 8px}}.intro{{color:#bdb6b6}}.cta{{display:inline-block;margin:12px 0 18px;padding:12px 16px;border-radius:12px;background:#f6c7cd;color:#ffffff;font-weight:800;text-decoration:none}}
+ol{{list-style:none;padding:0;margin:0}}.s{{border:1px solid #2e2e2e;border-radius:16px;padding:14px;margin:10px 0;background:#161616}}.n{{display:flex;gap:12px}}
+.pos{{flex:0 0 32px;height:32px;border-radius:50%;background:#222222;display:grid;place-items:center;font-weight:800}}h2{{font-size:18px;margin:2px 0}}
+.m,.a{{color:#a9a3a3;font-size:13.5px;margin:2px 0}}.r{{margin:4px 0;font-weight:700}}.r small{{font-weight:400;color:#a9a3a3}}.d{{font-size:14px;margin:6px 0}}.l{{font-size:14px;margin:8px 0 0}}
+nav.rel{{margin-top:30px}}nav.rel h3{{font-size:16px}}nav.rel a{{display:inline-block;margin:4px 6px 4px 0;padding:7px 11px;border:1px solid #2e2e2e;border-radius:999px;text-decoration:none;font-size:13.5px}}
 footer{{margin-top:30px;font-size:12.5px;color:#7f8a83}}</style></head><body><main>
 <header><a class="brand" href="../">{MARCA}</a> <span style="color:#7f8a83">· Planes en Madrid</span></header>
 <h1>{e(h1)}</h1><p class="intro">{e(intro)}</p>
@@ -193,12 +193,12 @@ def main():
         bloques.append(f'<h2>{e("Toda Madrid" if z == "Madrid" else z)}</h2><ul>{enl}</ul>')
     idx = f'''<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Los mejores sitios de Madrid por zona y tipo | {MARCA}</title>
-<meta name="description" content="Listas de las mejores coctelerías, shishas, restaurantes, rooftops y discotecas de Madrid por barrio,, elegidos por RENTA. Actualizado en {FECHA}.">
+<meta name="description" content="Listas de las mejores coctelerías, shishas, restaurantes, rooftops y discotecas de Madrid por barrio,, elegidos por Me Renta. Actualizado en {FECHA}.">
 <link rel="canonical" href="{BASE}mejores/"><link rel="icon" href="../icon-192.png">
-<style>body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:#0b100e;color:#f1efe8;line-height:1.55}}main{{max-width:760px;margin:0 auto;padding:20px 16px 60px}}
-a{{color:#c5e3a0}}h1{{font-size:28px}}h2{{font-size:19px;margin-top:26px}}ul{{padding-left:18px}}</style></head><body><main>
-<a href="../" style="font-weight:900;font-size:22px;color:#f1efe8;text-decoration:none">{MARCA}</a>
-<h1>Los mejores sitios de Madrid</h1><p>Listas por zona y tipo, ordenadas por la selección de RENTA. Actualizado en {FECHA}.</p>
+<style>body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:#0b0b0b;color:#f5f5f5;line-height:1.55}}main{{max-width:760px;margin:0 auto;padding:20px 16px 60px}}
+a{{color:#f6c7cd}}h1{{font-size:28px}}h2{{font-size:19px;margin-top:26px}}ul{{padding-left:18px}}</style></head><body><main>
+<a href="../" style="font-weight:900;font-size:22px;color:#f5f5f5;text-decoration:none">{MARCA}</a>
+<h1>Los mejores sitios de Madrid</h1><p>Listas por zona y tipo, ordenadas por la selección de Me Renta. Actualizado en {FECHA}.</p>
 {''.join(bloques)}</main></body></html>'''
     (out / 'index.html').write_text(idx, encoding='utf-8')
 

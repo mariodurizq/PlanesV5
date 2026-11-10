@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
+<script>try{var t=localStorage.getItem("radar-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta charset="UTF-8">
 <meta name="description" content="Descubre restaurantes, ocio y planes en Madrid. Filtra, guarda favoritos, explora el mapa y organiza tu itinerario con RENTA.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -1580,6 +1581,56 @@ header.top.scrolled .tagline{max-height:0}
  .radar-modern-popup h3{font-size:18px!important;margin:4px 0!important}
 }
 .plan-walk{margin:6px 0 6px 14px;padding-left:12px;border-left:2px dashed var(--line,#cfcabb);font-size:12px;color:var(--muted,#6b716c)}
+</style>
+<style id="renta-unificado">
+/* ===== Diseño unificado: una sola paleta, un solo estilo de botón, tarjeta y chip ===== */
+/* 1) Las piezas antiguas (paleta azul marino) pasan a usar los colores actuales en los dos temas */
+:root[data-theme]{
+  --panel:var(--surface);--panel2:var(--surface-2);--card:var(--surface);--bg2:var(--surface-2);
+  --grid:var(--line);--border:var(--line);--lab-border:var(--line);--glass-b:var(--line);
+  --text:var(--ink);--muted2:var(--muted);
+  --teal:var(--accent);--teal-dim:var(--accent);--lab-accent:var(--accent);
+  --u-r:12px;--u-r-card:20px;--u-h:44px;
+}
+:root[data-theme="light"]{--on-accent:#fff;--amber:#b86a1f;--green:#2f8f5b;--glass:rgba(255,254,250,.86)}
+:root[data-theme="dark"]{--on-accent:#152010;--glass:rgba(20,28,22,.82)}
+/* 2) Botón principal: mismo color y texto legible en claro y oscuro */
+.aiBtn,.map-control-btn.map-location-btn,.map-control-btn.map-search-area-btn,.radar-feature-primary,.match-place-links a.primary,.lab-action[data-lab-add],#radarCreateCollection{background:var(--accent)!important;color:var(--on-accent)!important;border-color:transparent!important}
+.aiBtn,.loadmore{font-family:inherit!important;letter-spacing:0}
+.aiBtn{border-radius:var(--u-r)!important;min-height:48px}
+.chip.active,.chip.active .cnt{color:var(--on-accent)!important}.chip.active .cnt{opacity:.8}
+:root[data-theme="dark"] #resultsCount.cnt{background:var(--surface-2);color:var(--ink)}
+.header-shortcut.plan-shortcut{color:var(--accent)}:root[data-theme="dark"] .header-shortcut.plan-shortcut{color:var(--ink)}
+/* 3) Botón secundario: neutro, nunca azul marino */
+.lab-action{background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:var(--u-r);padding:9px 11px;font:650 12px Inter,system-ui,sans-serif}
+.lab-actions{gap:6px}
+.map-control-btn,.map-radius-select{border-radius:var(--u-r)!important;min-height:42px}
+.renta-compact-toggle,.radar-feature-secondary,.zonesel,.simbtn,.removeFixedStop{border-radius:var(--u-r)!important}
+.rf-toggle{border-radius:var(--u-r-card);color:var(--ink);background:var(--surface)}
+.lab-action{flex:1 1 auto;text-align:center}.lab-action[data-lab-add]{flex:1 1 100%}
+.ghostBtn{background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-radius:var(--u-r);font-family:inherit}
+.ghostBtn.wa{color:#1c7c43;border-color:#1c7c4355}:root[data-theme="dark"] .ghostBtn.wa{color:#6fe39b;border-color:#6fe39b55}
+.understood .u{background:var(--surface-2);border:1px solid var(--line);color:var(--ink)}
+:root[data-theme="dark"] .venue .venue-photo{background-color:#26302a}
+/* Plan de Pídeme y catálogos: sin turquesa ni morado sueltos */
+.venue.expanded{border-color:var(--accent)!important;box-shadow:var(--shadow)!important}
+.timeline::before{background:var(--line)!important;opacity:1!important}
+.tl .dot{background:var(--surface)!important;border-color:var(--accent)!important;box-shadow:none!important}
+.mapbtn{border-radius:var(--u-r)!important;font-family:inherit!important;font-size:12px}
+.mapbtn.gmaps{background:var(--accent)!important;border-color:transparent!important;color:var(--on-accent)!important}
+select.zonesel:focus,input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)!important}
+.renta-catalog-card:hover,.renta-catalog-card.is-selected,.rf-cat.active,.renta-local-tab.active,.renta-local-filters button.active{background:var(--surface-2)!important;border-color:var(--accent)!important}
+.renta-catalog-icon,.renta-local-pill{background:var(--surface-2)!important}
+/* 4) Texto de botones: nada por debajo de 11px */
+.fav-inline{font-size:11px!important}.hero-action{font-size:11.5px!important}.header-shortcut{font-size:12px!important}
+@media(max-width:520px){.fav-inline{display:none}}
+/* 5) Enlaces de la agenda como botones pequeños y alineados */
+.agenda-links{flex-wrap:wrap;gap:6px;align-items:center}
+.agenda-links>a,.agenda-links .agenda-nav{display:inline-flex;align-items:center;min-height:32px;padding:0 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--ink);text-decoration:none;font-size:12px;font-weight:650;white-space:nowrap}
+.agenda-links>a{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.agenda-links .radar-nav-row{flex-wrap:wrap;margin-top:0}.agenda-links .radar-nav-label{font-weight:500;color:var(--muted)}
+/* 6) Mapa en oscuro: créditos legibles */
+:root[data-theme="dark"] .leaflet-control-attribution{background:rgba(20,28,22,.82)!important;color:#dfe6dc!important}:root[data-theme="dark"] .leaflet-control-attribution a{color:#cfe3a8!important}
 </style>
 </head>
 <body>

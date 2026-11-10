@@ -1,0 +1,11 @@
+{
+  "_nota": "Precios de entrada/copa comprobados a mano. Solo se rellena lo que consta en una fuente; lo demás se deja vacío (la web dirá «consulta su web»). 'alias' sirve para casar con el nombre del mapa.",
+  "precios": [
+    {"n": "Teatro Kapital", "alias": ["kapital"], "entrada": "Desde 21 € con consumición (2 copas si entras antes de la 1:00, 1 después)", "copa": "", "fuente": "https://www.taquilla.com/entradas/teatro-kapital", "fecha": "2026-11"},
+    {"n": "Fabrik", "alias": ["fabrik"], "entrada": "De 20 a 60 € según el evento (anticipada más barata que en taquilla)", "copa": "", "fuente": "https://xceed.me/es/madrid/club/fabrik-madrid", "fecha": "2026-11"},
+    {"n": "Mondo Disko", "alias": ["mondo disko", "sala but"], "lat": 40.42672, "lon": -3.69978, "addr": "Sala But · Calle de Barceló 11, Madrid", "entrada": "23 € en las sesiones de octubre de 2026 (jueves, sábados y vísperas de festivo)", "copa": "", "fuente": "https://www.technoairlines.com/club/mondo-disko-madrid", "fecha": "2026-10"},
+    {"n": "Fitz Club", "alias": ["fitz"], "entrada": "Desde 10 €", "copa": "", "fuente": "https://www.taquilla.com/conciertos/discotecas/madrid", "fecha": "2026-11"}
+  ],
+  "cerradas": ["teatro barcelo"],
+  "excluir": ["Encuentros VIP Madrid", "Erótika", "Uñas Chung Lee"]
+}

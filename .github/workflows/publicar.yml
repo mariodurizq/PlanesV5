@@ -40,6 +40,7 @@ jobs:
           [ -d icons ] && cp -r icons _site/ || true
           python3 tools/paginas.py _site || echo "AVISO: no se pudieron generar las páginas por zona"
           python3 tools/widget.py _site || echo "AVISO: no se pudo generar widget.json"
+          python3 tools/discotecas.py _site || echo "AVISO: no se pudo generar discotecas.json"
           ls _site
       - uses: actions/upload-pages-artifact@v3
         with:

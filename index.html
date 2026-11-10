@@ -1395,6 +1395,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .radar-live-events{margin:12px 0 18px;padding:15px;border:1px solid var(--line);border-radius:17px;background:var(--surface-2)}
 .radar-live-events-head h3{font-size:16px;margin:5px 0}
 .radar-live-events-head p{font-size:11px;line-height:1.5;color:var(--muted);margin:0 0 12px}
+.radar-live-events-note{font-size:10.5px;line-height:1.45;color:var(--muted);margin:10px 0 0}
 .radar-live-events-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .radar-live-events-links a{display:grid;grid-template-columns:1fr auto;gap:4px;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);text-decoration:none}
 .radar-live-events-links b{font-size:11px}.radar-live-events-links span{grid-column:1/2;font-size:10px;line-height:1.4;color:var(--muted)}.radar-live-events-links i{grid-column:2;grid-row:1/3;color:var(--accent);font-style:normal}
@@ -1495,6 +1496,7 @@ header.top.scrolled .tagline{max-height:0}
 .market-pin{width:28px;height:28px;border-radius:9px;background:#1f2a24;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.28);display:grid;place-items:center;position:relative}
 .market-pin span{font-size:14px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
 .market-pin b{position:absolute;right:-7px;top:-7px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:#e0583a;color:#fff;font:800 9px/15px Inter,sans-serif;text-align:center}
+.disco-pin{background:#3b1d6e}.disco-pin.has-price b{background:#1f9d55}.disco-popup .dk-price{margin:0 0 4px;font-size:13px;color:var(--ink)}.disco-popup .dk-note,.disco-popup .dk-src,.disco-popup .dk-hours{margin:0 0 6px;font-size:11.5px;line-height:1.35;color:var(--muted,#6b716c)}.disco-popup .dk-src a{color:inherit;text-decoration:underline}
 .market-popup h3{margin:0 0 2px;font-size:16px}.market-popup p{margin:0 0 8px;font-size:12px;color:#6b716c}
 .mk-tipos{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.mk-tipos span{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.06)}
 .mk-stalls{display:grid;gap:6px;max-height:220px;overflow:auto;margin:6px 0 10px}
@@ -1947,6 +1949,7 @@ header.top.scrolled .tagline{max-height:0}
         <a href="https://www.ticketmaster.es/discover/madrid" target="_blank" rel="noopener"><b>Ticketmaster</b><span>Conciertos, teatro y espectáculos</span><i>↗</i></a>
         <a href="https://www.eventbrite.es/d/spain--madrid/events/" target="_blank" rel="noopener"><b>Eventbrite</b><span>Eventos, talleres y actividades</span><i>↗</i></a>
       </div>
+      <p class="radar-live-events-note">Son enlaces a webs externas: se abren fuera de RENTA. No tenemos relación con estas empresas ni vendemos entradas.</p>
     </section>
 
     <div class="aiHint">Ferias gastronómicas fuera de Madrid (selección manual; comprueba fechas en la web de cada evento):</div>
@@ -3452,7 +3455,7 @@ function fillEventsList(){
     .sort((a,b)=> new Date(a.start) - new Date(b.start));
 
   if(upcoming.length===0){
-    list.innerHTML = `<div class="emptystate">No tengo eventos investigados para ${Array.from(selCities).join(', ')} ahora mismo. Prueba "Buscar más en Google" abajo.</div>`;
+    list.innerHTML = `<div class="emptystate">Ahora mismo no hay ferias apuntadas en ${Array.from(selCities).join(', ')}. Mira la agenda de arriba o busca por fecha aquí abajo.</div>`;
     return;
   }
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -7083,7 +7086,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   const GROUPS=RADAR_GROUPS;
   const groupOf=radarGroupOf;
   window.radarMapGroup='all';
-  window.radarMapGroupOk=d=>window.radarMapGroup==='all'||(window.radarMapGroup!=='mercados'&&groupOf(d)===window.radarMapGroup);
+  window.radarMapGroupOk=d=>window.radarMapGroup==='all'||(window.radarMapGroup!=='mercados'&&window.radarMapGroup!=='discotecas'&&groupOf(d)===window.radarMapGroup);
   function addFilterControl(){
     if(!window.radarMap||document.getElementById('mapGroupChips'))return;
     const C=L.Control.extend({options:{position:'topleft'},onAdd(){const el=L.DomUtil.create('div','map-group-chips');el.id='mapGroupChips';
@@ -7182,11 +7185,41 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   const addChip=()=>{const chips=document.getElementById('mapGroupChips');if(!chips)return;
     if(!chips._mk){chips._mk=true;chips.addEventListener('click',()=>setTimeout(drawMarkets,0));}
     if(mercados.length&&!chips.querySelector('[data-g="mercados"]'))chips.querySelector('[data-g="all"]')?.insertAdjacentHTML('afterend',`<button type="button" data-g="mercados">🏪 Mercados <small>${mercados.length}</small></button>`);};
-  const hook=addChip;
+
+  // ---- Capa 🪩 Discotecas: todas las de la Comunidad. El precio solo sale si está comprobado, con su fuente ----
+  let discos=[], discoLayer=null;
+  const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:(u&&/^[\w.-]+\.[a-z]{2,}/i.test(u)?'https://'+u:'');
+  const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch(e){return 'la fuente';}};
+  const ohEs=h=>String(h).replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off|closed)\b/g,m=>({Mo:'L',Tu:'M',We:'X',Th:'J',Fr:'V',Sa:'S',Su:'D',PH:'festivos',off:'cerrado',closed:'cerrado'}[m])).replace(/;\s*/g,' · ');
+  function discoPopup(d){
+    const w=safeUrl(d.w), f=safeUrl(d.f);
+    const precio=(d.e||d.c)
+      ? `${d.e?`<p class="dk-price"><b>🎟️ Entrada:</b> ${esc(d.e)}</p>`:''}${d.c?`<p class="dk-price"><b>🍸 Copa:</b> ${esc(d.c)}</p>`:`<p class="dk-note">Precio de la copa: no publicado.</p>`}<p class="dk-src">Según ${f?`<a href="${esc(f)}" target="_blank" rel="noopener">${esc(host(f))} ↗</a>`:'la sala'}${d.fd?` · comprobado ${esc(d.fd.split('-').reverse().join('/'))}`:''}. Cambia según la noche.</p>`
+      : `<p class="dk-note">Precio de entrada y copa: no lo tengo comprobado${w?', míralo en su web':''}. Suele cambiar según la noche.</p>`;
+    return `<article class="market-popup disco-popup"><h3>🪩 ${esc(d.n)}</h3><p>${esc([d.t,d.a].filter(Boolean).join(' · ')||'Discoteca')}${d.l?' · <b>en tu lista</b>':''}</p>
+      ${d.h?`<p class="dk-hours">🕒 ${esc(ohEs(d.h))}</p>`:''}${precio}
+      <div class="radar-popup-actions">${w?`<a class="radar-popup-btn" href="${esc(w)}" target="_blank" rel="noopener">Web ↗</a>`:''}${radarNavHtml(d.n,'',d.la,d.lo)}</div></article>`;
+  }
+  function drawDiscos(){
+    if(!window.radarMap||!discos.length)return;
+    if(!discoLayer)discoLayer=L.layerGroup().addTo(radarMap);
+    discoLayer.clearLayers();
+    if(window.radarMapGroup!=='discotecas')return;
+    discos.forEach(d=>{
+      const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin disco-pin${d.e||d.c?' has-price':''}"><span>🪩</span>${d.e||d.c?'<b>€</b>':''}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
+      L.marker([d.la,d.lo],{icon,zIndexOffset:d.e?950:800,title:d.n,autoPanOnFocus:false}).bindPopup(()=>discoPopup(d),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(discoLayer);
+    });
+  }
+  const addDiscoChip=()=>{const chips=document.getElementById('mapGroupChips');if(!chips||!discos.length)return;
+    if(!chips._dk){chips._dk=true;chips.addEventListener('click',()=>setTimeout(drawDiscos,0));}
+    if(!chips.querySelector('[data-g="discotecas"]'))(chips.querySelector('[data-g="mercados"]')||chips.querySelector('[data-g="all"]')).insertAdjacentHTML('afterend',`<button type="button" data-g="discotecas">🪩 Discotecas <small>${discos.length}</small></button>`);};
+  window.RentaDiscos={get list(){return discos;},popup:discoPopup};
+  const hook=()=>{addChip();addDiscoChip();};
   const origRender=renderMapMarkers;
-  renderMapMarkers=function(list){origRender.apply(this,arguments);hook();drawMarkets();};
+  renderMapMarkers=function(list){origRender.apply(this,arguments);hook();drawMarkets();drawDiscos();};
   // Datos
   fetch('./mercados.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;mercados=(j.mercados||[]).filter(m=>m.puestos&&m.puestos.length);renderList();addChip();drawMarkets();}).catch(()=>{});
+  fetch('./discotecas.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;discos=(j.discotecas||[]).filter(d=>d.la&&d.lo);addDiscoChip();drawDiscos();}).catch(()=>{});
   fetch('./nuevos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!Array.isArray(j.sitios))return;
     const have=new Set(DATA.map(d=>d.n.toLocaleLowerCase('es')));
     j.sitios.forEach(x=>{if(!have.has(x.n.toLocaleLowerCase('es')))DATA.push(x);});

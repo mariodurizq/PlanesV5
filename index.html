@@ -1640,6 +1640,11 @@ html:root[data-theme="dark"] #radarMap.leaflet-container .leaflet-control-attrib
 .radar-pin2 .radar-pin-svg{z-index:0}
 .radar-pin2-emoji{top:5px!important;font-size:19px!important;line-height:22px!important;z-index:2}
 .radar-map-marker.is-osm .radar-pin2-emoji{opacity:.85}
+
+/* Marcadores: círculo con icono */
+.radar-pin2.rp-badge{width:36px!important;height:36px!important;border-radius:50%;background:#fff;border:2px solid #1b1b1b;display:grid;place-items:center;transform-origin:18px 18px!important;filter:none!important;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.radar-pin2.rp-badge .radar-pin2-emoji{position:static!important;font-size:20px!important;line-height:1!important}
+.radar-map-marker.is-osm .radar-pin2.rp-badge{border:2px dashed #8a8a8a;transform:scale(.85)}
 /* Sitios que rentan */
 body[data-tab]:not([data-tab="guiado"]) #meRentaSection{display:none}
 .radar-popup-chip.is-mr,.sello-photo.is-mr{background:var(--accent)!important;color:var(--on-accent)!important}
@@ -6024,9 +6029,8 @@ function radarPinColor(cm,d){return d?RADAR_GROUP_COLORS[radarGroupOf(d)]||'#e05
 let radarCatalogOnMap=[];
 function radarPinIcon(d){
   const color=radarPinColor(d.cm,d), mine=!d.osm, emoji=escapeMapText(radarFoodIcon(d)), isNew=!!d.nuevo;
-  // Sin código de colores: todas iguales (blancas con borde) y lo que dice qué es cada sitio es su icono
-  const svg=`<svg class="radar-pin-svg" viewBox="0 0 34 44" width="34" height="44" aria-hidden="true"><path d="M17 43C17 43 3 27.6 3 16.5 3 8.5 9.3 2 17 2s14 6.5 14 14.5C31 27.6 17 43 17 43Z" fill="#ffffff" stroke="${mine?'#1b1b1b':'#9a9a9a'}" stroke-width="${mine?2.2:2}"${mine?'':' stroke-dasharray="3 2"'}/></svg>`;
-  return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm')+(isNew?' is-new':''),html:`<div class="radar-pin2" style="--pin:${color}" title="${escapeMapText(d.n)}">${svg}<span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
+  // Sin chinchetas ni colores: un círculo blanco con el icono de lo que es cada sitio
+  return L.divIcon({className:'radar-map-marker'+(mine?' is-mine':' is-osm')+(isNew?' is-new':''),html:`<div class="radar-pin2 rp-badge" title="${escapeMapText(d.n)}"><span class="radar-pin2-emoji">${emoji}</span></div>`,iconSize:[36,36],iconAnchor:[18,18],popupAnchor:[0,-18]});
 }
 function rentaOutdoor(d){return d.cm==='Rooftop/Terraza'||/terraza|rooftop|azotea|parque|jard[ií]n|aire libre|chiringuito|merendero|rastro|mercadillo|picnic|mirador/i.test((d.cd||'')+' '+(d.n||'')+' '+(d.no||'')+' '+(d.cm||''));}
 function radarOpenNow(d){
@@ -7900,6 +7904,22 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 // La web abre al instante desde la copia guardada; si hay versión nueva, se avisa para actualizar con un toque
 (function(){
   if(!('serviceWorker' in navigator)) return;
+  // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
+  const RENTA_VERSION='renta-shell-v33';
+  let ultima=0;
+  const comprobar=async()=>{
+    if(Date.now()-ultima<60000) return; ultima=Date.now();
+    try{
+      const t=await (await fetch('./service-worker.js',{cache:'no-store'})).text();
+      const m=t.match(/VERSION = '([^']+)'/);
+      if(m&&m[1]!==RENTA_VERSION){
+        try{ const r=await navigator.serviceWorker.getRegistration(); if(r) await r.update(); }catch(e){}
+        if(!sessionStorage.getItem('renta-recargado-'+m[1])){ sessionStorage.setItem('renta-recargado-'+m[1],'1'); location.reload(); }
+      }
+    }catch(e){}
+  };
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') comprobar(); });
+  window.addEventListener('load',()=>setTimeout(comprobar,3000));
   navigator.serviceWorker.addEventListener('message',e=>{
     if(!e.data || e.data.type!=='renta-nueva-version' || document.getElementById('rentaUpdate')) return;
     const d=document.createElement('div'); d.id='rentaUpdate'; d.innerHTML='<span>Hay una versión nueva ✨</span><span><button type="button" class="go">Actualizar</button><button type="button" class="x" aria-label="Cerrar">×</button></span>';

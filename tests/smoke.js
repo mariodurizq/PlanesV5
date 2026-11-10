@@ -8,6 +8,9 @@ const fallos = []; const ok = (cond, msg) => { console.log((cond ? '✔ ' : '✘
     if (!fs.existsSync(f)) continue;
     try { JSON.parse(fs.readFileSync(f, 'utf8')); ok(true, `${f} es válido`); } catch (e) { ok(false, `${f} está roto: ${e.message}`); }
   }
+  { const sw = (fs.readFileSync('service-worker.js', 'utf8').match(/VERSION = '([^']+)'/) || [])[1];
+    const pg = (fs.readFileSync('index.html', 'utf8').match(/RENTA_VERSION='([^']+)'/) || [])[1];
+    ok(sw && sw === pg, `la versión de la página (${pg}) coincide con la del service worker (${sw})`); }
   const b = await chromium.launch();
   for (const [nombre, opts] of [['móvil', { ...devices['iPhone 13'] }], ['escritorio', { viewport: { width: 1366, height: 860 } }]]) {
     const c = await b.newContext({ ...opts, locale: 'es-ES' });

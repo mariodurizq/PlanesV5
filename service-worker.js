@@ -1,4 +1,4 @@
-const VERSION = 'renta-shell-v32';
+const VERSION = 'renta-shell-v33';
 const APP_FILES = [
   './',
   './index.html',
@@ -46,25 +46,22 @@ self.addEventListener('fetch', event => {
   if (req.mode === 'navigate') {
     const esPortada = /\/(index\.html)?$/.test(url.pathname) && !/\/mejores\/$/.test(url.pathname);
     if (esPortada) {
-      // Portada: se abre al instante desde la copia guardada y se actualiza por detrás.
-      // Si lo descargado es distinto, se avisa a la página («Hay una versión nueva»).
+      // Portada: siempre la versión nueva si hay red (espera como mucho 4 s); la guardada solo sin conexión o si la red tarda
       event.respondWith((async () => {
         const cache = await caches.open(VERSION);
-        const cached = await cache.match('./index.html');
-        const refresh = (async () => {
-          const fresh = await fetch('./index.html', {cache: 'no-store'});
-          if (!fresh || !fresh.ok) return fresh;
-          let changed = false;
-          if (cached) { try { const [a, b] = await Promise.all([cached.clone().text(), fresh.clone().text()]); changed = a !== b; } catch (e) {} }
-          await cache.put('./index.html', fresh.clone());
-          if (changed) setTimeout(async () => {
-            const cs = await self.clients.matchAll({type: 'window'});
-            cs.forEach(c => c.postMessage({type: 'renta-nueva-version'}));
-          }, 2500);
+        const red = fetch('./index.html', {cache: 'no-store'}).then(async fresh => {
+          if (fresh && fresh.ok) await cache.put('./index.html', fresh.clone());
           return fresh;
-        })();
-        if (cached) { event.waitUntil(refresh.catch(() => {})); return cached.clone(); }
-        try { return await refresh; } catch (e) { return Response.error(); }
+        });
+        const cached = await cache.match('./index.html');
+        if (!cached) { try { return await red; } catch (e) { return Response.error(); } }
+        const lento = new Promise(r => setTimeout(() => r(null), 4000));
+        try {
+          const fresh = await Promise.race([red, lento]);
+          if (fresh && fresh.ok) return fresh;
+        } catch (e) {}
+        event.waitUntil(red.catch(() => {}));
+        return cached.clone();
       })());
       return;
     }

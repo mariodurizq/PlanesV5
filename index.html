@@ -1746,6 +1746,24 @@ html .radar-nav-row .radar-popup-btn:not(#_s):not(#_t):not(#_u),html .radar-nav-
 html .radar-popup-actions > *:not(#_s):not(#_t):not(#_u),html .radar-planner-actions > *:not(#_s):not(#_t):not(#_u),html .mapbtns > *:not(#_s):not(#_t):not(#_u),html .actionsRow > *:not(#_s):not(#_t):not(#_u){margin-top:0!important;margin-bottom:0!important;align-self:stretch!important}
 html .rf-toggle:not(#_s):not(#_t):not(#_u){justify-content:space-between!important;font-size:15px!important;padding-left:16px!important;padding-right:16px!important}
 html .radar-planner-actions:not(#_s):not(#_t):not(#_u),html .actionsRow:not(#_s):not(#_t):not(#_u),html .radar-popup-actions:not(#_s):not(#_t):not(#_u),html .mapbtns:not(#_s):not(#_t):not(#_u){align-items:stretch!important}
+
+/* ===== Discover: la tarjeta cabe entera y todo alineado ===== */
+html body.discover-open #tabbar:not(#_s):not(#_t):not(#_u){display:none!important}
+html .discover-card:not(#_s):not(#_t):not(#_u){height:calc(100svh - 150px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;min-height:420px!important;max-height:860px!important}
+html .discover-feed:not(#_s):not(#_t):not(#_u){padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
+html .discover-subbar:not(#_s):not(#_t):not(#_u){align-items:center!important;font:700 10px/1.2 Inter,system-ui,sans-serif!important;letter-spacing:.12em!important;text-transform:uppercase}
+html .discover-subbar > *:not(#_s):not(#_t):not(#_u){line-height:1.2!important;font:inherit!important;letter-spacing:inherit!important}
+html .discover-subbar > *:not(#_s):not(#_t):not(#_u){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:520px){html .discover-subbar > *:last-child:not(#_s):not(#_t):not(#_u){display:none!important}}
+html .discover-card-top:not(#_s):not(#_t):not(#_u){align-items:center!important;gap:8px}
+html .discover-badge:not(#_s):not(#_t):not(#_u), html .radar-dislike-btn:not(#_s):not(#_t):not(#_u), html .discover-meta span:not(#_s):not(#_t):not(#_u){display:inline-flex!important;align-items:center!important;gap:6px!important;height:var(--chip-h,36px)!important;min-height:0!important;padding:0 12px!important;box-sizing:border-box!important;font:650 13px/1 Inter,system-ui,sans-serif!important;border-radius:999px!important;white-space:nowrap}
+html .discover-meta span .mr-mini:not(#_s):not(#_t):not(#_u){width:18px;height:18px;margin:0;vertical-align:0}
+html .discover-meta span.is-mr:not(#_s):not(#_t):not(#_u){background:var(--accent)!important;color:var(--on-accent)!important;border-color:transparent!important}
+html .discover-fav:not(#_s):not(#_t):not(#_u){width:var(--btn-h,44px)!important;height:var(--btn-h,44px)!important;min-height:0!important;margin-left:auto}
+html .discover-actions:not(#_s):not(#_t):not(#_u){display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
+html .discover-action-btn:not(#_s):not(#_t):not(#_u){height:var(--btn-h,44px)!important;min-height:0!important;padding:0 10px!important;font:650 15px/1 Inter,system-ui,sans-serif!important;border-radius:12px!important;white-space:nowrap}
+/* ===== Cabecera: que no quede debajo de la barra de estado del iPhone ===== */
+html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area-inset-top,0px))!important}
 /* Logo de la cabecera según el tema */
 .brand h1.brand-logo{display:flex;align-items:center;gap:8px;margin:0;line-height:0}
 .brand-logo .brand-emblem{width:44px;height:44px;flex:0 0 auto}
@@ -6326,7 +6344,7 @@ function openDiscover(){
           <div class="discover-meta">
             <span>⌖ ${escapeMapText(d.z||'Madrid')}</span>
             <span>€ ${escapeMapText(budget)}</span>
-            <span>${escapeMapText(rating)}</span>
+            <span${d.mr?' class="is-mr"':''}>${d.mr?RENTA_MR_IMG+'Me renta':escapeMapText(rating)}</span>
           </div>
           <h3>${escapeMapText(d.n)}</h3>
           <p>${escapeMapText(blurb)}</p>
@@ -7905,7 +7923,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v33';
+  const RENTA_VERSION='renta-shell-v34';
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

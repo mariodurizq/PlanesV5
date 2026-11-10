@@ -26,6 +26,7 @@ def main():
                 if s.get(k): d[k] = s[k]
             d.update(lat=s['lat'], lon=s['lon'], locationVerified=True, locSrc='manual')
             if s.get('aprox'): d['locAprox'] = True
+            else: d.pop('locAprox', None)
         for k in ('cm', 'cd'):
             if s.get('existe') and s.get(k): d[k] = s[k]
         d['mr'] = 1; d['marca'] = s['marca']; d['sede'] = s['sede']; d['mro'] = orden

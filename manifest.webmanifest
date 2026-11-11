@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Me Renta",
-  "short_name": "Me Renta",
-  "description": "Me Renta: sitios que rentan y planes en Madrid.",
+  "name": "Me Renta Mazo",
+  "short_name": "Me Renta Mazo",
+  "description": "Me Renta Mazo: sitios que rentan y planes en Madrid.",
   "lang": "es-ES",
   "start_url": "./",
   "scope": "./",

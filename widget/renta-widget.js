@@ -1,4 +1,4 @@
-// Me Renta · widget para iPhone (app Scriptable)
+// Me Renta Mazo · widget para iPhone (app Scriptable)
 // Sugiere un sitio según la hora, el tiempo y dónde estés, y te dice el tiempo y un evento de hoy.
 // Lee https://mariodurizq.github.io/PlanesV5/widget.json (se actualiza solo cada día). Sin claves ni cuentas.
 // Tamaños: pequeño (1 sugerencia), mediano (sugerencia + tiempo + evento) y grande (3 sugerencias + eventos).
@@ -67,7 +67,7 @@ function txt(stack, s, size, color, weight, lines) {
 }
 function cabecera(w, fr) {
   const h = w.addStack(); h.centerAlignContent();
-  txt(h, 'Me Renta', 11, C.lime, 'b'); h.addSpacer(5); txt(h, '· ' + fr.t, 11, C.mut, 'm', 1);
+  txt(h, 'Me Renta Mazo', 11, C.lime, 'b'); h.addSpacer(5); txt(h, '· ' + fr.t, 11, C.mut, 'm', 1);
 }
 function sugerencia(stack, s, grande) {
   stack.url = BASE + '?sitio=' + encodeURIComponent(s.n);
@@ -93,7 +93,7 @@ async function crear() {
   const w = new ListWidget(); fondo(w); w.setPadding(14, 14, 12, 14);
   w.refreshAfterDate = new Date(Date.now() + 30 * 60 * 1000);
   const d = await datos();
-  if (!d) { txt(w, 'Me Renta', 12, C.lime, 'b'); w.addSpacer(6); txt(w, 'Sin conexión: vuelve a intentarlo en un rato.', 13, C.ink, 'm'); return w; }
+  if (!d) { txt(w, 'Me Renta Mazo', 12, C.lime, 'b'); w.addSpacer(6); txt(w, 'Sin conexión: vuelve a intentarlo en un rato.', 13, C.ink, 'm'); return w; }
   const loc = (await ubicacion()) || SOL;
   const t = (d.tiempo || []).find(x => x.fecha === hoyIso()) || (d.tiempo || [])[0];
   const lluvia = t && (t.plan === 'interior' || t.lluvia >= 60);

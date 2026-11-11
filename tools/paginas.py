@@ -9,7 +9,7 @@ import html, json, math, pathlib, re, sys, unicodedata, datetime
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ROOT / '_site')
 BASE = 'https://mariodurizq.github.io/PlanesV5/'
-MARCA = 'Me Renta'
+MARCA = 'Me Renta Mazo'
 HOY = datetime.date.today()
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 FECHA = f'{MESES[HOY.month - 1]} de {HOY.year}'
@@ -112,7 +112,7 @@ def pagina(path, titulo, h1, intro, sitios, otras, tipo):
         desc = e(d.get('info') or '')   # las notas internas (no) no se publican
         items.append(f'''<li class="s"><div class="n"><span class="pos">{i}</span><div><h2>{e(d['n'])}</h2>
 <p class="m">{e(d.get('cd') or d.get('cm'))} · {e(d.get('z') or 'Madrid')}{precio}</p>
-{('<p class="r">' + ' '.join(SELLOS[k] for k in _SELLOS.get(d['n'], [])[:3]) + '</p>') if _SELLOS.get(d['n']) else '<p class="r"><small>✓ Selección Me Renta</small></p>'}
+{('<p class="r">' + ' '.join(SELLOS[k] for k in _SELLOS.get(d['n'], [])[:3]) + '</p>') if _SELLOS.get(d['n']) else '<p class="r"><small>✓ Selección Me Renta Mazo</small></p>'}
 {f'<p class="d">{desc}</p>' if desc else ''}<p class="a">{e(d.get('addr') or '')}</p>
 <p class="l"><a href="{maps}" target="_blank" rel="noopener">📍 Cómo llegar</a>{web} · <a href="../?sitio={e(d['n'])}">Ver en {MARCA}</a></p></div></div></li>''')
     ld = {'@context': 'https://schema.org', '@type': 'ItemList', 'name': h1, 'url': url, 'numberOfItems': len(sitios),
@@ -193,12 +193,12 @@ def main():
         bloques.append(f'<h2>{e("Toda Madrid" if z == "Madrid" else z)}</h2><ul>{enl}</ul>')
     idx = f'''<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Los mejores sitios de Madrid por zona y tipo | {MARCA}</title>
-<meta name="description" content="Listas de las mejores coctelerías, shishas, restaurantes, rooftops y discotecas de Madrid por barrio,, elegidos por Me Renta. Actualizado en {FECHA}.">
+<meta name="description" content="Listas de las mejores coctelerías, shishas, restaurantes, rooftops y discotecas de Madrid por barrio,, elegidos por Me Renta Mazo. Actualizado en {FECHA}.">
 <link rel="canonical" href="{BASE}mejores/"><link rel="icon" href="../icon-192.png">
 <style>body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:#0b0b0b;color:#f5f5f5;line-height:1.55}}main{{max-width:760px;margin:0 auto;padding:20px 16px 60px}}
 a{{color:#f6c7cd}}h1{{font-size:28px}}h2{{font-size:19px;margin-top:26px}}ul{{padding-left:18px}}</style></head><body><main>
 <a href="../" style="font-weight:900;font-size:22px;color:#f5f5f5;text-decoration:none">{MARCA}</a>
-<h1>Los mejores sitios de Madrid</h1><p>Listas por zona y tipo, ordenadas por la selección de Me Renta. Actualizado en {FECHA}.</p>
+<h1>Los mejores sitios de Madrid</h1><p>Listas por zona y tipo, ordenadas por la selección de Me Renta Mazo. Actualizado en {FECHA}.</p>
 {''.join(bloques)}</main></body></html>'''
     (out / 'index.html').write_text(idx, encoding='utf-8')
 

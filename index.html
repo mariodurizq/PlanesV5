@@ -3,16 +3,16 @@
 <head>
 <script>try{var t=localStorage.getItem("radar-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;if(t==="crimson"){document.documentElement.dataset.theme="dark";document.documentElement.dataset.tint="crimson";}}catch(e){}</script>
 <meta charset="UTF-8">
-<meta name="description" content="Descubre restaurantes, ocio y planes en Madrid. Filtra, guarda favoritos, explora el mapa y organiza tu itinerario con Me Renta.">
+<meta name="description" content="Descubre restaurantes, ocio y planes en Madrid. Filtra, guarda favoritos, explora el mapa y organiza tu itinerario con Me Renta Mazo.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-title" content="Me Renta"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"><link rel="icon" type="image/png" sizes="48x48" href="./favicon.png"><link rel="shortcut icon" href="./favicon.ico">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-title" content="Me Renta Mazo"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"><link rel="icon" type="image/png" sizes="48x48" href="./favicon.png"><link rel="shortcut icon" href="./favicon.ico">
 
-<title>Me Renta · Planes en Madrid</title>
+<title>Me Renta Mazo · Planes en Madrid</title>
 <style id="fuentes-locales">/* Fuentes servidas desde la propia web (sin conexión a Google Fonts, por privacidad) */
 @font-face{font-family:'Space Grotesk';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/space-grotesk-latin-400-normal.woff2) format('woff2')}
 @font-face{font-family:'Space Grotesk';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/space-grotesk-latin-500-normal.woff2) format('woff2')}
@@ -276,7 +276,7 @@ body.discover-open{overflow:hidden}
 .photo-source-loading{opacity:.75}
 
 
-/* Me Renta catalog: expanded plan types */
+/* Me Renta Mazo catalog: expanded plan types */
 .renta-catalog{margin:24px 0 22px;padding:18px;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:22px;background:var(--card,rgba(127,145,170,.045))}
 .renta-catalog-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
 .renta-catalog .eyebrow{margin:0 0 6px;font-size:10px;letter-spacing:.16em;font-weight:800;color:var(--accent,var(--accent))}
@@ -319,7 +319,7 @@ body.discover-open{overflow:hidden}
 .venue{content-visibility:auto;contain-intrinsic-size:320px 430px}
 
 
-/* Me Renta offline food catalogue */
+/* Me Renta Mazo offline food catalogue */
 .renta-food{margin:20px 0;padding:16px;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:22px;background:var(--card,rgba(127,145,170,.045))}
 .renta-food h3{margin:0;font-size:19px}.renta-food p{font-size:12px;line-height:1.5;color:var(--muted,#8996aa)}
 .rf-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -336,7 +336,7 @@ body.discover-open{overflow:hidden}
 .rf-note{padding:10px;border-radius:12px;background:rgba(245,158,11,.08);font-size:11px!important}
 
 
-/* Me Renta v23: catálogo compacto, cerrado al inicio y con resultados paginados */
+/* Me Renta Mazo v23: catálogo compacto, cerrado al inicio y con resultados paginados */
 .rf-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;margin:14px 0;padding:15px 16px;border:1px solid var(--border,rgba(128,145,170,.22));border-radius:16px;background:var(--card,rgba(127,145,170,.045));color:var(--text,inherit);font:inherit;font-weight:750;text-align:left;cursor:pointer}
 .rf-toggle span{font-size:20px;color:var(--accent,var(--accent))}
 #rentaFoodOffline{display:none;margin-top:0}
@@ -346,7 +346,7 @@ body.discover-open{overflow:hidden}
 body .brand h1{letter-spacing:-.06em}
 
 
-/* Me Renta v24: compact discovery layout */
+/* Me Renta Mazo v24: compact discovery layout */
 .renta-catalog-grid{display:none}
 .renta-catalog-grid.renta-grid-open{display:grid}
 #rentaLocalDirectory{display:none;margin-top:12px;padding-top:12px}
@@ -364,7 +364,7 @@ body .brand h1{letter-spacing:-.06em}
 @media(max-width:380px){#rentaLocalDirectory .renta-local-results{grid-template-columns:1fr}}
 
 
-/* Me Renta v26 — cohesive, compact product redesign */
+/* Me Renta Mazo v26 — cohesive, compact product redesign */
 :root{--renta-ink:#111a29;--renta-cream:#f7f3e9;--renta-teal:var(--accent-soft);--renta-line:rgba(128,145,170,.19)}
 html{scroll-behavior:smooth}
 body{overflow-x:hidden}
@@ -711,7 +711,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 </style>
 
 <link rel="stylesheet" href="vendor/leaflet.css?v=1">
-<script src="plan-share.js?v=5" defer></script>
+<script src="plan-share.js?v=6" defer></script>
 <script src="vendor/leaflet.js?v=1"></script>
 
 <style id="radar-v6-lab-styles">
@@ -1614,7 +1614,7 @@ select.zonesel:focus,input:focus,textarea:focus{border-color:var(--accent)!impor
 /* 6) Mapa en oscuro: créditos legibles */
 :root[data-theme="dark"] .leaflet-control-attribution{background:rgba(24,24,24,.82)!important;color:var(--ink)!important}:root[data-theme="dark"] .leaflet-control-attribution a{color:var(--accent-soft)!important}
 
-/* ===== Me Renta: blanco, negro y carmesí (modo claro, oscuro y carmesí) ===== */
+/* ===== Me Renta Mazo: blanco, negro y carmesí (modo claro, oscuro y carmesí) ===== */
 html:root[data-theme="light"]{
   --bg:#f6f4f4;--surface:#ffffff;--surface-2:#f2eeee;--line:#e7e0e0;--ink:#151515;--muted:#6d6666;
   --accent:#c8102e;--accent-2:#f6d3d8;--accent-soft:#fbe4e7;--on-accent:#ffffff;--shadow:0 16px 44px rgba(20,10,10,.07);
@@ -1767,9 +1767,9 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
 /* Logo de la cabecera según el tema */
 .brand h1.brand-logo{display:flex;align-items:center;gap:8px;margin:0;line-height:0}
 .brand-logo .brand-emblem{width:44px;height:44px;flex:0 0 auto}
-.brand-logo .brand-name{height:30px;width:auto;display:none}
+.brand-logo .brand-name{height:40px;width:auto;display:none}
 :root[data-theme="light"] .brand-name-light,:root[data-theme="dark"]:not([data-tint]) .brand-name-dark,:root[data-tint="crimson"] .brand-name-white{display:block}
-@media(max-width:420px){.brand-logo .brand-emblem{width:38px;height:38px}.brand-logo .brand-name{height:25px}}
+@media(max-width:420px){.brand-logo .brand-emblem{width:40px;height:40px}.brand-logo .brand-name{height:36px}}
 </style>
 </head>
 <body>
@@ -1777,11 +1777,11 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
 
   <header class="top">
     <div class="brand">
-      <h1 class="brand-logo"><img class="brand-emblem" src="brand/emblema-96.png" width="44" height="44" alt=""><img class="brand-name brand-name-light" src="brand/nombre-light.png" height="30" alt="Me Renta"><img class="brand-name brand-name-dark" src="brand/nombre-dark.png" height="30" alt="" aria-hidden="true"><img class="brand-name brand-name-white" src="brand/nombre-white.png" height="30" alt="" aria-hidden="true"></h1>
+      <h1 class="brand-logo"><img class="brand-emblem" src="brand/emblema-96.png" width="44" height="44" alt=""><img class="brand-name brand-name-light" src="brand/nombre-light.png" height="40" alt="Me Renta Mazo"><img class="brand-name brand-name-dark" src="brand/nombre-dark.png" height="40" alt="" aria-hidden="true"><img class="brand-name brand-name-white" src="brand/nombre-white.png" height="40" alt="" aria-hidden="true"></h1>
       <div class="header-tools">
         <button type="button" class="header-shortcut" id="headerFavoritesBtn" aria-label="Abrir favoritos" title="Mis favoritos">♥ <span id="headerFavoriteCount">0</span></button>
         <button type="button" class="header-shortcut" id="headerMapBtn" hidden aria-label="Abrir mapa" title="Abrir mapa">⌖ Mapa</button>
-        <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" hidden aria-label="Abrir Me Renta Discover" title="Abrir Me Renta Discover">▶ Discover</button>
+        <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" hidden aria-label="Abrir Me Renta Mazo Discover" title="Abrir Me Renta Mazo Discover">▶ Discover</button>
         <button type="button" class="header-shortcut plan-shortcut" id="openPlanLabBtn" aria-label="Abrir mi plan" title="Mi plan">＋ Mi plan <span id="planCountBadge">0</span></button>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">☼</button>
         <div class="readout" id="clockReadout">MADRID<br><span class="dot" id="gpsDot"></span><span id="gpsTxt">SIN GPS</span></div>
@@ -1797,7 +1797,7 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
     <button id="tabPide"><i>✨</i><span>Pídeme</span></button>
     <button id="tabAutoplan" hidden aria-hidden="true" tabindex="-1"><i>🧭</i><span>Autoplan</span></button>
     <button id="tabEventos"><i>📅</i><span>Eventos</span></button>
-    <button id="tabRadarLab" hidden aria-hidden="true" tabindex="-1" aria-label="Me Renta Lab"><i>✦</i><span>Lab</span></button>
+    <button id="tabRadarLab" hidden aria-hidden="true" tabindex="-1" aria-label="Me Renta Mazo Lab"><i>✦</i><span>Lab</span></button>
     <button id="tabMatch" aria-label="Match: desliza y vota"><i>♥</i><span>Match</span></button>
   </nav>
 
@@ -1805,9 +1805,9 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
   
 
 
-<section id="matchTabPanel" class="match-tab-panel" style="display:none" aria-label="Me Renta">
+<section id="matchTabPanel" class="match-tab-panel" style="display:none" aria-label="Me Renta Mazo">
   <div class="match-heading">
-    <div><span class="radar-lab-kicker">Me Renta</span><h2>¿Te va o pasamos?</h2><p>Desliza, vota y Me Renta irá afinando sus recomendaciones.</p></div>
+    <div><span class="radar-lab-kicker">Me Renta Mazo</span><h2>¿Te va o pasamos?</h2><p>Desliza, vota y Me Renta Mazo irá afinando sus recomendaciones.</p></div>
     <div class="match-score"><b id="matchLearnedCount">0</b><span>gustos aprendidos</span></div>
   </div>
   <div class="match-toolbar">
@@ -1843,7 +1843,7 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
         <button type="button" class="hero-action primary" id="heroNearby">⌖ Cerca de mí</button>
         <button type="button" class="hero-action secondary" id="heroZone">⌁ Elegir zona</button>
         <button type="button" class="hero-action surprise-action" id="heroSurprise">✦ Sorpréndeme</button>
-        <button type="button" class="hero-action discover-action" id="heroDiscover">◉ Me Renta Discover</button>
+        <button type="button" class="hero-action discover-action" id="heroDiscover">◉ Me Renta Mazo Discover</button>
       </div>
     </div>
     <div class="hero-index"><span>RADAR / MADRID</span><span>01 — DESCUBRIR</span></div>
@@ -1870,7 +1870,7 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
     <label>Estado en ficha<select id="radarLiveOpen"><option value="any">Todos</option><option value="open">Marcado como abierto</option><option value="closed">Cerrado temporalmente</option></select></label>
     <label>Tipo de sitio<select id="radarLiveType"><option value="any">Todos los tipos</option><option value="food">Comer</option><option value="drinks">Copas / bares</option><option value="fun">Ocio</option><option value="coffee">Café / dulce</option></select></label>
     <label>Zona contiene<input id="radarLiveZone" type="search" placeholder="Ej. Malasaña, Centro…"></label>
-    <label>Ordenar por<select id="radarLiveSort"><option value="score">Mejor combinación</option><option value="rating">Selección Me Renta</option><option value="price">Precio</option><option value="distance">Distancia GPS (si hay coordenadas)</option></select></label>
+    <label>Ordenar por<select id="radarLiveSort"><option value="score">Mejor combinación</option><option value="rating">Selección Me Renta Mazo</option><option value="price">Precio</option><option value="distance">Distancia GPS (si hay coordenadas)</option></select></label>
   </div>
   <div class="radar-live-note">“Abierto” procede del dato guardado, no de una consulta de horario actual. Las coordenadas del catálogo pueden ser aproximadas; la distancia es orientativa.</div>
   <div class="radar-live-results" id="radarLiveResults"></div>
@@ -2139,7 +2139,7 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
         <a href="https://www.ticketmaster.es/discover/madrid" target="_blank" rel="noopener"><b>Ticketmaster</b><span>Conciertos, teatro y espectáculos</span><i>↗</i></a>
         <a href="https://www.eventbrite.es/d/spain--madrid/events/" target="_blank" rel="noopener"><b>Eventbrite</b><span>Eventos, talleres y actividades</span><i>↗</i></a>
       </div>
-      <p class="radar-live-events-note">Son enlaces a webs externas: se abren fuera de Me Renta. No tenemos relación con estas empresas ni vendemos entradas.</p>
+      <p class="radar-live-events-note">Son enlaces a webs externas: se abren fuera de Me Renta Mazo. No tenemos relación con estas empresas ni vendemos entradas.</p>
     </section>
 
     <div class="aiHint">Ferias gastronómicas fuera de Madrid (selección manual; comprueba fechas en la web de cada evento):</div>
@@ -2168,7 +2168,7 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
 
 
   <section class="mr-section" id="meRentaSection" aria-labelledby="meRentaTitle">
-    <div class="mr-head"><img src="brand/emblema-96.png" alt="" width="40" height="40"><div><h2 id="meRentaTitle">Sitios que rentan</h2><p>Los favoritos de Me Renta. Toca una sede para verla en el mapa.</p></div></div>
+    <div class="mr-head"><img src="brand/emblema-96.png" alt="" width="40" height="40"><div><h2 id="meRentaTitle">Sitios que rentan</h2><p>Los favoritos de Me Renta Mazo. Toca una sede para verla en el mapa.</p></div></div>
     <div class="mr-rail" id="meRentaRail"></div>
   </section>
   <div class="explore-switch" id="exploreSwitch" role="tablist" aria-label="Cómo quieres buscar">
@@ -2310,7 +2310,7 @@ html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area
     <div class="photo-source-status" id="photoSourceStatus" aria-live="polite">Las fotos reales se consultan bajo demanda y pueden proceder de páginas públicas; revisa que correspondan al lugar.</div>
   </section>
 
-  <section class="discover-overlay" id="discoverOverlay" aria-label="Me Renta Discover" aria-hidden="true">
+  <section class="discover-overlay" id="discoverOverlay" aria-label="Me Renta Mazo Discover" aria-hidden="true">
     <header class="discover-topbar">
       <div>
         <div class="discover-kicker"><span class="discover-live-dot"></span> RADAR / DISCOVER</div>
@@ -2693,17 +2693,17 @@ const RENTA_MIS_SITIOS_KEY = 'renta-mis-sitios';
 function rentaMisSitios(){ try{ return JSON.parse(localStorage.getItem(RENTA_MIS_SITIOS_KEY)||'[]'); }catch(e){ return []; } }
 DATA.forEach(d=>{ if(d.mr && !((d.v||0)>=4.95)){ d.vOrig=d.v; d.v=4.95; } });
 try{ rentaMisSitios().forEach(d=>{ if(d && d.n && !DATA.some(x=>x.n===d.n)) DATA.push(Object.assign({e:'Abierto', mine:true}, d)); }); }catch(e){}
-// ── Sellos de Me Renta ──
+// ── Sellos de Me Renta Mazo ──
 // Las valoraciones externas solo se usan por dentro para ordenar; lo que se enseña son sellos propios, nunca números.
 const RENTA_SELLOS = {
-  top:    {i:'🏆', t:'Imprescindible', d:'De lo mejor de toda la selección de Me Renta'},
+  top:    {i:'🏆', t:'Imprescindible', d:'De lo mejor de toda la selección de Me Renta Mazo'},
   zona:   {i:'📍', t:'Top de la zona', d:'Entre los 3 mejores de su tipo en esta zona'},
   joya:   {i:'💎', t:'Joya escondida', d:'Muy bueno y todavía poco conocido'},
-  nuevo:  {i:'✨', t:'Nuevo', d:'Recién incorporado a Me Renta'},
+  nuevo:  {i:'✨', t:'Nuevo', d:'Recién incorporado a Me Renta Mazo'},
   michelin:{i:'🎖️', t:'Guía Michelin', d:'Aparece en la Guía Michelin'},
   tuyo:   {i:'⭐', t:'Guardado por ti', d:'Lo añadiste tú a tu lista'},
-  merenta:{i:'🔴', t:'Me renta', d:'Sitio que renta: de los favoritos de Me Renta'},
-  sel:    {i:'✓', t:'Selección Me Renta', d:'Elegido a mano para Me Renta'},
+  merenta:{i:'🔴', t:'Me renta', d:'Sitio que renta: de los favoritos de Me Renta Mazo'},
+  sel:    {i:'✓', t:'Selección Me Renta Mazo', d:'Elegido a mano para Me Renta Mazo'},
   mapa:   {i:'🗺️', t:'Del mapa', d:'Encontrado en OpenStreetMap; aún no está en la selección'}
 };
 let _rsCache = null, _rsN = -1;
@@ -5048,7 +5048,7 @@ function planWhy(item, anchor, anchorName, t){
   try{
     const why=[];
     if(anchorName && planHasCoords(item) && anchor){ const dk=haversine(anchor[0],anchor[1],item.lat,item.lon); why.push(dk<0.15?'Justo en '+anchorName:'A '+(dk<0.95?Math.round(dk*1000/50)*50+' m':dk.toFixed(1).replace('.',',')+' km')+' de '+anchorName); }
-    const sl = rentaSellos(item); if(sl.includes('top')) why.push('imprescindible de Me Renta'); else if(sl.includes('zona')) why.push('de lo mejor de la zona'); else if(sl.includes('joya')) why.push('joya escondida');
+    const sl = rentaSellos(item); if(sl.includes('top')) why.push('imprescindible de Me Renta Mazo'); else if(sl.includes('zona')) why.push('de lo mejor de la zona'); else if(sl.includes('joya')) why.push('joya escondida');
     const op = planOpenAt(item, t); if(op===true) why.push('abierto a esa hora');
     item._why = why.join(' · '); item._open = op;
   }catch(e){}
@@ -5787,7 +5787,7 @@ async function pdRun(shuffle){
       pdRun._sections = out.sections; pdRun._p = p; pdRun._rej = new Set();
       out.sections.forEach((s,si)=>{
         if(out.sections.length>1 || p.wants.length>1) html += `<div class="secTitle">${s.want.label} <small>${s.items.length} opciones</small></div>`;
-        else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por selección de Me Renta${p.near&&userCoords?' y cercanía':''}</small></div>`;
+        else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por selección de Me Renta Mazo${p.near&&userCoords?' y cercanía':''}</small></div>`;
         html += s.items.length ? s.items.map((d,ii)=>pdCard(d,{swap:'L:'+si+':'+ii})).join('') : `<div class="emptystate">Nada con esos filtros 😕</div>`;
       });
       pdRun._items = out.sections.flatMap(s=>s.items);
@@ -6314,7 +6314,7 @@ function refreshRealPhotosInView(){
 }
 document.getElementById('enableRealPhotosBtn').addEventListener('click',enableRealPhotos);
 
-// ---------- Me Renta Discover: feed visual con desplazamiento vertical ----------
+// ---------- Me Renta Mazo Discover: feed visual con desplazamiento vertical ----------
 let discoverItems=[];
 function openDiscover(){
   const overlay=document.getElementById('discoverOverlay');
@@ -7510,7 +7510,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   document.addEventListener('click',e=>{
     if(e.target.closest('[data-share-query]')){
       const q=document.getElementById('pideText').value.trim();if(!q)return;
-      share('Plan Me Renta',`Mira lo que he encontrado: «${q}»`,`${base()}?pide=${encodeURIComponent(q)}`);
+      share('Plan Me Renta Mazo',`Mira lo que he encontrado: «${q}»`,`${base()}?pide=${encodeURIComponent(q)}`);
     }
     if(e.target.closest('[data-group-vote]')){
       const names=[...new Set((pdRun._items||[]).map(d=>d.n))].slice(0,10);
@@ -7729,8 +7729,8 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
       if(document.getElementById('rentaWelcome')) return;
       const d=document.createElement('div'); d.id='rentaInstall'; d.setAttribute('role','dialog');
       d.innerHTML=safari
-        ? '<b>📲 Ten Me Renta como app</b>Pulsa <span class="ri-share">Compartir ⬆️</span> abajo y luego <b style="display:inline;font-size:14px">«Añadir a pantalla de inicio»</b>.<button class="ri-x" aria-label="Cerrar">×</button>'
-        : '<b>📲 Ten Me Renta como app</b>Abre esta página en <b style="display:inline;font-size:14px">Safari</b> y usa Compartir ⬆️ → «Añadir a pantalla de inicio».<button class="ri-x" aria-label="Cerrar">×</button>';
+        ? '<b>📲 Ten Me Renta Mazo como app</b>Pulsa <span class="ri-share">Compartir ⬆️</span> abajo y luego <b style="display:inline;font-size:14px">«Añadir a pantalla de inicio»</b>.<button class="ri-x" aria-label="Cerrar">×</button>'
+        : '<b>📲 Ten Me Renta Mazo como app</b>Abre esta página en <b style="display:inline;font-size:14px">Safari</b> y usa Compartir ⬆️ → «Añadir a pantalla de inicio».<button class="ri-x" aria-label="Cerrar">×</button>';
       d.querySelector('.ri-x').onclick=()=>{d.remove();try{localStorage.setItem('renta-install-hint','1');}catch(e){}};
       document.body.appendChild(d);
       setTimeout(()=>{ if(d.isConnected){ d.remove(); try{localStorage.setItem('renta-install-hint','1');}catch(e){} } },20000);
@@ -7883,7 +7883,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   const KEY='renta-bienvenida';
   const S=[
-    {e:'✨', h:'Dile lo que te apetece', p:'Escríbelo como a un amigo y Me Renta te monta el plan: sitios, horas, mapa y cuánto se tarda entre paradas.',
+    {e:'✨', h:'Dile lo que te apetece', p:'Escríbelo como a un amigo y Me Renta Mazo te monta el plan: sitios, horas, mapa y cuánto se tarda entre paradas.',
      ex:[['Cena y copas en Malasaña','Plan con horarios'],['Comer en Chamberí, pasear y tomar algo en Lavapiés','Con paseo por sitios bonitos de camino']]},
     {e:'🎯', h:'Tan concreto como quieras', p:'Toda la Comunidad de Madrid: zonas, platos, sitios por su nombre, distancia máxima andando o eventos.',
      ex:[['Conciertos este finde','Agenda del Ayuntamiento'],['Una coctelería a menos de 500 metros de Sol','Solo lo que está cerca'],['Cena vegana en Malasaña','Busca también en el mapa']]},
@@ -7894,7 +7894,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
   function run(q){ done(); try{ switchTab('pide'); const t=document.getElementById('pideText'); t.value=q; pdRun(false); t.scrollIntoView({block:'start'}); }catch(e){} }
   function open(){
     if(document.getElementById('rentaWelcome')) return;
-    let i=0; const o=document.createElement('div'); o.id='rentaWelcome'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','Cómo funciona Me Renta');
+    let i=0; const o=document.createElement('div'); o.id='rentaWelcome'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','Cómo funciona Me Renta Mazo');
     o.innerHTML=`<div class="rw-card"><button type="button" class="rw-skip">Saltar</button>${S.map((s,k)=>`<div class="rw-slide${k?'':' on'}"><div class="rw-emoji">${s.e}</div><h2>${s.h}</h2><p>${s.p}</p>${s.li?`<ul>${s.li.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}${s.ex?`<div class="rw-ex-t">Toca un ejemplo para probarlo</div><div class="rw-ex">${s.ex.map(x=>`<button type="button" data-q="${esc(x[0])}">“${esc(x[0])}”<small>${esc(x[1])}</small></button>`).join('')}</div>`:''}</div>`).join('')}
       <div class="rw-foot"><button type="button" class="rw-back" style="visibility:hidden">← Atrás</button><div class="rw-dots">${S.map((_,k)=>`<i class="${k?'':'on'}"></i>`).join('')}</div><button type="button" class="rw-next">Siguiente</button></div></div>`;
     document.body.appendChild(o);
@@ -7923,7 +7923,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v34';
+  const RENTA_VERSION='renta-shell-v35';
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

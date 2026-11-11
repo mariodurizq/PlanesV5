@@ -1,4 +1,4 @@
-const VERSION = 'renta-shell-v34';
+const VERSION = 'renta-shell-v35';
 const APP_FILES = [
   './',
   './index.html',
@@ -11,9 +11,10 @@ const APP_FILES = [
   './brand/nombre-light.png',
   './brand/nombre-dark.png',
   './brand/nombre-white.png',
+  './favicon.png',
   './vendor/leaflet.css?v=1',
   './vendor/leaflet.js?v=1',
-  './plan-share.js?v=5',
+  './plan-share.js?v=6',
   './fonts/inter-latin-400-normal.woff2',
   './fonts/inter-latin-600-normal.woff2',
   './fonts/space-grotesk-latin-700-normal.woff2'

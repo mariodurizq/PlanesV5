@@ -1642,9 +1642,9 @@ html:root[data-theme="dark"] #radarMap.leaflet-container .leaflet-control-attrib
 .radar-map-marker.is-osm .radar-pin2-emoji{opacity:.85}
 
 /* Marcadores: círculo con icono */
-.radar-pin2.rp-badge{width:36px!important;height:36px!important;border-radius:50%;background:#fff;border:2px solid #1b1b1b;display:grid;place-items:center;transform-origin:18px 18px!important;filter:none!important;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.radar-pin2.rp-badge{width:36px!important;height:36px!important;border-radius:50%;background:#fff;border:2.5px solid #c8102e;display:grid;place-items:center;transform-origin:18px 18px!important;filter:none!important;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .radar-pin2.rp-badge .radar-pin2-emoji{position:static!important;font-size:20px!important;line-height:1!important}
-.radar-map-marker.is-osm .radar-pin2.rp-badge{border:2px dashed #8a8a8a;transform:scale(.85)}
+.radar-map-marker.is-osm .radar-pin2.rp-badge{border:1px solid #d6d6d6;transform:scale(.85)}
 /* Sitios que rentan */
 body[data-tab]:not([data-tab="guiado"]) #meRentaSection{display:none}
 .radar-popup-chip.is-mr,.sello-photo.is-mr{background:var(--accent)!important;color:var(--on-accent)!important}
@@ -1764,6 +1764,17 @@ html .discover-actions:not(#_s):not(#_t):not(#_u){display:grid!important;grid-te
 html .discover-action-btn:not(#_s):not(#_t):not(#_u){height:var(--btn-h,44px)!important;min-height:0!important;padding:0 10px!important;font:650 15px/1 Inter,system-ui,sans-serif!important;border-radius:12px!important;white-space:nowrap}
 /* ===== Cabecera: que no quede debajo de la barra de estado del iPhone ===== */
 html header.top:not(#_s):not(#_t):not(#_u){padding-top:calc(14px + env(safe-area-inset-top,0px))!important}
+
+/* Sitios que rentan: compacto */
+.mr-section{margin:14px 0!important;padding:10px 0 8px!important;border-radius:16px!important}
+.mr-head{padding:0 12px 8px!important;gap:8px!important}.mr-head img{width:28px!important;height:28px!important}
+.mr-head h2{font-size:15px!important}.mr-head p{display:none}
+.mr-rail{gap:8px!important;padding:0 12px 2px!important}
+.mr-card{flex:0 0 auto!important;max-width:240px;padding:8px 10px!important;gap:4px!important;border-radius:12px!important}
+.mr-card.multi{flex-basis:auto!important}
+.mr-card h3{font-size:14px!important}.mr-card .mr-sub{font-size:11.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mr-sedes{flex-wrap:nowrap!important;overflow-x:auto;gap:5px!important}
+html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;padding:0 10px!important;white-space:nowrap}
 /* Logo de la cabecera según el tema */
 .brand h1.brand-logo{display:flex;align-items:center;gap:8px;margin:0;line-height:0}
 .brand-logo .brand-emblem{width:44px;height:44px;flex:0 0 auto}
@@ -7473,7 +7484,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rail=document.getElementById('meRentaRail');if(!rail)return;
   const sec=document.getElementById('meRentaSection');
-  const place=()=>{const sw=document.getElementById('exploreSwitch');if(sw&&sec.nextElementSibling!==sw)sw.before(sec);};
+  const place=()=>{const ms=document.getElementById('mapShell');if(ms&&ms.parentElement&&sec.previousElementSibling!==ms)ms.after(sec);};
   place();document.addEventListener('DOMContentLoaded',place);window.addEventListener('load',()=>{place();setTimeout(place,600);});
   const marcas=new Map();
   DATA.filter(d=>d.mr).sort((a,b)=>(a.mro??99)-(b.mro??99)).forEach(d=>{const k=d.marca||d.n;if(!marcas.has(k))marcas.set(k,[]);marcas.get(k).push(d);});
@@ -7933,7 +7944,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v36';
+  const RENTA_VERSION='renta-shell-v37';
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

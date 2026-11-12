@@ -18,4 +18,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Ejecutar y guardar
-        run: tools/guardar.sh "Repaso de la lista de sitios" "python3 tools/revisar.py" index.html tools/revision.md
+        run: tools/guardar.sh "Repaso de la lista de sitios" "python3 tools/revisar.py && python3 tools/auditar_ubicaciones.py" index.html tools/revision.md tools/auditoria_ubicaciones.json

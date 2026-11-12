@@ -1,0 +1,390 @@
+[
+ {
+  "n": "Four Elements Shisha Lounge Madrid",
+  "z": "Tetuán",
+  "addr": "C. de la Infanta Mercedes, 31, Tetuán, 28020 Madrid, España",
+  "lat": 40.454897,
+  "lon": -3.698886,
+  "locSrc": "google",
+  "motivos": [
+   "la calle «C. de la Infanta Mercedes» queda a 0.6 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "LA REVOLUCIÓN BURGER",
+  "z": "Salamanca",
+  "addr": "C. del Príncipe de Asturias, 5, Salamanca, 28006 Madrid, España",
+  "lat": 40.427758,
+  "lon": -3.671845,
+  "locSrc": "google",
+  "motivos": [
+   "la calle «C. del Príncipe de Asturias» queda a 21.0 km"
+  ],
+  "propuesta": [
+   40.353084,
+   -3.899252,
+   "portal 21 de la misma calle (OSM)"
+  ]
+ },
+ {
+  "n": "Relleno",
+  "z": "Salamanca",
+  "addr": "C. del Gral. Oráa, 34, Salamanca, 28006 Madrid, España",
+  "lat": 40.435986,
+  "lon": -3.682231,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «Relleno» está a 3.8 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Monaco preparty lounge",
+  "z": "Villaverde",
+  "addr": "Av. Real de Pinto, 79, nave 8, Villaverde, 28021 Madrid, España",
+  "lat": 40.338711,
+  "lon": -3.7081,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28021 queda a 0.7 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "JEKES - Kebabs pero bien",
+  "z": "Tetuán",
+  "addr": "C. de Edgar Neville, 39, Tetuán, 28020 Madrid, España",
+  "lat": 40.452108,
+  "lon": -3.696723,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «JEKES - Kebabs pero bien» está a 14.9 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Beata Pasta",
+  "z": "Centro",
+  "addr": "Gran Vía 22",
+  "lat": 40.420119,
+  "lon": -3.700246,
+  "locSrc": "osm",
+  "motivos": [
+   "en OSM «Beata Pasta» está a 1.2 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "BRICKELL Majadahonda",
+  "z": "Majadahonda",
+  "addr": "Calle Manuel de Falla, 3, 28222 Majadahonda",
+  "lat": 40.449107,
+  "lon": -3.861149,
+  "locSrc": "google",
+  "motivos": [
+   "la calle «Calle Manuel de Falla» queda a 1.1 km"
+  ],
+  "propuesta": [
+   40.450568,
+   -3.874363,
+   "portal 1 de la misma calle (OSM)"
+  ]
+ },
+ {
+  "n": "BANDIDOS BURGER",
+  "z": "Fuencarral-El Pardo",
+  "addr": "C. de Federico Mompou, 6, Fuencarral-El Pardo, 28050 Madrid, España",
+  "lat": 40.511324,
+  "lon": -3.679072,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «BANDIDOS BURGER» está a 26.8 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Yama Sushi",
+  "z": "Fuencarral-El Pardo",
+  "addr": "Av. de Burgos, 119, Fuencarral-El Pardo, 28050 Madrid, España",
+  "lat": 40.496773,
+  "lon": -3.666745,
+  "locSrc": "google",
+  "motivos": [
+   "la calle «Av. de Burgos» queda a 0.7 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "El Rancho de Santa África (Majadahonda)",
+  "z": "Majadahonda",
+  "addr": "C. Goya, 1, 28222 Majadahonda",
+  "lat": 40.4518,
+  "lon": -3.86584,
+  "locSrc": "google",
+  "motivos": [
+   "la calle «C. Goya» queda a 10.9 km"
+  ],
+  "propuesta": [
+   40.425733,
+   -3.688898,
+   "portal 5 de la misma calle (OSM)"
+  ]
+ },
+ {
+  "n": "Cesar's burgers",
+  "z": "Arganzuela",
+  "addr": "C. de Méndez Álvaro, 74, Arganzuela, 28045 Madrid, España",
+  "lat": 40.394075,
+  "lon": -3.679136,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «Cesar's burgers» está a 3.6 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "MOKAI BEACH CLUB",
+  "z": "Rivas-Vaciamadrid",
+  "addr": "C. Ignacio Zuloaga, 6, 28522 Rivas-Vaciamadrid",
+  "lat": 40.345172,
+  "lon": -3.536249,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28522 queda a 0.7 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Camino",
+  "z": "Chamartín",
+  "addr": "C/ de Gutiérrez Solana, 6, Chamartín, 28036 Madrid, España",
+  "lat": 40.450473,
+  "lon": -3.687998,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «Camino» está a 7.6 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "The loft",
+  "z": "Tetuán",
+  "addr": "Avenida del Presidente Carmona",
+  "lat": 40.453153,
+  "lon": -3.697572,
+  "locSrc": "osm",
+  "motivos": [
+   "en OSM «The loft» está a 17.0 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Oven Mozzarella Bar",
+  "z": "Centro",
+  "addr": "Gran Vía 6",
+  "lat": 40.419326,
+  "lon": -3.697754,
+  "locSrc": "osm",
+  "motivos": [
+   "en OSM «Oven Mozzarella Bar» está a 0.7 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Bonamara Madrid",
+  "z": "Móstoles",
+  "addr": "P.º de Extremadura, Km 22, 5, 28935 Móstoles",
+  "lat": 40.305143,
+  "lon": -3.911227,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28935 queda a 3.2 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Pintxaki",
+  "z": "Pozuelo de Alarcón",
+  "addr": "Av. de Europa, 16, 28224 Pozuelo de Alarcón",
+  "lat": 40.437369,
+  "lon": -3.794277,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «Pintxaki» está a 9.2 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Mamá Chicó",
+  "z": "Chamartín",
+  "addr": "C. de Agustín de Foxá, 16, Chamartín, 28036 Madrid, España",
+  "lat": 40.468947,
+  "lon": -3.686305,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «Mamá Chicó» está a 5.2 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Bambú (Bambú Garden)",
+  "z": "Ciudad Lineal",
+  "addr": "C. de Mesena, 31, Cdad. Lineal, 28033 Madrid, España",
+  "lat": 40.463829,
+  "lon": -3.662548,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28033 queda a 1.6 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "La Chelinda",
+  "z": "Alcalá de Henares",
+  "addr": "Calle de Libreros 26",
+  "lat": 40.484088,
+  "lon": -3.363008,
+  "locSrc": "osm",
+  "motivos": [
+   "en OSM «La Chelinda» está a 21.4 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Caramba",
+  "z": "Centro",
+  "addr": "C. de San Cristóbal, nª 17, Centro, 28012 Madrid, España",
+  "lat": 40.415442,
+  "lon": -3.705814,
+  "locSrc": "google",
+  "motivos": [
+   "en OSM «Caramba» está a 41.0 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Le Bombay Cafe",
+  "z": "Móstoles",
+  "addr": "C. Río Odiel, 11, 28935 Móstoles",
+  "lat": 40.312143,
+  "lon": -3.878084,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28935 queda a 1.1 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Restaurante Arrocería La Proa",
+  "z": "Fuenlabrada",
+  "addr": "Av. de Cantabria, s/n, 28942 Fuenlabrada",
+  "lat": 40.295071,
+  "lon": -3.807016,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28942 queda a 0.6 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Morao Tapas",
+  "z": "Alcobendas",
+  "addr": "Av. de Bruselas, 21, 28108 Alcobendas",
+  "lat": 40.530082,
+  "lon": -3.639672,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28108 queda a 0.6 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Terraza Bar Palacio de Cibeles (Azotea Cibeles)",
+  "z": "Retiro",
+  "addr": "Calle Entre Arroyos 7",
+  "lat": 40.41908,
+  "lon": -3.69204,
+  "locSrc": "manual",
+  "motivos": [
+   "la calle «Calle Entre Arroyos 7» queda a 3.2 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Parque Juan Carlos I",
+  "z": "Barajas",
+  "addr": "GLORIETA S.A.R. DON JUAN DE BORBON Y BATTEMBERG, 5 , 5, Barajas, 28042 Madrid, España",
+  "lat": 40.459817,
+  "lon": -3.604753,
+  "locSrc": "google",
+  "motivos": [
+   "código postal 28042 queda a 1.1 km"
+  ],
+  "propuesta": null
+ },
+ {
+  "n": "Las carnes de Martín",
+  "z": "Centro",
+  "addr": "",
+  "lat": 40.42011,
+  "lon": -3.707358,
+  "locSrc": "osm",
+  "motivos": [
+   "en OSM «Las carnes de Martín» está a 1.4 km"
+  ],
+  "propuesta": [
+   40.407683,
+   -3.71131,
+   "mismo local en OpenStreetMap"
+  ]
+ },
+ {
+  "n": "BiBi Burger",
+  "z": "Chamartín",
+  "addr": "",
+  "lat": 40.4531,
+  "lon": -3.6774,
+  "locSrc": null,
+  "motivos": [
+   "en OSM «BiBi Burger» está a 18.6 km"
+  ],
+  "propuesta": [
+   40.617571,
+   -3.718005,
+   "mismo local en OpenStreetMap"
+  ]
+ },
+ {
+  "n": "Sushitokyo",
+  "z": "Centro",
+  "addr": "",
+  "lat": 40.4168,
+  "lon": -3.7038,
+  "locSrc": null,
+  "motivos": [
+   "en OSM «Sushitokyo» está a 22.9 km"
+  ],
+  "propuesta": [
+   40.471365,
+   -3.443033,
+   "mismo local en OpenStreetMap"
+  ]
+ },
+ {
+  "n": "Kamado Asian Food",
+  "z": "Centro",
+  "addr": "",
+  "lat": 40.4168,
+  "lon": -3.7038,
+  "locSrc": null,
+  "motivos": [
+   "en OSM «Kamado Asian Food» está a 14.9 km"
+  ],
+  "propuesta": [
+   40.340735,
+   -3.848098,
+   "mismo local en OpenStreetMap"
+  ]
+ }
+]

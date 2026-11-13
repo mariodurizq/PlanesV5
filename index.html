@@ -1990,6 +1990,7 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
   <div class="card" id="catCard">
     <div class="label">ELIGE TU PLAN <span class="n" id="catCountLbl"></span></div>
     <div class="chipgrid" id="catChips"></div>
+    <div id="catPreview" hidden></div>
     <section class="renta-catalog" aria-labelledby="rentaCatalogTitle">
       <div class="renta-catalog-head">
         <div>
@@ -2911,16 +2912,36 @@ function renderCatChips(){
   const allChip = document.createElement('div');
   allChip.className = 'chip' + (activeCat===null?' active':'');
   allChip.innerHTML = `Todos <span class="cnt">${DATA.length}</span>`;
-  allChip.onclick=()=>{activeCat=null; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=10; renderCatChips(); renderResults();};
+  allChip.onclick=()=>{activeCat=null; rentaCatPreview(); selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=10; renderCatChips(); renderResults();};
   el.appendChild(allChip);
   cats.forEach(c=>{
     const chip=document.createElement('div');
     chip.className='chip'+(activeCat===c?' active':'');
     chip.innerHTML = `${CAT_ICONS[c]||'•'} ${c} <span class="cnt">${counts[c]}</span>`;
-    chip.onclick=()=>{activeCat=c; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=10; renderCatChips(); renderResults();};
+    chip.onclick=()=>{activeCat=c; selectedCatalogCategory=''; document.querySelectorAll('[data-renta-category]').forEach(card=>card.classList.remove('is-selected')); visibleCount=10; renderCatChips(); renderResults(); rentaCatPreview(true);};
     el.appendChild(chip);
   });
   document.getElementById('catCountLbl').textContent = activeCat ? `→ ${activeCat}` : '';
+}
+
+// Al elegir un tipo de plan, sus opciones salen justo debajo (y al tocar una, su ficha de siempre)
+function rentaCatPreview(scroll){
+  const box=document.getElementById('catPreview'); if(!box) return;
+  if(!activeCat){ box.hidden=true; box.innerHTML=''; return; }
+  let list=[]; try{ list=getFiltered().list||[]; }catch(e){}
+  const N=8, items=list.slice(0,N);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  box.hidden=false;
+  box.innerHTML = items.length ? `<div class="cp-list">${items.map((d,i)=>`<div class="cp-item"><button type="button" class="cp-row" data-cp="${i}"><span class="cp-ic">${CAT_ICONS[d.cm]||'📍'}</span><span class="cp-tx"><b>${esc(d.n)}</b><small>${esc([d.cd&&d.cd!==d.cm?d.cd:'', d.z, d.p?d.p+'€':''].filter(Boolean).join(' · '))}</small></span><span class="cp-chev">›</span></button><div class="cp-card"></div></div>`).join('')}</div>
+    ${list.length>N?`<button type="button" class="cp-more">Ver los ${list.length} en el mapa y la lista ↓</button>`:''}`
+    : `<div class="cp-empty">No hay sitios de este tipo con los filtros actuales.</div>`;
+  box.onclick=e=>{
+    const m=e.target.closest('.cp-more'); if(m){ document.getElementById('resultsHead')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+    const r=e.target.closest('.cp-row'); if(!r) return;
+    const it=r.parentElement, card=it.querySelector('.cp-card'), open=it.classList.toggle('open');
+    if(open && !card.innerHTML){ const d=items[+r.dataset.cp]; card.innerHTML = typeof pdCard==='function' ? pdCard(Object.assign({src:'lista'}, d)) : ''; }
+  };
+  if(scroll) requestAnimationFrame(()=>{ const r=box.getBoundingClientRect(); if(r.top>innerHeight*0.75||r.top<0) box.scrollIntoView({behavior:'smooth',block:'nearest'}); });
 }
 
 // ---------- zonas (modo directo) ----------
@@ -6155,6 +6176,10 @@ function renderMapMarkers(list){
   if(Array.isArray(list)&&list!==mapPlaces)radarCatalogOnMap=list;
   if(!radarMap||!radarMarkers)return;
   radarMarkers.clearLayers();mapMarkersByName=new Map();
+  // Con un tipo elegido (Asiática, Copas…) se ve cada sitio con su icono, sin agrupar en números
+  if(!window.radarFlatLayer)window.radarFlatLayer=L.layerGroup().addTo(radarMap);
+  window.radarFlatLayer.clearLayers();
+  const capa=(window.radarMapGroup&&window.radarMapGroup!=='all')?window.radarFlatLayer:radarMarkers;
   // Solo coordenadas reales: los centros de barrio antiguos no se pintan.
   const ok=d=>d&&d.locationVerified===true&&Number.isFinite(d.lat)&&Number.isFinite(d.lon);
   const gOk=window.radarMapGroupOk||(()=>true);
@@ -6172,7 +6197,7 @@ function renderMapMarkers(list){
   const located=[...discovered,...mine];
   located.forEach(d=>{
     const icon=radarPinIcon(d);
-    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,autoPanOnFocus:false,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(radarMarkers);
+    const marker=L.marker([d.lat,d.lon],{icon,riseOnHover:true,keyboard:true,autoPanOnFocus:false,title:d.n,zIndexOffset:d.osm?0:500}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(capa);
     bindRadarPopup(marker,d);mapMarkersByName.set(normMapName(d.n),marker);
   });
   addUserMarker();
@@ -7871,6 +7896,15 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #rntAviso .row{display:flex;gap:8px;margin-top:12px}#rntAviso .row button{flex:1;padding:12px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;border:0}
 #rntAviso .send{background:var(--accent,var(--accent-soft));color:var(--on-accent,#fff)}#rntAviso .send:disabled{opacity:.45}#rntAviso .cancel{background:transparent;color:inherit;border:1px solid var(--line,rgba(255,255,255,.2))!important}
 #rntAviso .ok{font-size:15px;line-height:1.5;padding:8px 0}
+#catPreview{margin-top:12px}.cp-list{display:grid;gap:8px}
+.cp-item{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.cp-row{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.cp-ic{font-size:20px;width:28px;text-align:center;flex:0 0 auto}.cp-tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.cp-tx b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cp-tx small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-chev{color:var(--muted);font-size:20px;transition:transform .2s}.cp-item.open .cp-chev{transform:rotate(90deg)}
+.cp-card{display:none;padding:0 8px 8px}.cp-item.open .cp-card{display:block}.cp-card .venue{margin:0}
+.cp-more{margin-top:10px;width:100%;min-height:44px;border-radius:12px;border:1px solid var(--accent);background:transparent;color:var(--accent);font:inherit;font-weight:700;cursor:pointer}
+.cp-empty{font-size:13px;color:var(--muted);padding:8px 2px}
 .pd-alts{margin-top:10px}.pd-alts-t{font-size:12px;color:var(--muted);margin-bottom:6px}
 .pd-alts-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.pd-alts-row::-webkit-scrollbar{display:none}
 .pd-alt{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2,transparent);color:var(--ink);font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
@@ -8046,7 +8080,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v40';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v41';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

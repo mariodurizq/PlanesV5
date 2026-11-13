@@ -2751,8 +2751,10 @@ function rentaSellosAll(){
 function rentaSellos(d){
   if(!d) return [];
   let b = (rentaSellosAll().get(d.n) || []).slice();
-  if(!DATA.some(x=>x.n===d.n)) b = (d.src==='osm'||d.fromMap) ? ['mapa'] : b;
-  if(!b.length) b = (d.src==='osm'||d.fromMap) && !DATA.some(x=>x.n===d.n) ? ['mapa'] : ['sel'];
+  // Lo que no es de tu lista (datos libres de OpenStreetMap, búsquedas del mapa) nunca lleva sellos de Me Renta Mazo
+  const deLista = !d.osm && d.src!=='osm' && !d.fromMap && DATA.some(x=>x.n===d.n && !x.osm);
+  if(!deLista) return ['mapa'];
+  if(!b.length) b = ['sel'];
   return b;
 }
 function rentaSellosText(d, max){ return rentaSellos(d).slice(0, max||2).map(k=>RENTA_SELLOS[k].i+' '+RENTA_SELLOS[k].t).join(' · '); }
@@ -8084,7 +8086,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v43';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v44';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

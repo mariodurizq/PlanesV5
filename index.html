@@ -3946,10 +3946,22 @@ function planPickNear(cands, anchor, minutes, randomTop, maxKm){
   return top[Math.floor(Math.random()*top.length)]||null;
 }
 function planWalkMin(a,b){if(!planHasCoords(a)||!planHasCoords(b))return 15;const km=haversine(a.lat,a.lon,b.lat,b.lon);if(km>2.5)return Math.min(45,Math.round(10+km*2.5));return Math.max(5,Math.round(km*1.25/4.5*60));}
+function planTransitMin(km){ return Math.min(55, Math.round(12 + km*2.2)); }
+// Otras opciones de tu lista para la misma parada: misma zona, abiertas a esa hora, las mejores primero
+function planAlts(item, c, used){
+  try{
+    if(!c || !c.anchor || c.city) return [];
+    const f = pdFilter(c.w, c.pw, new Set([...(used||[]), item.n]), 40, false);
+    const R = c.maxKm || (c.w._place && c.anchorName===c.w._place.n ? Math.max(1.2, (c.w._place.r||0.8)*1.3) : 1.2);
+    return f.items.filter(d=>planHasCoords(d) && planOpenAt(d, c.t)!==false)
+      .map(d=>({d, km:haversine(c.anchor[0],c.anchor[1],d.lat,d.lon)})).filter(x=>x.km<=R)
+      .sort((a,b)=>((b.d.v||0)-(a.d.v||0))*1.2-(a.km-b.km)*0.8).slice(0,4).map(x=>Object.assign({}, x.d, {_d:x.km}));
+  }catch(e){ return []; }
+}
 function planWalkHtml(stops,i){
   if(i===0)return '';const a=stops[i-1],b=stops[i];if(!planHasCoords(a)||!planHasCoords(b))return '';
   const km=haversine(a.lat,a.lon,b.lat,b.lon),min=planWalkMin(a,b);
-  return `<div class="plan-walk" data-a="${a.lat},${a.lon}" data-b="${b.lat},${b.lon}">${km>2.5?'🚗':'🚶'} ${km>2.5?'unos '+min+' min en coche':min+' min andando'} · ${km.toFixed(1).replace('.',',')} km</div>`;
+  return `<div class="plan-walk" data-a="${a.lat},${a.lon}" data-b="${b.lat},${b.lon}">${km>2.5?'🚇':'🚶'} ${km>2.5?'unos '+planTransitMin(km)+' min en metro o taxi':min+' min andando'} · ${km.toFixed(1).replace('.',',')} km</div>`;
 }
 
 async function renderMadridPlan(){
@@ -5049,6 +5061,7 @@ function pdCard(d, opt){
       <div class="meta"><span class="tagpill">${CAT_ICONS[d.cm]||'📍'} ${pdEsc(d.cd||d.cm||'Sitio')}</span><span>${pdEsc(d.z||d.addr||'')}${dist}${price}</span></div>
     </div>
     ${rentaSelloBox(d)}</div>
+    ${opt.alts && opt.alts.length ? `<div class="pd-alts"><div class="pd-alts-t">${opt.alts.length+1} opciones aquí · toca otra para verla</div><div class="pd-alts-row"><span class="pd-alt on">${CAT_ICONS[d.cm]||'📍'} ${pdEsc(d.n)}</span>${opt.alts.map(a=>`<button type="button" class="pdSwap pd-alt" data-swap="${opt.swap}" data-alt="${pdEsc(a.n)}">${CAT_ICONS[a.cm]||'📍'} ${pdEsc(a.n)}${a._d!=null?`<small>${a._d<0.95?Math.round(a._d*1000/50)*50+' m':a._d.toFixed(1).replace('.',',')+' km'}</small>`:''}</button>`).join('')}</div></div>` : ''}
     ${opt.when ? pdPlanInfo(d) : ''}
     ${d.info?`<div style="margin-top:9px;font-size:12px;color:var(--muted);line-height:1.5;">${pdEsc(d.info)}</div>`:''}
     ${d.openNote?`<div style="margin-top:6px;font-size:11.5px;color:var(--green);">${pdEsc(d.openNote)}</div>`:''}
@@ -5089,7 +5102,7 @@ function pdPlanInfo(d){
   </div>`;
 }
 function pdTimelineHtml(stops){
-  return `<div class="timeline">` + stops.map((s,i)=>(s._walk||'')+(s._paseo ? pdPaseoCard(s, `${pdFmt(s._start)} – ${pdFmt(s._end)} · Paseo`) : pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`, swap: s._ctx ? 'P:'+i : ''}))).join('') + `</div>`;
+  return `<div class="timeline">` + stops.map((s,i)=>(s._walk||'')+(s._paseo ? pdPaseoCard(s, `${pdFmt(s._start)} – ${pdFmt(s._end)} · Paseo`) : pdCard(s,{when:`${pdFmt(s._start)} – ${pdFmt(s._end)} · ${s.cd? pdEsc(s.cd): ''}`, swap: s._ctx ? 'P:'+i : '', alts: s._ctx ? (s._alts||[]).filter(a=>!stops.some(x=>x.n===a.n)) : null}))).join('') + `</div>`;
 }
 // Cambiar un sitio concreto (plan o lista) sin rehacer todo
 async function pdSwap(btn){
@@ -5104,7 +5117,9 @@ async function pdSwap(btn){
       pdRun._rej.add(cur.n);
       const used = new Set(stops.map(x=>x.n).concat([...pdRun._rej]));
       let pick = null;
-      if(!c.city){
+      const alt = btn.dataset.alt ? (cur._alts||[]).find(x=>x.n===btn.dataset.alt) : null;
+      if(alt){ pdRun._rej.delete(cur.n); pick = alt; }
+      else if(!c.city){
         const f = pdFilter(c.w, c.pw, used, 6, false);
         pick = planPickNear(f.items, c.anchor, c.t, 4, c.maxKm||null);
       }
@@ -5114,7 +5129,10 @@ async function pdSwap(btn){
         pick = c.anchor ? planPickNear(cands, c.anchor, c.t, 4) : cands[0] || null;
       }
       if(!pick) return toast('No hay más cerca');
-      const it = Object.assign({}, pick, {_start:cur._start, _end:cur._end, _ctx:c});
+      // las opciones de la parada se mantienen: la que estaba pasa a ser una opción más
+      const curOwn = DATA.some(x=>x.n===cur.n) && planHasCoords(cur) && c.anchor ? [Object.assign({}, cur, {_d:haversine(c.anchor[0],c.anchor[1],cur.lat,cur.lon), _alts:null, _ctx:null, _walk:''})] : [];
+      const alts = (cur._alts||[]).filter(x=>x.n!==pick.n).concat(curOwn).sort((a,b)=>((b.v||0)-(a.v||0))*1.2-((a._d||0)-(b._d||0))*0.8).slice(0,4);
+      const it = Object.assign({}, pick, {_start:cur._start, _end:cur._end, _ctx:c, _alts:alts});
       planWhy(it, c.anchor, c.anchorName, c.t);
       const prev = stops[i-1], next = stops[i+1];
       it._walk = prev && !prev._paseo && planHasCoords(prev) && planHasCoords(it) ? planWalkHtml([prev,it],1) : (prev && prev._paseo && planHasCoords(it) ? planWalkHtml([prev,it],1) : '');
@@ -5477,7 +5495,7 @@ async function pdBuildPlan(p){
       if(r.transit) out.notes.push(`De ${fromName} a ${dest.n} hay ${r.transit.km.toFixed(1).replace('.',',')} km en línea recta: demasiado para ir andando. Te propongo metro o taxi (unos ${r.transit.min} min) y pasear por ${dest.n}.`);
       else if(r.km > 6) out.notes.push(`El paseo de ${fromName} a ${dest.n} son unos ${r.km.toFixed(1).replace('.',',')} km (≈ ${Math.floor(walkMin/60)} h ${walkMin%60} min andando). Si se hace largo, puedes coger el metro en cualquier parada del camino.`);
       const names = r.pts.map(x=>x.n);
-      const st = {_paseo:true, n: names.length ? 'Paseo: '+names.slice(0,3).join(' → ')+(names.length>3?'…':'') : 'Paseo hasta '+dest.n, cm:'Paseo', cd:'Paseo',
+      const st = {_paseo:true, _hasta:true, n: names.length ? 'Paseo: '+names.slice(0,3).join(' → ')+(names.length>3?'…':'') : 'Paseo hasta '+dest.n, cm:'Paseo', cd:'Paseo',
         route:r.pts.concat(r.transit?[]:[{n:dest.n, lat:dest.lat, lon:dest.lon, b:'final del paseo'}]), routeUrl:r.url, km:r.km, walkMin, toName:dest.n, fromName, transit:r.transit, transitUrl:r.transitUrl,
         startLat:r.start.lat, startLon:r.start.lon, lat:r.end.lat, lon:r.end.lon, locationVerified:true};
       st._start = planR15(t); st._end = st._start + (r.transit ? Math.max(w.dur, walkMin+30) + r.transit.min : walkMin + 15);
@@ -5609,11 +5627,20 @@ async function pdBuildPlan(p){
     }
     used.add(item.n);
     if(prev && !prev._paseo){ const wk = planWalkMin(prev, item); if(wk>15){ t = planR15(t - 15 + wk); } }
-    if(prev && prev._paseo && t > prev._end + 15){ prev._end = Math.min(t - 15, prev._start + 165); if(t - prev._end > 30) out.notes.push(`Entre el paseo y la siguiente parada te queda un rato libre (${pdFmt(prev._end)}–${pdFmt(t)}) para curiosear por la zona.`); }
+    if(prev && prev._paseo && prev._hasta && planHasCoords(item)){
+      const kmN = haversine(prev.lat,prev.lon,item.lat,item.lon);
+      const viaje = kmN > 2.5 ? planTransitMin(kmN) : Math.round(kmN*1.25/4*60);
+      if(t < prev._end + viaje) t = planR15(prev._end + viaje);
+      prev._end = planR15(prev._end);
+      const libre = t - prev._end - viaje, hastaL = Math.floor((t-viaje)/15)*15;
+      if(kmN > 2.5) out.notes.push(`De ${prev.toName} a ${item.n} hay ${kmN.toFixed(1).replace('.',',')} km: unos ${viaje} min en metro o taxi.${libre>30?` Te queda un rato libre (${pdFmt(prev._end)}–${pdFmt(hastaL)}) por ${prev.toName} antes de ir.`:''}`);
+      else if(libre > 30) out.notes.push(`Al acabar el paseo te queda un rato libre (${pdFmt(prev._end)}–${pdFmt(hastaL)}) por ${prev.toName}.`);
+    } else if(prev && prev._paseo && t > prev._end + 15){ prev._end = Math.min(t - 15, prev._start + 165); if(t - prev._end > 30) out.notes.push(`Entre el paseo y la siguiente parada te queda un rato libre (${pdFmt(prev._end)}–${pdFmt(t)}) para curiosear por la zona.`); }
     item = Object.assign({}, item);
     item._start = t; item._end = t + w.dur;
     planWhy(item, anchor, anchorName, t);
     item._ctx = w._fixed ? null : {w, pw, anchor, anchorName, t, city:p.city||null, maxKm: p.maxWalk && anchor ? p.maxWalk/1.25 : null};
+    if(item._ctx) item._alts = planAlts(item, item._ctx, used);
     if(w._fixed) item._why = 'El sitio que elegiste';
     if(prev && planHasCoords(prev) && planHasCoords(item)) item._walk = planWalkHtml([prev,item],1);
     if(planOpenAt(item, t)===false){
@@ -7844,6 +7871,11 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #rntAviso .row{display:flex;gap:8px;margin-top:12px}#rntAviso .row button{flex:1;padding:12px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;border:0}
 #rntAviso .send{background:var(--accent,var(--accent-soft));color:var(--on-accent,#fff)}#rntAviso .send:disabled{opacity:.45}#rntAviso .cancel{background:transparent;color:inherit;border:1px solid var(--line,rgba(255,255,255,.2))!important}
 #rntAviso .ok{font-size:15px;line-height:1.5;padding:8px 0}
+.pd-alts{margin-top:10px}.pd-alts-t{font-size:12px;color:var(--muted);margin-bottom:6px}
+.pd-alts-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.pd-alts-row::-webkit-scrollbar{display:none}
+.pd-alt{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2,transparent);color:var(--ink);font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
+.pd-alt small{font-weight:500;color:var(--muted);font-size:11.5px}
+.pd-alt.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent,#fff);cursor:default}
 .rnt-report-foot{margin-top:12px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--accent,#c8102e);background:transparent;color:var(--accent,#c8102e);font:inherit;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;cursor:pointer}
 </style>
 <script id="renta-aviso">
@@ -8014,7 +8046,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v39';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v40';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

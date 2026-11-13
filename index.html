@@ -6172,6 +6172,7 @@ function rentaTwinOfOwn(d){
   const word=n=>normMapName(n).split(' ').filter(w=>w.length>=4);const a=word(d.n);
   return DATA.some(x=>{if(!x.locationVerified||x.osm||!Number.isFinite(x.lat))return false;const km=haversine(d.lat,d.lon,x.lat,x.lon);if(km>0.08)return false;if(km<0.015)return true;const b=word(x.n);return a.some(w=>b.includes(w));});
 }
+function rentaMisSitiosSafe(){ try{ return typeof rentaMisSitios==='function' ? rentaMisSitios().filter(x=>!DATA.some(y=>y.n===x.n)) : []; }catch(e){ return []; } }
 function renderMapMarkers(list){
   if(Array.isArray(list)&&list!==mapPlaces)radarCatalogOnMap=list;
   if(!radarMap||!radarMarkers)return;
@@ -6183,7 +6184,10 @@ function renderMapMarkers(list){
   // Solo coordenadas reales: los centros de barrio antiguos no se pintan.
   const ok=d=>d&&d.locationVerified===true&&Number.isFinite(d.lat)&&Number.isFinite(d.lon);
   const gOk=window.radarMapGroupOk||(()=>true);
-  const mine=(radarCatalogOnMap||[]).filter(d=>ok(d)&&gOk(d)&&!d.mr);
+  // Con un tipo elegido en el mapa (Italiana, Copas…) se ven TODOS tus sitios de ese tipo, aunque arriba haya otro filtro puesto
+  const filtroMapa=window.radarMapGroup&&window.radarMapGroup!=='all';
+  const base=filtroMapa?DATA.filter(d=>!d.osm).concat(rentaMisSitiosSafe()):(radarCatalogOnMap||[]);
+  const mine=base.filter(d=>ok(d)&&gOk(d)&&!d.mr);
   if(!window.radarMrLayer)window.radarMrLayer=L.layerGroup().addTo(radarMap);
   window.radarMrLayer.clearLayers();
   DATA.filter(d=>d.mr&&ok(d)&&gOk(d)).forEach(d=>{
@@ -6191,7 +6195,7 @@ function renderMapMarkers(list){
     const mk=L.marker([d.lat,d.lon],{icon,riseOnHover:true,zIndexOffset:1500,title:d.n,autoPanOnFocus:false}).bindPopup(radarPopupHtml(d),{maxWidth:280,minWidth:244,closeButton:true,autoPan:true,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(window.radarMrLayer);
     bindRadarPopup(mk,d);mapMarkersByName.set(normMapName(d.n),mk);
   });
-  const seen=new Set((radarCatalogOnMap||[]).map(d=>normMapName(d.n)));
+  const seen=new Set(base.map(d=>normMapName(d.n)));
   const twin=rentaTwinOfOwn;
   const discovered=(mapPlaces||[]).filter(d=>ok(d)&&gOk(d)&&!seen.has(normMapName(d.n))&&!DATA.some(x=>x.locationVerified&&!x.osm&&normMapName(x.n)===normMapName(d.n))&&!twin(d)).slice(0,400);
   const located=[...discovered,...mine];
@@ -8080,7 +8084,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v41';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v42';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

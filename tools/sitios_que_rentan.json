@@ -227,6 +227,56 @@
    "addr": "Calle de Botoneras 5, Madrid",
    "lat": 40.414882,
    "lon": -3.706697
+  },
+  {
+   "marca": "Hundred",
+   "sede": "Chamberí (Eloy Gonzalo)",
+   "n": "HUNDRED",
+   "cm": "Hamburguesas",
+   "cd": "Hamburguesa premiada como la mejor del mundo",
+   "z": "Chamberí",
+   "p": "15-30",
+   "addr": "Calle de Eloy Gonzalo 12, Madrid",
+   "lat": 40.433874,
+   "lon": -3.702531,
+   "oh": "Mo-Su 13:00-23:00",
+   "web": "https://hundredburgers.com/",
+   "fuente": "OpenStreetMap + madridsecreto.co"
+  },
+  {
+   "marca": "Hundred",
+   "sede": "Chueca (Pedro Zerolo)",
+   "n": "Hundred Chueca",
+   "cm": "Hamburguesas",
+   "cd": "Hamburguesa premiada como la mejor del mundo",
+   "z": "Centro",
+   "p": "15-30",
+   "addr": "Plaza de Pedro Zerolo 1, Madrid",
+   "lat": 40.421036,
+   "lon": -3.699847,
+   "oh": "Mo-Su 13:00-23:00",
+   "web": "https://hundredburgers.com/",
+   "fuente": "OpenStreetMap + madridsecreto.co"
+  },
+  {
+   "marca": "Hundred",
+   "sede": "Alcobendas",
+   "n": "Hundred Alcobendas",
+   "cm": "Hamburguesas",
+   "cd": "Hamburguesa premiada como la mejor del mundo",
+   "z": "Alcobendas",
+   "p": "15-30",
+   "addr": "Calle de San José Artesano 8, Alcobendas",
+   "lat": 40.529377,
+   "lon": -3.656511,
+   "web": "https://hundredburgers.com/",
+   "fuente": "OpenStreetMap + madridsecreto.co"
+  },
+  {
+   "marca": "Four Elements",
+   "sede": "Tetuán",
+   "existe": "Four Elements Shisha Lounge Madrid",
+   "fuente": "lista propia"
   }
  ]
 }

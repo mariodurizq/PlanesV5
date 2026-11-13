@@ -4641,10 +4641,10 @@ async function pdLoadPaseos(){
 }
 // Ruta andando con sentido: solo lugares que pillan de camino. Si está demasiado lejos para ir andando,
 // se va en metro/taxi y se pasea por la zona de destino.
-function planWalkRoute(from, to, pool){
+function planWalkRoute(from, to, pool, maxWalk){
   pool = pool || PD_PASEOS_ALL || PD_PASEOS;
   const km=(a,b)=>haversine(a.lat,a.lon,b.lat,b.lon);
-  const MAXWALK = 4.5;
+  const MAXWALK = maxWalk || 4.5;
   let pts=[], transit=null, loopAt=null;
   const dir = to ? km(from,to) : 0;
   if(to && dir>0.6 && dir<=MAXWALK){
@@ -4656,7 +4656,7 @@ function planWalkRoute(from, to, pool){
     const c = pool.filter(l=>{ const pj=proj(l); return pj>0.04 && pj<0.96 && perp(l)<=lim; })
       .map(l=>({l, sc:(l.w||1) - perp(l)*6}));
     c.sort((a,b)=>b.sc-a.sc);
-    const maxN = Math.max(2, Math.min(5, Math.round(dir/0.6)));
+    const maxN = Math.max(2, Math.min(dir>5?7:5, Math.round(dir/0.6)));
     c.forEach(({l})=>{ if(pts.length<maxN && pts.every(x=>km(x,l)>=0.35) && km(l,from)>0.15 && km(l,to)>0.15) pts.push(l); });
     pts.sort((a,b)=>proj(a)-proj(b));
   } else {
@@ -4892,6 +4892,7 @@ function pdParse(raw){
           const h = /\b(por|en|hasta|hacia|alrededor de|junto a)\b/.test(seg) ? allPl.filter(x=>x.i>=a && x.i<a+seg.length)[0] : null;
           const lm = /\b(por|en|hasta|hacia)\b/.test(seg) ? PD_PASEOS.find(l=>{ const k=pdNorm(l.n.split(' · ')[0]); return seg.includes(k); }) : null;
           if(lm) w._place={n:lm.n.split(' · ')[0], lat:lm.lat, lon:lm.lon, r:0.5, aliases:[]}; else if(h) w._place={n:h.pl.n, lat:h.pl.lat, lon:h.pl.lon, r:h.pl.r, aliases:h.pl.a};
+          if(w._place && /\b(hasta|hacia)\b/.test(seg)) w._hasta = true;   // «pasear hasta X»: X es el final del paseo, se sale de la parada anterior
           return;
         }
         const [a,b]=clauseOf(w._idx); const h=allPl.filter(x=>x.i>=a && x.i<b).pop();
@@ -5465,6 +5466,23 @@ async function pdBuildPlan(p){
     let w = wants[i];
     const nextW = wants.slice(i+1).find(x=>x.id!=='paseo');
     // paseo: ruta andando por sitios bonitos hasta la siguiente parada
+    if(w.id==='paseo' && w._hasta && w._place && prev && planHasCoords(prev)){
+      // «pasear hasta X»: andando desde la parada anterior hasta X, por sitios bonitos de camino
+      await pdLoadPaseos();
+      const from = {lat:prev.lat, lon:prev.lon}, dest = w._place;
+      const r = planWalkRoute(from, dest, null, 12);
+      const prevW = wants.slice(0,i).reverse().find(x=>x.id!=='paseo');
+      const fromName = (prevW && prevW._place && prevW._place.n) || prev.n;
+      const walkMin = Math.round(r.km/4*60);
+      if(r.transit) out.notes.push(`De ${fromName} a ${dest.n} hay ${r.transit.km.toFixed(1).replace('.',',')} km en línea recta: demasiado para ir andando. Te propongo metro o taxi (unos ${r.transit.min} min) y pasear por ${dest.n}.`);
+      else if(r.km > 6) out.notes.push(`El paseo de ${fromName} a ${dest.n} son unos ${r.km.toFixed(1).replace('.',',')} km (≈ ${Math.floor(walkMin/60)} h ${walkMin%60} min andando). Si se hace largo, puedes coger el metro en cualquier parada del camino.`);
+      const names = r.pts.map(x=>x.n);
+      const st = {_paseo:true, n: names.length ? 'Paseo: '+names.slice(0,3).join(' → ')+(names.length>3?'…':'') : 'Paseo hasta '+dest.n, cm:'Paseo', cd:'Paseo',
+        route:r.pts.concat(r.transit?[]:[{n:dest.n, lat:dest.lat, lon:dest.lon, b:'final del paseo'}]), routeUrl:r.url, km:r.km, walkMin, toName:dest.n, fromName, transit:r.transit, transitUrl:r.transitUrl,
+        startLat:r.start.lat, startLon:r.start.lon, lat:r.end.lat, lon:r.end.lon, locationVerified:true};
+      st._start = planR15(t); st._end = st._start + (r.transit ? Math.max(w.dur, walkMin+30) + r.transit.min : walkMin + 15);
+      out.stops.push(st); prev = st; t = st._end; continue;
+    }
     if(w.id==='paseo'){
       let from = prev && planHasCoords(prev) ? {lat:prev.lat, lon:prev.lon} : (w._place || p.place || {lat:40.4169, lon:-3.7035});
       const to = nextW && nextW._place ? nextW._place : null;
@@ -5568,7 +5586,10 @@ async function pdBuildPlan(p){
     if(item && !w._fixed && !p.city && anchor && planHasCoords(item) && !p.maxWalk){
       const dk = haversine(anchor[0],anchor[1],item.lat,item.lon);
       const lim = w._place && anchorName===w._place.n ? Math.max(0.7, w._place.r*1.1) : 1.2;   // si pediste una zona, que esté de verdad en esa zona
-      if(dk > lim){
+      const enZona = !!(w._place && item.z && pdNorm(item.z).includes(pdNorm(w._place.n)));
+      // Tus sitios van siempre por delante: solo se cambia por uno del mapa si el tuyo no está en esa zona y queda lejos (> 1,5 km)
+      const mia = item.src==='lista' || (!item.fromMap && !item.osm && item.src!=='osm' && DATA.some(x=>x.n===item.n));
+      if(mia ? (!enZona && dk > Math.max(lim, 1.5)) : dk > lim){
         const pwr = Object.assign({}, pw, {place:{n:anchorName||'aquí', lat:anchor[0], lon:anchor[1], r:0.9, aliases:[]}});
         const r = await pdLive(w, pwr, null, 10);
         const near = (r.items||[]).filter(x=>!used.has(x.n) && planHasCoords(x) && planOpenAt(x,t)!==false).map(x=>({x, km:haversine(anchor[0],anchor[1],x.lat,x.lon)})).filter(o=>o.km < Math.min(1.0, dk*0.6)).sort((a,b)=>a.km-b.km);
@@ -7993,7 +8014,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v38';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v39';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

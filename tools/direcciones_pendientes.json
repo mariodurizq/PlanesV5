@@ -1,0 +1,11 @@
+{
+ "_nota": "Sitios sin coordenadas con dirección encontrada en la web. tools/geocodificar.py (GitHub Actions) los sitúa con Nominatim por su dirección. Se puede añadir más.",
+ "sitios": {
+  "Taberna Murciana": {"addr": "Travesía de Téllez 2, Madrid", "calle": "Travesía de Téllez 2", "cp": "28007", "ciudad": "Madrid", "fuente": "esmadrid.com / tripaligner"},
+  "Restaurante Wanderlust CC Plaza Río 2": {"addr": "Avenida del Manzanares 210 (CC Plaza Río 2), Madrid", "calle": "Avenida del Manzanares 210", "cp": "28026", "ciudad": "Madrid", "fuente": "tripaligner / esmadrid.com"},
+  "Baku Nights": {"addr": "Cava de San Miguel 8, Madrid", "calle": "Cava de San Miguel 8", "cp": "28012", "ciudad": "Madrid", "fuente": "schlouk-map"},
+  "Bar Malos": {"addr": "Calle de Velarde 13, Madrid", "calle": "Calle de Velarde 13", "cp": "28004", "ciudad": "Madrid", "fuente": "schlouk-map / Time Out"},
+  "Glück Cervecería - Madrid": {"addr": "Calle Dublín 37 (Európolis), Las Rozas", "calle": "Calle Dublín 37", "cp": "28232", "ciudad": "Las Rozas de Madrid", "fuente": "Time Out"},
+  "Teje y Maneje": {"addr": "Calle de Ponzano 14, Madrid", "calle": "Calle de Ponzano 14", "cp": "28010", "ciudad": "Madrid", "fuente": "Time Out / El Español"}
+ }
+}

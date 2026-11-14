@@ -5500,6 +5500,7 @@ async function pdBuildListCore(p, shuffle){
 // ---- construcción de plan ----
 async function pdBuildPlan(p){
   planOpenAt.dow = planDowFrom(p.dayLabel);
+  try{ window.rentaEvento && rentaEvento('plan-pideme'); }catch(e){}
   const out = {stops:[], notes:[]};
   const used = new Set();
   const key = getApiKey();
@@ -7938,6 +7939,24 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 .pd-alt.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent,#fff);cursor:default}
 .rnt-report-foot{margin-top:12px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--accent,#c8102e);background:transparent;color:var(--accent,#c8102e);font:inherit;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;cursor:pointer}
 </style>
+<script id="renta-stats">
+// Estadísticas de visitas con GoatCounter: gratis, sin cookies y sin datos personales (solo recuentos agregados).
+// Se activa al pegar aquí el código de la cuenta (lo que va antes de .goatcounter.com).
+(function(){
+  const GOATCOUNTER = '';
+  if(!GOATCOUNTER || /^(localhost|127\.)/.test(location.hostname)) return;
+  window.goatcounter = {no_onload: true};
+  let listo = false, ultima = '';
+  const contar = (path, evento) => { try{ if(!listo || !window.goatcounter.count) return; window.goatcounter.count({path, title: document.title, event: !!evento}); }catch(e){} };
+  const pestana = () => { const p = '/' + (document.body.dataset.tab || 'inicio'); if(p !== ultima){ ultima = p; contar(p); } };
+  const s = document.createElement('script'); s.async = true; s.src = 'https://gc.zgo.at/count.js';
+  s.dataset.goatcounter = 'https://' + GOATCOUNTER + '.goatcounter.com/count';
+  s.onload = () => { listo = true; contar('/' + (window.matchMedia && matchMedia('(display-mode: standalone)').matches || navigator.standalone ? 'abrir-app' : 'abrir-web'), true); pestana(); };
+  document.head.appendChild(s);
+  new MutationObserver(pestana).observe(document.body, {attributes: true, attributeFilter: ['data-tab']});
+  window.rentaEvento = n => contar(n, true);   // p. ej. rentaEvento('plan-hecho')
+})();
+</script>
 <script id="renta-aviso">
 // «Reportar error»: eliges un motivo, escribes una frase (opcional) y llega solo al correo de Me Renta Mazo.
 // Envío con Web3Forms (gratis, 250 avisos/mes). La clave es pública por diseño: solo sirve para mandar al buzón, no para leerlo.
@@ -7991,7 +8010,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
       const aviso={titulo:`[Me Renta Mazo] ${general?'':nombre+' — '}${label}`, cuerpo, t:Date.now()};
       if(!general){ const avisos=store.get(); avisos[nombre]={motivo,t:Date.now()}; store.set(avisos); }
       send.disabled=true; send.textContent='Enviando…';
-      const ok=await mandar(aviso);
+      const ok=await mandar(aviso); try{ window.rentaEvento && rentaEvento('aviso-error'); }catch(e){}
       if(!ok){ const q=cola.get(); q.push(aviso); cola.set(q); }
       ov.querySelector('.sheet').innerHTML=`<h3>¡Gracias! 🙌</h3><div class="ok">${ok?'Aviso enviado.':'Aviso recibido; se enviará automáticamente.'} ${general?'Lo revisaremos lo antes posible.':`Revisaremos «${esc(nombre)}» y lo corregiremos en la lista.`}${!general&&motivo==='cerrado'?'<br><br>Mientras tanto lo verás marcado como <b>avisado</b>.':''}</div><div class="row"><button type="button" class="send">Cerrar</button></div>`;
       ov.querySelector('.send').onclick=()=>ov.remove(); marcar();
@@ -8106,7 +8125,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v45';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v46';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

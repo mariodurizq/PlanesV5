@@ -1,0 +1,20 @@
+# Sitúa por su dirección los sitios de tools/direcciones_pendientes.json (Nominatim, gratis).
+name: Situar por dirección
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/direcciones_pendientes.json']
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar y guardar
+        run: tools/guardar.sh "Sitios situados por su dirección" "python3 tools/geocodificar.py" index.html

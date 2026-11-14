@@ -191,10 +191,12 @@ def main():
     for d in data:
         if isinstance(d.get('lat'), (int, float)):
             key = f"{d['lat']:.3f},{d['lon']:.3f}"; shared[key] = shared.get(key, 0) + 1
-    found = closed = nomi = 0; missing = []
+    found = closed = nomi = 0; missing = []; desaparecidos = []
+    fiable = len(pois) > 1500   # si Overpass falló o vino a medias, no se marca nada como desaparecido
     for d in data:
         if d.get('verifiedAt') or d.get('locSrc') in ('google', 'manual'): continue   # lo ubicado por Google o a mano se conserva
         # Cada ejecución empieza de cero desde el centro de barrio original
+        antes = {k: d.get(k) for k in ('lat', 'lon', 'locationVerified', 'oh', 'osmCuisine', 'addr', 'locSrc')} if d.get('locSrc') == 'osm' else None
         if d.get('zlat') is not None:
             d['lat'], d['lon'] = d['zlat'], d['zlon']
             for k in ('locationVerified', 'oh', 'osmCuisine', 'addr', 'locSrc'): d.pop(k, None)
@@ -226,11 +228,17 @@ def main():
             if p['addr']: d['addr'] = p['addr']
             if p.get('web') and not d.get('web'): d['web'] = p['web']
             d['locSrc'] = 'osm'
+            if d.pop('desaparecido', None) and d.get('e') == 'Revisar (posible cierre)': d['e'] = 'Abierto'   # vuelve a aparecer
             if p['closed']: d['e'] = 'Revisar (posible cierre)'; closed += 1
             found += 1
+        elif antes and fiable and str(d.get('e', '')).lower() not in ('cerrado definitivamente',):
+            # Estaba en el mapa abierto y ya no aparece: se queda donde estaba y se avisa de posible cierre
+            for k, v in antes.items():
+                if v is not None: d[k] = v
+            if d.get('e') != 'Revisar (posible cierre)': d['e'] = 'Revisar (posible cierre)'; d['desaparecido'] = True; desaparecidos.append(d['n'])
         else:
             missing.append(d)
-    print('Emparejados con Overpass:', found)
+    print('Emparejados con Overpass:', found, '· desaparecidos del mapa abierto:', len(desaparecidos))
     if use_nominatim:
         for d in missing:
             q = f"{d['n']}, {d.get('z') or ''} Madrid".replace(' ,', ',')
@@ -260,6 +268,7 @@ def main():
     resumen = [f'Ubicación del {datetime.date.today().isoformat()}',
                f'{ok} de {total} sitios con coordenadas reales ({found} por mapa abierto, {nomi} por búsqueda individual).',
                f'{closed} marcados como posible cierre en el mapa.',
+               f'{len(desaparecidos)} que ya no aparecen en el mapa abierto (posible cierre): ' + ', '.join(desaparecidos[:30]),
                f'{len(removed)} marcados como cerrados definitivamente según Google (se conservan en tu lista).',
                f'{sum(1 for d in data if d.get("photo"))} con foto de su web oficial.', '',
                'Marcados como cerrados:'] + ['- ' + r for r in removed] + ['', 'Sin ubicar:'] + \

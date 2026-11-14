@@ -3934,9 +3934,29 @@ const PLAN_DUR={'Café/Brunch/Postres':60,'Ocio/Espacios no gastronómicos':90,'
 const planR15=m=>Math.ceil(m/15)*15;
 function planHasCoords(d){return d&&d.locationVerified&&Number.isFinite(d.lat)&&Number.isFinite(d.lon);}
 // Abierto a una hora concreta de hoy según su horario (true / false / null si no se sabe)
+// Sin horario conocido: solo se descarta lo que a esa hora claramente no abre por su tipo (nunca se muestra como «cerrado»)
+const RENTA_VENTANAS={comida:[11*60,90], cafe:[7*60,22*60+30], bar:[11*60,150], copas:[16*60,180], rooftop:[12*60,150], shisha:[15*60,180], fiesta:[23*60,390]};
+function rentaVentanaTipica(d){
+  const cm=String(d.cm||'');
+  if(cm==='Discoteca/Club')return RENTA_VENTANAS.fiesta;
+  if(cm==='Shisha Lounge')return RENTA_VENTANAS.shisha;
+  if(cm==='Coctelería')return RENTA_VENTANAS.copas;
+  if(cm==='Bar/Cervecería')return RENTA_VENTANAS.bar;
+  if(cm==='Rooftop/Terraza')return RENTA_VENTANAS.rooftop;
+  if(/Café/.test(cm))return RENTA_VENTANAS.cafe;
+  if(/Ocio|Hotel|Otros|Paseo/.test(cm)||d._paseo)return null;
+  if(/brunch|desayun|cafeter|panader|churr/i.test((d.cd||'')+' '+d.n))return RENTA_VENTANAS.cafe;
+  return RENTA_VENTANAS.comida;
+}
+function rentaSueleAbrir(d, minutes){
+  const w=rentaVentanaTipica(d); if(!w)return null;
+  const t=((minutes%1440)+1440)%1440, [o,c]=w;
+  return (c>o ? (t>=o&&t<c) : (t>=o||t<c)) ? null : false;
+}
 function planOpenAt(d, minutes){
-  const raw=d.oh;if(!raw||!window.RentaFreeSearch)return null;
-  const per=d.hours||RentaFreeSearch.parseOsmHours(raw);if(!per||!per.length)return null;
+  const raw=d.oh;
+  const per=raw&&window.RentaFreeSearch?(d.hours||RentaFreeSearch.parseOsmHours(raw)):null;
+  if(!per||!per.length)return rentaSueleAbrir(d, minutes);
   const now=new Date();let day=(planOpenAt.dow!=null?planOpenAt.dow:now.getDay()),t=minutes;if(t>=1440){t-=1440;day=(day+1)%7;}
   for(const p of per){if(!p.open)continue;const o=p.open.hour*60+(p.open.minute||0),cd=p.close?p.close.day:p.open.day,c=p.close?p.close.hour*60+(p.close.minute||0):1440;
     if(p.open.day===day&&(cd===day?(t>=o&&t<c):t>=o))return true;if(cd===day&&p.open.day!==day&&t<c)return true;}
@@ -5340,7 +5360,7 @@ async function pdBuildList(p, shuffle){
   if(p.openNow || p.time!=null){
     const now = new Date(), nm = p.openNow ? now.getHours()*60+now.getMinutes() : p.time;
     planOpenAt.dow = p.openNow ? null : planDowFrom(p.dayLabel);
-    out.sections.forEach(sec=>{ const before = sec.items.length; sec.items = sec.items.filter(d=>planOpenAt(d, nm)!==false); if(sec.items.length<before) out.notes.push(`He quitado ${before-sec.items.length} que según su horario están cerrados ${p.openNow?'ahora':'a esa hora'}.`); });
+    out.sections.forEach(sec=>{ const before = sec.items.length; sec.items = sec.items.filter(d=>planOpenAt(d, nm)!==false); if(sec.items.length<before) out.notes.push(sec.items.length ? `He quitado ${before-sec.items.length} que ${p.openNow?'ahora':'a esa hora'} están cerrados o no suelen abrir.` : `${p.openNow?'Ahora mismo':'A las '+pdFmt(nm)} no hay nada de este tipo abierto en tu lista. Prueba con otra hora o con «copas» o «discoteca» si es de noche.`); });
     out.notes.push('Los sitios sin horario conocido se muestran igualmente: compruébalo antes de ir.');
   }
   if(!p.maxWalk) return out;
@@ -5668,7 +5688,7 @@ async function pdBuildPlan(p){
     if(prev && planHasCoords(prev) && planHasCoords(item)) item._walk = planWalkHtml([prev,item],1);
     if(planOpenAt(item, t)===false){
       if(!w._fixed){ out.notes.push(`"${w.label.replace(/^\S+\s/,'')}": lo que encontré estaba cerrado a las ${pdFmt(t)}, así que me salto esa parada.`); continue; }
-      out.notes.push(`⚠ ${item.n} está cerrado a las ${pdFmt(t)} según su horario (lo elegiste tú); compruébalo.`);
+      out.notes.push(item.oh ? `⚠ ${item.n} está cerrado a las ${pdFmt(t)} según su horario (lo elegiste tú); compruébalo.` : `⚠ ${item.n} no suele abrir a las ${pdFmt(t)} (lo elegiste tú); compruébalo en Maps.`);
     }
     out.stops.push(item);
     t += w.dur + 15; prev = item;
@@ -6437,7 +6457,7 @@ function openDiscover(){
   const pool=(list.length?list:DATA).filter(d=>d && d.n && d.cm);
   const seen=new Set();
   discoverItems=pool.filter(d=>{const key=d.n.toLocaleLowerCase('es');if(seen.has(key))return false;seen.add(key);return true;})
-    .filter(d=>typeof radarOpenNow!=='function'||radarOpenNow(d)!==false)   // no se recomienda lo que está cerrado ahora
+    .filter(d=>{ const n=new Date(); planOpenAt.dow=null; return planOpenAt(d, n.getHours()*60+n.getMinutes())!==false; })   // no se recomienda lo que está cerrado ahora
     .sort((a,b)=>Number(b.v||0)-Number(a.v||0)).slice(0,60);
   if(!discoverItems.length){
     feed.innerHTML='<div class="discover-empty">Todavía no hay sitios para mostrar.<br>Prueba otra categoría o zona.</div>';
@@ -8086,7 +8106,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v44';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v45';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

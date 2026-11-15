@@ -1,14 +1,20 @@
-# Repaso de la lista de sitios — 2026-11-07
+# Repaso de la lista de sitios — 2026-11-15
 
-Sitios: **699** · zonas corregidas: **0** (de ellas 0 estaban vacías) · coordenadas sospechosas: **0** · fuera de la Comunidad: **0** · sin coordenadas: **37** · posibles duplicados: **0** · cerrados: **77** · coordenadas pasadas de Google a OpenStreetMap: **0** · ubicados ahora por nombre: **0** · aún con coordenadas de Google: **213**
+Sitios: **718** · zonas corregidas: **7** (de ellas 6 estaban vacías) · coordenadas sospechosas: **0** · fuera de la Comunidad: **0** · sin coordenadas: **31** · posibles duplicados: **0** · cerrados: **77** · coordenadas pasadas de Google a OpenStreetMap: **0** · ubicados ahora por nombre: **0** · aún con coordenadas de Google: **213**
 
 La zona se calcula con los límites oficiales de distritos y municipios de OpenStreetMap. Si la dirección dice otra zona, no se toca nada y se apunta aquí para revisarlo a mano.
 
 ## Ubicados ahora con OpenStreetMap (no tenían coordenadas) (0)
 - Nada 👍
 
-## Zonas corregidas (0)
-- Nada 👍
+## Zonas corregidas (7)
+- Taberna Murciana: (sin zona) → Retiro
+- Restaurante Wanderlust CC Plaza Río 2: (sin zona) → Usera
+- Baku Nights: (sin zona) → Centro
+- Bar Malos: (sin zona) → Centro
+- Glück Cervecería - Madrid: (sin zona) → Las Rozas de Madrid
+- Teje y Maneje: (sin zona) → Chamberí
+- Milwaukee Narváez: Retiro → Salamanca
 
 ## Coordenadas sospechosas (revisar a mano) (0)
 - Nada 👍
@@ -16,17 +22,12 @@ La zona se calcula con los límites oficiales de distritos y municipios de OpenS
 ## Fuera de la Comunidad de Madrid (0)
 - Nada 👍
 
-## Sin coordenadas (37)
+## Sin coordenadas (31)
 - Ostinato
 - Zozou Club
-- Taberna Murciana
-- Restaurante Wanderlust CC Plaza Río 2
 - Tiki Taco Princesa
-- Baku Nights
 - Saona (Salamanca-Madrid)
-- Bar Malos
 - El 11 Resto-Brunch
-- Glück Cervecería - Madrid
 - BARAKA drinks & Pool
 - Red Roo Australian Restaurant
 - Sushi YAKUZA
@@ -48,7 +49,6 @@ La zona se calcula con los límites oficiales de distritos y municipios de OpenS
 - White Moon Shisha club
 - Shisha's Lounge
 - Anubis Cócteleria Plaza Mayor
-- Teje y Maneje
 - Café del Soul
 - Kambarah Alcocer
 - Quadrato Pizzeria

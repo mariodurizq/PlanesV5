@@ -300,18 +300,6 @@
   "propuesta": null
  },
  {
-  "n": "Terraza Bar Palacio de Cibeles (Azotea Cibeles)",
-  "z": "Retiro",
-  "addr": "Calle Entre Arroyos 7",
-  "lat": 40.41908,
-  "lon": -3.69204,
-  "locSrc": "manual",
-  "motivos": [
-   "la calle «Calle Entre Arroyos 7» queda a 3.2 km"
-  ],
-  "propuesta": null
- },
- {
   "n": "Parque Juan Carlos I",
   "z": "Barajas",
   "addr": "GLORIETA S.A.R. DON JUAN DE BORBON Y BATTEMBERG, 5 , 5, Barajas, 28042 Madrid, España",

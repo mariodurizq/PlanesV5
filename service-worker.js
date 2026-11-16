@@ -1,4 +1,4 @@
-const VERSION = 'renta-shell-v46';
+const VERSION = 'renta-shell-v47';
 const APP_FILES = [
   './',
   './index.html',
@@ -8,9 +8,9 @@ const APP_FILES = [
   './icon-maskable-512.png',
   './apple-touch-icon.png',
   './brand/emblema-96.png',
-  './brand/nombre-light.png',
-  './brand/nombre-dark.png',
-  './brand/nombre-white.png',
+  './brand/logo-light.png',
+  './brand/logo-dark.png',
+  './brand/logo-crimson.png',
   './favicon.png',
   './vendor/leaflet.css?v=1',
   './vendor/leaflet.js?v=1',

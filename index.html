@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-title" content="Me Renta Mazo"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"><link rel="icon" type="image/png" sizes="48x48" href="./favicon.png"><link rel="shortcut icon" href="./favicon.ico">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=3"><meta name="apple-mobile-web-app-title" content="Me Renta Mazo"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"><link rel="icon" type="image/png" sizes="48x48" href="./favicon.png"><link rel="shortcut icon" href="./favicon.ico">
 
 <title>Me Renta Mazo · Planes en Madrid</title>
 <style id="fuentes-locales">/* Fuentes servidas desde la propia web (sin conexión a Google Fonts, por privacidad) */
@@ -1779,9 +1779,9 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
 /* Logo de la cabecera según el tema */
 .brand h1.brand-logo{display:flex;align-items:center;gap:8px;margin:0;line-height:0}
 .brand-logo .brand-emblem{width:44px;height:44px;flex:0 0 auto}
-.brand-logo .brand-name{height:40px;width:auto;display:none}
+.brand-logo .brand-name{height:52px;width:auto;display:none}
 :root[data-theme="light"] .brand-name-light,:root[data-theme="dark"]:not([data-tint]) .brand-name-dark,:root[data-tint="crimson"] .brand-name-white{display:block}
-@media(max-width:420px){.brand-logo .brand-emblem{width:40px;height:40px}.brand-logo .brand-name{height:36px}}
+@media(max-width:420px){.brand-logo .brand-name{height:46px}}
 </style>
 </head>
 <body>
@@ -1789,7 +1789,7 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
 
   <header class="top">
     <div class="brand">
-      <h1 class="brand-logo"><img class="brand-emblem" src="brand/emblema-96.png" width="44" height="44" alt=""><img class="brand-name brand-name-light" src="brand/nombre-light.png" height="40" alt="Me Renta Mazo"><img class="brand-name brand-name-dark" src="brand/nombre-dark.png" height="40" alt="" aria-hidden="true"><img class="brand-name brand-name-white" src="brand/nombre-white.png" height="40" alt="" aria-hidden="true"></h1>
+      <h1 class="brand-logo"><img class="brand-name brand-name-light" src="brand/logo-light.png" height="52" alt="Me Renta Mazo"><img class="brand-name brand-name-dark" src="brand/logo-dark.png" height="52" alt="" aria-hidden="true"><img class="brand-name brand-name-white" src="brand/logo-crimson.png" height="52" alt="" aria-hidden="true"></h1>
       <div class="header-tools">
         <button type="button" class="header-shortcut" id="headerFavoritesBtn" aria-label="Abrir favoritos" title="Mis favoritos">♥ <span id="headerFavoriteCount">0</span></button>
         <button type="button" class="header-shortcut" id="headerMapBtn" hidden aria-label="Abrir mapa" title="Abrir mapa">⌖ Mapa</button>
@@ -4967,10 +4967,30 @@ function pdParse(raw){
     if(p.walk && !p.wants.some(w=>w.id!=='paseo')) p.wants.unshift(Object.assign({}, PD_CATS.find(c=>c.id==='cafe'), {_idx:-1}));
   }
 
+  // «Pasar el día / la tarde / la noche por X»: sin tipo de sitio concreto → plan completo para ese rato
+  if(!p.wants.length && !p.qty){
+    const W=id=>id==='paseo' ? {id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur:90} : Object.assign({}, PD_CATS.find(c=>c.id===id));
+    const tramo = /\b(pasar el dia|pasar un dia|todo el dia|el dia entero|dia completo|un dia (por|en)|el dia (por|en)|dia de turismo|hacer turismo)\b/.test(text) ? ['food','paseo','tapas','food']
+      : /\b(pasar la manana|toda la manana|la manana (por|en))\b/.test(text) ? ['cafe','paseo','food']
+      : /\b(pasar la tarde|toda la tarde|la tarde (por|en)|tarde de)\b/.test(text) ? ['cafe','paseo','tapas','food']
+      : /\b(pasar la noche|toda la noche|noche completa|noche de)\b/.test(text) ? ['food','cock','disco'] : null;
+    if(tramo){
+      const inicio = tramo.includes('disco') ? 20*60+30 : ({food:13*60+45, cafe:/manana/.test(text)?10*60:17*60}[tramo[0]] ?? 21*60);
+      const comidas = tramo[0]==='food' && tramo.length===4 ? ['comida','cena'] : tramo[0]==='cafe' && tramo.length===3 ? ['comida'] : ['cena'];
+      let k2 = 0;
+      p.wants = tramo.map((id,k)=>Object.assign(W(id), {_idx:k}, id==='food' ? {_meal: comidas[k2++] || 'cena'} : {}));
+      p.dayStart = inicio;
+      if(tramo.includes('paseo')) p.walk = true;
+      if(tramo.filter(x=>x==='food').length>1) p.twoMeals = true;
+      p.textOrder = true; p.dayPlan = true; p.modeHint = 'plan';
+    }
+  }
+
   // modo
   const planWords = /\b(plan|planazo|itinerario|ruta|agenda|programa|organiza|organizame|monta|montame|prepara|preparame|tarde|noche completa|luego|despues|y luego|y despues|para acabar|despues de|empezar|terminar)\b/.test(text);
   const listWords = /\b(opcion|opciones|alternativa|alternativas|lista|listado|ideas|sugerencia|sugerencias|recomienda|recomiendame|recomendaciones|dame|top)\b/.test(text);
-  if(p.qty) p.modeHint='lista';
+  if(p.dayPlan) p.modeHint='plan';
+  else if(p.qty) p.modeHint='lista';
   else if(p.wants.length>=2) p.modeHint='plan';
   else if(planWords && (p.wants.length===0 || /\b(plan|planazo|itinerario|ruta|organiza|organizame|monta|montame|prepara|preparame|noche completa)\b/.test(text))) p.modeHint='plan';
   else p.modeHint='lista';
@@ -5512,6 +5532,7 @@ async function pdBuildPlan(p){
   const meal = p.meal || ((p.time!=null && p.time<17*60) || morning ? 'comida' : 'cena');
   let t;
   if(p.time!=null) t = p.time;
+  else if(p.dayStart!=null) t = p.dayStart;
   else if(morning) t = /brunch/.test(p.text||'') ? 11*60+30 : 10*60;
   else if(first.meal) t = (first._meal||meal)==='comida' ? 14*60 : 21*60;
   else if(first.id==='paseo'){ const nx=wants.find(x=>x.id!=='paseo'); t = nx && nx.meal && (nx._meal||meal)==='comida' ? 12*60 : nx && (['cock','disco','shisha','roof'].includes(nx.id) || nx._meal==='cena' || (nx.meal && meal==='cena')) ? 18*60+30 : 17*60; }
@@ -8125,7 +8146,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v46';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v47';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

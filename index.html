@@ -3943,8 +3943,9 @@ function rentaVentanaTipica(d){
   if(cm==='Coctelería')return RENTA_VENTANAS.copas;
   if(cm==='Bar/Cervecería')return RENTA_VENTANAS.bar;
   if(cm==='Rooftop/Terraza')return RENTA_VENTANAS.rooftop;
-  if(/Café/.test(cm))return RENTA_VENTANAS.cafe;
+  if(/Café/.test(cm) && !/helad|gelat/i.test((d.cd||'')+' '+d.n))return RENTA_VENTANAS.cafe;
   if(/Ocio|Hotel|Otros|Paseo/.test(cm)||d._paseo)return null;
+  if(/helad|gelat/i.test((d.cd||'')+' '+d.n))return [12*60,24*60];   // las heladerías no abren temprano
   if(/brunch|desayun|cafeter|panader|churr/i.test((d.cd||'')+' '+d.n))return RENTA_VENTANAS.cafe;
   return RENTA_VENTANAS.comida;
 }
@@ -4970,13 +4971,13 @@ function pdParse(raw){
   // «Pasar el día / la tarde / la noche por X»: sin tipo de sitio concreto → plan completo para ese rato
   if(!p.wants.length && !p.qty){
     const W=id=>id==='paseo' ? {id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur:90} : Object.assign({}, PD_CATS.find(c=>c.id===id));
-    const tramo = /\b(pasar el dia|pasar un dia|todo el dia|el dia entero|dia completo|un dia (por|en)|el dia (por|en)|dia de turismo|hacer turismo)\b/.test(text) ? ['food','paseo','tapas','food']
+    const tramo = /\b(pasar el dia|pasar un dia|todo el dia|el dia entero|dia completo|un dia (por|en)|el dia (por|en)|dia de turismo|hacer turismo)\b/.test(text) ? ['cafe','paseo','food','ocio','tapas','food']
       : /\b(pasar la manana|toda la manana|la manana (por|en))\b/.test(text) ? ['cafe','paseo','food']
       : /\b(pasar la tarde|toda la tarde|la tarde (por|en)|tarde de)\b/.test(text) ? ['cafe','paseo','tapas','food']
       : /\b(pasar la noche|toda la noche|noche completa|noche de)\b/.test(text) ? ['food','cock','disco'] : null;
     if(tramo){
-      const inicio = tramo.includes('disco') ? 20*60+30 : ({food:13*60+45, cafe:/manana/.test(text)?10*60:17*60}[tramo[0]] ?? 21*60);
-      const comidas = tramo[0]==='food' && tramo.length===4 ? ['comida','cena'] : tramo[0]==='cafe' && tramo.length===3 ? ['comida'] : ['cena'];
+      const inicio = tramo.includes('disco') ? 20*60+30 : ({food:13*60+45, cafe:(/manana/.test(text)||tramo.length===6)?10*60:17*60}[tramo[0]] ?? 21*60);
+      const comidas = tramo.length===6 ? ['comida','cena'] : tramo[0]==='cafe' && tramo.length===3 ? ['comida'] : ['cena'];
       let k2 = 0;
       p.wants = tramo.map((id,k)=>Object.assign(W(id), {_idx:k}, id==='food' ? {_meal: comidas[k2++] || 'cena'} : {}));
       p.dayStart = inicio;
@@ -8146,7 +8147,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v47';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v48';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

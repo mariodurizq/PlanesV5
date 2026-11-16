@@ -90,10 +90,15 @@
     const ctx = cv.getContext('2d');
     ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
     // cabecera
-    ctx.fillStyle = C.ink; ctx.font = `900 40px ${F}`; ctx.fillText('Me ', PAD, 86); const wMe = ctx.measureText('Me ').width;
-    ctx.fillStyle = C.acc; ctx.fillText('Renta ', PAD + wMe, 86); const wR = wMe + ctx.measureText('Renta ').width;
-    ctx.fillStyle = C.ink; ctx.fillText('Mazo', PAD + wR, 86); const wT = wR + ctx.measureText('Mazo').width;
-    ctx.fillStyle = C.mut; ctx.font = `500 26px ${F}`; ctx.fillText('· Planes en Madrid', PAD + wT + 14, 86);
+    let wT = 0;
+    const logo = await new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = BASE + 'brand/logo-dark.png'; setTimeout(() => res(null), 3000); });
+    if (logo && logo.naturalWidth) { const lh = 84, lw = Math.round(logo.naturalWidth * lh / logo.naturalHeight); ctx.drawImage(logo, PAD, 22, lw, lh); wT = lw; }
+    else {
+      ctx.fillStyle = C.ink; ctx.font = `900 40px ${F}`; ctx.fillText('Me ', PAD, 86); const wMe = ctx.measureText('Me ').width;
+      ctx.fillStyle = C.acc; ctx.fillText('Renta ', PAD + wMe, 86); const wR = wMe + ctx.measureText('Renta ').width;
+      ctx.fillStyle = C.ink; ctx.fillText('Mazo', PAD + wR, 86); wT = wR + ctx.measureText('Mazo').width;
+    }
+    ctx.fillStyle = C.mut; ctx.font = `500 26px ${F}`; ctx.fillText('· Planes en Madrid', PAD + wT + 14, 76);
     ctx.fillStyle = C.ink; ctx.font = `800 52px ${F}`;
     const tl = wrap(ctx, plan.t.replace(/^Plan · /, 'Plan · '), W - PAD * 2); tl.slice(0, 2).forEach((l, i) => ctx.fillText(l, PAD, 160 + i * 58));
     const first = plan.s[0], lastS = plan.s[plan.s.length - 1];

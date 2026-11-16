@@ -712,7 +712,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 </style>
 
 <link rel="stylesheet" href="vendor/leaflet.css?v=1">
-<script src="plan-share.js?v=6" defer></script>
+<script src="plan-share.js?v=7" defer></script>
 <script src="vendor/leaflet.js?v=1"></script>
 
 <style id="radar-v6-lab-styles">
@@ -2723,7 +2723,7 @@ const RENTA_SELLOS = {
   nuevo:  {i:'✨', t:'Nuevo', d:'Recién incorporado a Me Renta Mazo'},
   michelin:{i:'🎖️', t:'Guía Michelin', d:'Aparece en la Guía Michelin'},
   tuyo:   {i:'⭐', t:'Guardado por ti', d:'Lo añadiste tú a tu lista'},
-  merenta:{i:'🔴', t:'Me renta', d:'Sitio que renta: de los favoritos de Me Renta Mazo'},
+  merenta:{i:'🔴', t:'Renta mazo', d:'Sitio que renta mazo: de los favoritos de Me Renta Mazo'},
   sel:    {i:'✓', t:'Selección Me Renta Mazo', d:'Elegido a mano para Me Renta Mazo'},
   mapa:   {i:'🗺️', t:'Del mapa', d:'Encontrado en OpenStreetMap; aún no está en la selección'}
 };
@@ -3214,7 +3214,7 @@ function renderResults(){
       <div class="venue-photo" style="background-image:linear-gradient(180deg,transparent 40%,rgba(5,10,18,.52)),url('${String(d.photo||venuePhoto(d.cm)).replace(/'/g,'%27')}')">
         <span class="photo-category">${CAT_ICONS[d.cm]||'✦'} ${d.cd || d.cm}</span>
         <span class="photo-note">Imagen orientativa</span>
-        ${rentaSellos(d)[0]!=='sel' ? `<span class="photo-rating sello-photo${d.mr?' is-mr':''}">${d.mr?RENTA_MR_IMG+' Me renta':rentaSellosText(d,1)}</span>` : ''}
+        ${rentaSellos(d)[0]!=='sel' ? `<span class="photo-rating sello-photo${d.mr?' is-mr':''}">${d.mr?RENTA_MR_IMG+' Renta mazo':rentaSellosText(d,1)}</span>` : ''}
       </div>
       <div class="row1">
         <div>
@@ -6262,7 +6262,7 @@ async function fetchNearbyMapPlaces(center, radius){
   }
 }
 // Tipo concreto de cada sitio a partir de su categoría, descripción y cocina de OpenStreetMap
-const RADAR_GROUPS=[['all','Todo'],['merenta','Me renta'],['esp','🥘 Española'],['ita','🍕 Italiana'],['asia','🍣 Asiática'],['burger','🍔 Burger'],['mex','🌮 Mexicana'],['carne','🥩 Carnes'],
+const RADAR_GROUPS=[['all','Todo'],['merenta','Renta mazo'],['esp','🥘 Española'],['ita','🍕 Italiana'],['asia','🍣 Asiática'],['burger','🍔 Burger'],['mex','🌮 Mexicana'],['carne','🥩 Carnes'],
   ['mundo','🍛 Del mundo'],['otros','🍽️ Otros'],['copas','🍸 Copas'],['shisha','💨 Shisha'],['cafe','☕ Café'],['fiesta','🕺 Fiesta'],['ocio','🎡 Ocio']];
 const RADAR_GROUP_COLORS={esp:'#d4572f',ita:'#c9302c',asia:'#d1386b',burger:'#e08a12',mex:'#3f9b3a',carne:'#8c3b2a',mundo:'#b8862b',otros:'#e0583a',
   copas:'#7357d1',shisha:'#566578',cafe:'#a06a3b',fiesta:'#c43c8c',ocio:'#159080'};
@@ -6612,7 +6612,7 @@ function openDiscover(){
           <div class="discover-meta">
             <span>⌖ ${escapeMapText(d.z||'Madrid')}</span>
             <span>€ ${escapeMapText(budget)}</span>
-            <span${d.mr?' class="is-mr"':''}>${d.mr?RENTA_MR_IMG+'Me renta':escapeMapText(rating)}</span>
+            <span${d.mr?' class="is-mr"':''}>${d.mr?RENTA_MR_IMG+'Renta mazo':escapeMapText(rating)}</span>
           </div>
           <h3>${escapeMapText(d.n)}</h3>
           <p>${escapeMapText(blurb)}</p>
@@ -8221,6 +8221,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 #rentaWelcome .rw-skip{float:right;background:none;border:0;color:#9aa59e;font:inherit;font-size:13px;padding:4px 0 8px 12px;cursor:pointer}
 #rentaWelcome .rw-slide{display:none}#rentaWelcome .rw-slide.on{display:block}
 #rentaWelcome .rw-emoji{font-size:38px;line-height:1;margin-bottom:10px}
+html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-between!important;text-align:left!important;flex-wrap:wrap!important;padding:10px 14px!important;gap:2px 10px!important}
 #rentaWelcome h2{font-size:24px;line-height:1.15;margin:0 0 8px;letter-spacing:-.3px}
 #rentaWelcome p{margin:0 0 14px;color:#c9cdc6;font-size:15px;line-height:1.5}
 #rentaWelcome .rw-ex{display:grid;gap:8px;margin:0 0 6px}
@@ -8239,12 +8240,12 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 <script id="renta-bienvenida">
 // Bienvenida de 3 pantallas con ejemplos que se pueden tocar (solo la primera vez; se reabre desde «¿Cómo funciona?»)
 (function(){
-  const KEY='renta-bienvenida';
+  const KEY='renta-bienvenida-v2';   // v2: logo nuevo y lo nuevo de Pídeme (se enseña una vez a todos)
   const S=[
-    {e:'✨', h:'Dile lo que te apetece', p:'Escríbelo como a un amigo y Me Renta Mazo te monta el plan: sitios, horas, mapa y cuánto se tarda entre paradas.',
-     ex:[['Cena y copas en Malasaña','Plan con horarios'],['Comer en Chamberí, pasear y tomar algo en Lavapiés','Con paseo por sitios bonitos de camino']]},
-    {e:'🎯', h:'Tan concreto como quieras', p:'Toda la Comunidad de Madrid: zonas, platos, sitios por su nombre, distancia máxima andando o eventos.',
-     ex:[['Conciertos este finde','Agenda del Ayuntamiento'],['Una coctelería a menos de 500 metros de Sol','Solo lo que está cerca'],['Cena vegana en Malasaña','Busca también en el mapa']]},
+    {e:'<img src="brand/emblema-192.png" alt="" width="84" height="84" style="display:block;margin:0 auto">', h:'Dile lo que te apetece', p:'Escríbelo como a un amigo y Me Renta Mazo te monta el plan: sitios que rentan, horas, mapa y cuánto se tarda entre paradas.',
+     ex:[['Pasar el día por el centro','Desayuno, paseo, comida, ocio, cañas y cena'],['Cena y copas en Malasaña','Plan con horarios'],['Comer en Chamberí, pasear hasta Moncloa y cenar por Ventas','Paseo de un barrio a otro']]},
+    {e:'🎯', h:'Tan concreto como quieras', p:'Zonas, platos, presupuesto, con quién vas, lo que NO te apetece o cuánto tiempo tienes.',
+     ex:[['Plan con niños el domingo por la mañana','Sin copas, con museo'],['Nada de sushi, cena asiática en Chueca por menos de 25 euros','Quita lo que no quieres'],['Tengo 2 horas libres cerca de Sol','Algo que quepa en ese rato']]},
     {e:'📤', h:'Cámbialo y compártelo', p:'El plan es tuyo:', li:['🔄 <b>Cambiar</b>: si un sitio no te convence, te propone otro cerca.','📤 <b>Compartir</b>: mándalo por WhatsApp con mapa, o como imagen.','⭐ <b>Guardar</b>: añade a tu lista los sitios que descubras.','🏆 Los <b>sellos</b> marcan los imprescindibles de cada zona.'], last:true}
   ];
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -8281,7 +8282,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v51';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v52';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

@@ -137,7 +137,7 @@ ol{{list-style:none;padding:0;margin:0}}.s{{border:1px solid #2e2e2e;border-radi
 .m,.a{{color:#a9a3a3;font-size:13.5px;margin:2px 0}}.r{{margin:4px 0;font-weight:700}}.r small{{font-weight:400;color:#a9a3a3}}.d{{font-size:14px;margin:6px 0}}.l{{font-size:14px;margin:8px 0 0}}
 nav.rel{{margin-top:30px}}nav.rel h3{{font-size:16px}}nav.rel a{{display:inline-block;margin:4px 6px 4px 0;padding:7px 11px;border:1px solid #2e2e2e;border-radius:999px;text-decoration:none;font-size:13.5px}}
 footer{{margin-top:30px;font-size:12.5px;color:#7f8a83}}</style></head><body><main>
-<header><a class="brand" href="../">{MARCA}</a> <span style="color:#7f8a83">· Planes en Madrid</span></header>
+<header><a class="brand" href="../"><img src="../brand/logo-dark.png" alt="{MARCA}" height="44" style="height:44px;width:auto;vertical-align:middle"></a> <span style="color:#7f8a83">· Planes en Madrid</span></header>
 <h1>{e(h1)}</h1><p class="intro">{e(intro)}</p>
 <a class="cta" href="../">✨ Monta tu plan con {MARCA}</a>
 <ol>{''.join(items)}</ol>

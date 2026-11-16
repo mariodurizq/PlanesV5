@@ -4698,7 +4698,9 @@ async function pdLoadPaseos(){
 // Ruta andando con sentido: solo lugares que pillan de camino. Si está demasiado lejos para ir andando,
 // se va en metro/taxi y se pasea por la zona de destino.
 function planWalkRoute(from, to, pool, maxWalk){
-  pool = pool || PD_PASEOS_ALL || PD_PASEOS;
+  // En modo turista, los imprescindibles de Madrid pesan más que cualquier otro rincón
+  const ICONOS = ['Puerta del Sol','Plaza Mayor','Palacio Real','Plaza de Oriente','Gran Vía','Edificio Metrópolis','Cibeles','Puerta de Alcalá','Retiro · Estanque Grande','Retiro · Palacio de Cristal','Templo de Debod','Plaza de España','Mercado de San Miguel','Paseo del Prado','Barrio de las Letras'];
+  pool = pool || (planWalkRoute.turistico ? PD_PASEOS.map(x=>Object.assign({}, x, {w: ICONOS.includes(x.n) ? 10 : 3})) : (PD_PASEOS_ALL || PD_PASEOS));
   const km=(a,b)=>haversine(a.lat,a.lon,b.lat,b.lon);
   const MAXWALK = maxWalk || 4.5;
   let pts=[], transit=null, loopAt=null;
@@ -4971,7 +4973,7 @@ function pdParse(raw){
   // «Pasar el día / la tarde / la noche por X»: sin tipo de sitio concreto → plan completo para ese rato
   if(!p.wants.length && !p.qty){
     const W=id=>id==='paseo' ? {id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur:90} : Object.assign({}, PD_CATS.find(c=>c.id===id));
-    const tramo = /\b(pasar el dia|pasar un dia|todo el dia|el dia entero|dia completo|un dia (por|en)|el dia (por|en)|dia de turismo|hacer turismo)\b/.test(text) ? ['cafe','paseo','food','ocio','tapas','food']
+    const tramo = /\b(pasar el dia|pasar un dia|todo el dia|el dia entero|dia completo|un dia (por|en)|el dia (por|en)|dia de turismo|hacer turismo|turistear|conocer madrid|ver madrid|ensenar madrid|lo tipico de madrid)\b/.test(text) ? ['cafe','paseo','food','ocio','tapas','food']
       : /\b(pasar la manana|toda la manana|la manana (por|en))\b/.test(text) ? ['cafe','paseo','food']
       : /\b(pasar la tarde|toda la tarde|la tarde (por|en)|tarde de)\b/.test(text) ? ['cafe','paseo','tapas','food']
       : /\b(pasar la noche|toda la noche|noche completa|noche de)\b/.test(text) ? ['food','cock','disco'] : null;
@@ -5016,6 +5018,17 @@ function pdParse(raw){
     p.wants.push(PD_CATS.find(c=>c.id==='cock'));
     p.notes.push('Como es plan de noche, te añado unas copas después.');
     p.wants.sort((a,b)=>a.role-b.role);
+  }
+  // «Madrid» a secas (o «la ciudad», «turismo»…): el centro turístico, no el punto medio del municipio (que cae en el norte)
+  const CENTRO_TURISTICO = {n:'el centro de Madrid', lat:40.4168, lon:-3.7038, r:1.3, aliases:[], turistico:true};
+  const esMadrid = pl => pl && /^madrid( capital| ciudad| centro)?$/i.test(String(pl.n||'').trim());
+  if(esMadrid(p.place)) p.place = Object.assign({}, CENTRO_TURISTICO);
+  (p.wants||[]).forEach(w=>{ if(esMadrid(w._place)) w._place = Object.assign({}, CENTRO_TURISTICO); });
+  if(p.zoneLabels) p.zoneLabels = p.zoneLabels.map(z=>/^madrid$/i.test(z)?'el centro de Madrid':z);
+  if(p.zones) p.zones = p.zones.map(z=>/^madrid$/i.test(z)?'Centro':z);
+  if((p.place && p.place.turistico) || /\b(turismo|turistear|turistico|turistica|monumentos|lo tipico de madrid|conocer madrid|ver madrid|enseñar madrid|ensenar madrid)\b/.test(text)){
+    p.tourist = true;
+    if(!p.place) p.place = Object.assign({}, CENTRO_TURISTICO);
   }
   return p;
 }
@@ -5521,6 +5534,7 @@ async function pdBuildListCore(p, shuffle){
 // ---- construcción de plan ----
 async function pdBuildPlan(p){
   planOpenAt.dow = planDowFrom(p.dayLabel);
+  planWalkRoute.turistico = !!p.tourist;
   try{ window.rentaEvento && rentaEvento('plan-pideme'); }catch(e){}
   const out = {stops:[], notes:[]};
   const used = new Set();
@@ -8147,7 +8161,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v48';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v49';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

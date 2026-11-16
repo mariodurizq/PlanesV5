@@ -7488,7 +7488,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   const GROUPS=RADAR_GROUPS;
   const groupOf=radarGroupOf;
   window.radarMapGroup='all';
-  window.radarMapGroupOk=d=>{const g=window.radarMapGroup;if(g==='all')return true;if(g==='merenta')return !!d.mr;return g!=='mercados'&&g!=='discotecas'&&groupOf(d)===g;};
+  window.radarMapGroupOk=d=>{const g=window.radarMapGroup;if(g==='all')return true;if(g==='merenta')return !!d.mr;return g!=='mercados'&&g!=='discotecas'&&g!=='museos'&&groupOf(d)===g;};
   function addFilterControl(){
     if(!window.radarMap||document.getElementById('mapGroupChips'))return;
     const C=L.Control.extend({options:{position:'topleft'},onAdd(){const el=L.DomUtil.create('div','map-group-chips');el.id='mapGroupChips';
@@ -7616,11 +7616,34 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
     if(!chips._dk){chips._dk=true;chips.addEventListener('click',()=>setTimeout(drawDiscos,0));}
     if(!chips.querySelector('[data-g="discotecas"]'))(chips.querySelector('[data-g="mercados"]')||chips.querySelector('[data-g="all"]')).insertAdjacentHTML('afterend',`<button type="button" data-g="discotecas">🪩 Discotecas <small>${discos.length}</small></button>`);};
   window.RentaDiscos={get list(){return discos;},popup:discoPopup};
-  const hook=()=>{addChip();addDiscoChip();};
+  // ---- Capa 🏛️ Museos: todos los de la Comunidad (OpenStreetMap + los de tu lista) ----
+  let museos=[], museoLayer=null;
+  function museoPopup(m){
+    const w=safeUrl(m.w);
+    return `<article class="market-popup disco-popup"><h3>🏛️ ${esc(m.n)}</h3><p>${esc(m.a||m.c||'Museo')}${m.l?' · <b>en tu lista</b>':''}</p>
+      ${m.h?`<p class="dk-hours">🕒 ${esc(ohEs(m.h))}</p>`:`<p class="dk-note">Horario y precio: consúltalo en su web o en Maps.</p>`}
+      <div class="radar-popup-actions">${w?`<a class="radar-popup-btn" href="${esc(w)}" target="_blank" rel="noopener">Web ↗</a>`:''}${radarNavHtml(m.n,'',m.la,m.lo)}</div></article>`;
+  }
+  function drawMuseos(){
+    if(!window.radarMap||!museos.length)return;
+    if(!museoLayer)museoLayer=L.layerGroup().addTo(radarMap);
+    museoLayer.clearLayers();
+    if(window.radarMapGroup!=='museos')return;
+    museos.forEach(m=>{
+      const icon=L.divIcon({className:'market-marker',html:`<div class="market-pin museo-pin"><span>🏛️</span></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
+      L.marker([m.la,m.lo],{icon,zIndexOffset:800,title:m.n,autoPanOnFocus:false}).bindPopup(()=>museoPopup(m),{maxWidth:320,minWidth:260,className:'radar-modern-popup',autoPanPaddingTopLeft:L.point(20,130),autoPanPaddingBottomRight:L.point(20,40)}).addTo(museoLayer);
+    });
+  }
+  const addMuseoChip=()=>{const chips=document.getElementById('mapGroupChips');if(!chips||!museos.length)return;
+    if(!chips._mu){chips._mu=true;chips.addEventListener('click',()=>setTimeout(drawMuseos,0));}
+    if(!chips.querySelector('[data-g="museos"]'))(chips.querySelector('[data-g="discotecas"]')||chips.querySelector('[data-g="mercados"]')||chips.querySelector('[data-g="all"]')).insertAdjacentHTML('afterend',`<button type="button" data-g="museos">🏛️ Museos <small>${museos.length}</small></button>`);};
+  window.RentaMuseos={get list(){return museos;}};
+  const hook=()=>{addChip();addDiscoChip();addMuseoChip();};
   const origRender=renderMapMarkers;
-  renderMapMarkers=function(list){origRender.apply(this,arguments);hook();drawMarkets();drawDiscos();};
+  renderMapMarkers=function(list){origRender.apply(this,arguments);hook();drawMarkets();drawDiscos();drawMuseos();};
   // Datos
   fetch('./mercados.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;mercados=(j.mercados||[]).filter(m=>m.puestos&&m.puestos.length);renderList();addChip();drawMarkets();}).catch(()=>{});
+  fetch('./museos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;museos=(j.museos||[]).filter(m=>m.la&&m.lo);addMuseoChip();drawMuseos();}).catch(()=>{});
   fetch('./discotecas.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;discos=(j.discotecas||[]).filter(d=>d.la&&d.lo);addDiscoChip();drawDiscos();}).catch(()=>{});
   fetch('./nuevos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!Array.isArray(j.sitios))return;
     const have=new Set(DATA.map(d=>d.n.toLocaleLowerCase('es')));
@@ -8161,7 +8184,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v49';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v50';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

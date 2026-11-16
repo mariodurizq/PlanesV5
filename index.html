@@ -8099,7 +8099,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 // Estadísticas de visitas con GoatCounter: gratis, sin cookies y sin datos personales (solo recuentos agregados).
 // Se activa al pegar aquí el código de la cuenta (lo que va antes de .goatcounter.com).
 (function(){
-  const GOATCOUNTER = '';
+  const GOATCOUNTER = 'merentamazo';
   if(!GOATCOUNTER || /^(localhost|127\.)/.test(location.hostname)) return;
   window.goatcounter = {no_onload: true};
   let listo = false, ultima = '';
@@ -8282,7 +8282,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v53';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v54';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

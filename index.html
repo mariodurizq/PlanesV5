@@ -2059,6 +2059,10 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
       <div class="chip" data-q="una coctelería a menos de 500 metros de Sol">🍸 Cóctel cerca de Sol</div>
       <div class="chip" data-q="brunch el domingo en Salamanca">🥞 Brunch</div>
       <div class="chip" data-q="5 rooftops con buenas vistas en el centro">🌇 5 rooftops</div>
+      <div class="chip" data-q="plan con niños el domingo por la mañana">🧒 Con niños</div>
+      <div class="chip" data-q="plan para una tarde de lluvia en el centro">☔ Si llueve</div>
+      <div class="chip" data-q="tengo 2 horas libres cerca de Sol">⏱️ 2 horas libres</div>
+      <div class="chip" data-q="cenar barato, menos de 20 euros, en Lavapiés">💸 Barato</div>
     </div>
     <button class="aiBtn" id="pideBtn" style="margin-top:12px;">✨ Pensar</button>
     <div id="pideUnderstood"></div>
@@ -4748,8 +4752,15 @@ function pdGuessPlace(text){
 
 function pdParse(raw){
   // "no sé qué hacer" no es pedir ocio ni eventos (se borra conservando posiciones)
-  const text = pdNorm(raw).replace(/\bno (se|tengo claro|tengo ni idea de?) (que|lo que) (hacer|haremos|hago|hacemos)\b/g, m=>' '.repeat(m.length));
-  const p = {raw, text, wants:[], qty:null, time:null, zones:[], zoneLabels:[], city:null, price:null, near:false, newOnes:false, meal:null, dayLabel:'', modeHint:null, subs:[], notes:[]};
+  let text = pdNorm(raw).replace(/\bno (se|tengo claro|tengo ni idea de?) (que|lo que) (hacer|haremos|hago|hacemos)\b/g, m=>' '.repeat(m.length));
+  // Lo que NO quiere: «nada de sushi», «que no sea italiano», «sin copas», «no me apetece pizza ni hamburguesa»
+  const excl = [];
+  text = text.replace(/\b(nada de|que no sea[n]?|no quiero|no me apetecen?|no nos apetece|excepto|salvo|evitando|sin)\s+((?:(?:el|la|los|las|un|una)\s+)?[a-z0-9]+(?:\s+(?:ni|o)\s+(?:(?:el|la|los|las)\s+)?[a-z0-9]+)*)/g, (m, verbo, objeto)=>{
+    const w = objeto.split(/\s+(?:ni|o)\s+/).map(x=>x.replace(/^(el|la|los|las|un|una)\s+/,'').trim()).filter(x=>x.length>=3);
+    if(verbo==='sin' && w.every(x=>/^(gluten|lactosa|tacc|alcohol|reserva|prisa|prisas|gastar|mucho|coche|ruido|agobios|colas|esperar|niños|ninos|perro)$/.test(x))) return m;
+    excl.push(...w); return ' '.repeat(m.length);
+  });
+  const p = {raw, text, wants:[], qty:null, time:null, zones:[], zoneLabels:[], city:null, price:null, near:false, newOnes:false, meal:null, dayLabel:'', modeHint:null, subs:[], notes:[], excl};
 
   // cantidad
   let m = text.match(/\b(\d{1,2})\s*(opcion|opciones|sitios|sitio|alternativa|alternativas|ideas|sugerencia|sugerencias|lugares|restaurantes|bares|locales|rooftops?|planes)/);
@@ -4777,7 +4788,9 @@ function pdParse(raw){
 
   // día
   const days = [['sabado','sábado'],['domingo','domingo'],['viernes','viernes'],['jueves','jueves'],['miercoles','miércoles'],['martes','martes'],['lunes','lunes'],['hoy','hoy'],['pasado manana','pasado mañana'],['manana','mañana']];
-  for(const [k,l] of days){ if(new RegExp('\\b'+k+'\\b').test(text)){ p.dayLabel=l; break; } }
+  const textDia = text.replace(/\b(por la|de la|esta|toda la|a media|la) manana\b/g, ' ');   // «por la mañana» es la franja, no el día
+  for(const [k,l] of days){ if(new RegExp('\\b'+k+'\\b').test(textDia)){ p.dayLabel=l; break; } }
+  p.morning = /\b(por la|de la|esta|toda la|a media) manana\b/.test(text);
 
   // meal
   if(/\b(comida|comer|almuerzo|almorzar|mediodia)\b/.test(text)) p.meal='comida';
@@ -4787,6 +4800,19 @@ function pdParse(raw){
   if(/\b(barato|barata|baratos|economic|low cost|asequible|buen precio|calidad.precio|sin gastar)/.test(text)) p.price='low';
   else if(/\b(caro|lujo|lujoso|elegante|especial|romantic|sofisticad|exclusiv|de postin)/.test(text)) p.price='high';
 
+  { const NUMS={dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,doce:12,quince:15,veinte:20,veinticinco:25,treinta:30,cuarenta:40,cincuenta:50};
+    const n = x => NUMS[x]!=null ? NUMS[x] : parseInt(x);
+    let m2 = text.match(/\b(?:menos de|por menos de|maximo|como mucho|no mas de|hasta|unos|sobre|de)\s+(\d{1,3}|[a-z]+)\s*(?:euros?|eur|€|pavos)\b/) || text.match(/\b(\d{1,3})\s*(?:euros?|€|pavos)\s*(?:por (?:persona|cabeza)|como mucho|max)/);
+    if(m2 && n(m2[1])>0){ p.maxEuro = n(m2[1]); p.price = p.price || 'low'; }
+    m2 = text.match(/\bsomos\s+(\d{1,2}|[a-z]+)\b/) || text.match(/\b(\d{1,2}|[a-z]+)\s+personas\b/) || text.match(/\bpara\s+(\d{1,2})\b(?!\s*(?:h|horas|min|euros|€))/) || text.match(/\bun grupo de\s+(\d{1,2}|[a-z]+)/);
+    if(m2 && n(m2[1])>=2 && n(m2[1])<=60) p.group = n(m2[1]);
+    else if(/\b(grupo grande|un grupo|mucha gente|cumpleanos|cumple|despedida|cena de empresa)\b/.test(text)) p.group = p.group || 8;
+    m2 = text.match(/\b(?:tengo|tenemos|solo|durante|en|un rato de|libres?)\s+(?:unas? |un par de )?(\d|una|dos|tres|cuatro|media)\s*(horas?|h)\b/) || text.match(/\b(una hora|media hora|un par de horas|un rato)\b/);
+    if(m2){ const v = m2[1]==='media hora'?0.5 : m2[1]==='una hora'?1 : m2[1]==='un par de horas'?2 : m2[1]==='un rato'?1.5 : m2[1]==='media'?0.5 : m2[1]==='una'?1 : n(m2[1]); if(v>0 && v<=8) p.timeBudget = Math.round(v*60); }
+  }
+  p.kids = /\b(con (los |mis |unos |nuestros |el |la )?(ninos|nino|nina|ninas|crios|peques|hijos|hija|hijo|chavales|sobrinos|bebe|carrito)|para (los )?ninos|en familia|plan familiar|familiar|infantil)\b/.test(text);
+  p.dog = /\b(perro|perra|perrete|perrito|mascota|perrita)\b/.test(text);
+  p.indoor = /\b(llueve|lloviendo|lluvia|lluvioso|bajo techo|a cubierto|cubierto|interior|hace frio|con frio|que no sea al aire libre)\b/.test(text);
   p.near = /\b(cerca de mi|cerca de aqui|cerca|a mi alrededor|por aqui|mas cercano)/.test(text);
   // distancia máxima andando: "a menos de 500 m", "como mucho 10 minutos andando", "máximo 1 km"
   { const NUM={un:1,uno:1,una:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,doce:12,quince:15,veinte:20,veinticinco:25,treinta:30,cien:100,doscientos:200,trescientos:300,cuatrocientos:400,quinientos:500,seiscientos:600,setecientos:700,ochocientos:800,novecientos:900,mil:1000,medio:0.5};
@@ -4970,6 +4996,35 @@ function pdParse(raw){
     if(p.walk && !p.wants.some(w=>w.id!=='paseo')) p.wants.unshift(Object.assign({}, PD_CATS.find(c=>c.id==='cafe'), {_idx:-1}));
   }
 
+  // Situaciones: con niños, si llueve, con el perro, tengo X horas
+  { const W=id=>id==='paseo' ? {id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur:90} : Object.assign({}, PD_CATS.find(c=>c.id===id));
+    const plantilla = (ids, inicio, nota) => { p.wants = ids.map((id,k)=>Object.assign(W(id), {_idx:k})); p.textOrder = true; p.modeHint = 'plan'; p.dayPlan = true; if(inicio!=null && p.time==null) p.dayStart = inicio; if(nota) p.notes.push(nota); };
+    const ahora = (()=>{ const d=new Date(); return Math.ceil((d.getHours()*60+d.getMinutes()+10)/15)*15; })();
+    if(p.kids){
+      const quitadas = p.wants.filter(w=>['cock','disco','roof','tapas'].includes(w.id));
+      if(quitadas.length){ p.wants = p.wants.filter(w=>!quitadas.includes(w)); p.notes.push('Con niños quito copas y discotecas del plan.'); }
+      if(!p.wants.length && !p.qty) plantilla(['paseo','food','ocio','cafe'], p.morning||!/tarde|noche/.test(text) ? 11*60 : 16*60, 'Plan familiar: paseo por un sitio abierto, comida, algo de ocio (museo) y merienda.');
+      p.wants.filter(w=>w.id==='food').forEach(w=>w._meal = w._meal || 'comida');
+    }
+    if(p.indoor){
+      const fuera = p.wants.filter(w=>w.id==='paseo' || w.id==='roof');
+      if(fuera.length){ p.wants = p.wants.filter(w=>!fuera.includes(w)); p.notes.push('Como es para un día de lluvia, quito paseos y terrazas.'); }
+      if(!p.wants.length && !p.qty) plantilla(/noche|cena/.test(text) ? ['ocio','food','cock'] : ['ocio','cafe','food'], /noche|cena/.test(text) ? 19*60 : (p.morning ? 10*60+30 : 16*60+30), 'Plan bajo techo: museo, café y comida o cena sin salir mucho a la calle.');
+    }
+    if(p.dog && !p.wants.length && !p.qty) plantilla(['paseo','cafe','tapas'], p.morning ? 10*60 : 17*60, 'Con perro: paseo por un parque y luego sitios con terraza.');
+    if(p.dog) p.notes.push('🐶 No tengo comprobado qué sitios admiten perros dentro; las terrazas suelen admitirlos, pero confírmalo antes.');
+    if(p.timeBudget && !p.wants.length && !p.qty){
+      const tb = p.timeBudget;
+      plantilla(tb<=75 ? ['cafe'] : tb<=150 ? ['paseo','tapas'] : ['paseo','tapas','food'], p.time==null ? ahora : null, `Tienes ${tb>=60 ? (tb/60).toString().replace('.',',')+' h' : tb+' min'}: te propongo algo que quepa en ese rato.`);
+      p.wants.filter(w=>w.id==='paseo').forEach(w=>w.dur = Math.max(30, Math.min(90, Math.round(tb*0.45/15)*15)));
+      p.wants.filter(w=>w.id==='tapas'||w.id==='cafe').forEach(w=>w.dur = Math.max(45, Math.min(75, Math.round(tb*0.4/15)*15)));
+      p.timeBudgetEnd = true;
+    }
+    if(p.group>=6) p.notes.push(`👥 Sois ${p.group}: reservad con antelación, sobre todo viernes y sábado.`);
+    if(p.maxEuro) p.notes.push(`💶 Busco sitios de hasta unos ${p.maxEuro} € por persona (según el precio orientativo de tu lista).`);
+    if(p.excl.length) p.notes.push(`🚫 Sin: ${p.excl.join(', ')}.`);
+  }
+
   // «Pasar el día / la tarde / la noche por X»: sin tipo de sitio concreto → plan completo para ese rato
   if(!p.wants.length && !p.qty){
     const W=id=>id==='paseo' ? {id:'paseo', label:'🚶 Paseo', role:5, cm:'Paseo', dur:90} : Object.assign({}, PD_CATS.find(c=>c.id===id));
@@ -5033,6 +5088,13 @@ function pdParse(raw){
   return p;
 }
 
+// Lo que el usuario dijo que NO quiere («nada de sushi»): fuera por nombre, tipo o cocina
+const PD_EXCL_SIN = {sushi:['sushi','japon'], japones:['japon','sushi'], hamburguesa:['hamburg','burger'], hamburguesas:['hamburg','burger'], burger:['burger','hamburg'], pizza:['pizz'], italiano:['italian','pizz','pasta'], italiana:['italian','pizz','pasta'], chino:['china','chino'], china:['china','chino'], mexicano:['mexic','taco'], copas:['cocteler','copas','cocktail'], discoteca:['discotec','club'], fritos:['frit'], picante:['picante','spicy'], carne:['carne','asador','parrilla','steak'], pescado:['pescado','marisc']};
+function pdExcluido(d, p){
+  if(!p || !p.excl || !p.excl.length) return false;
+  const hay = pdNorm([d.n, d.cd, d.cm, d.osmCuisine].join(' '));
+  return p.excl.some(w=>(PD_EXCL_SIN[w] || [w.length>5 ? w.slice(0,-2) : w]).some(r=>hay.includes(r)));
+}
 function pdPrice(d){ const m=String(d.p||'').match(/\d+/); return m?parseInt(m[0]):null; }
 function pdCoord(d){
   if(d.lat!=null && d.lon!=null) return [d.lat,d.lon];
@@ -5046,8 +5108,12 @@ function pdDist(a,b){ const ca=pdCoord(a), cb=Array.isArray(b)?b:pdCoord(b); if(
 // Devuelve elementos que encajan con una categoría + filtros, relajando filtros si no hay suficientes
 function pdFilter(want, p, used, minNeeded, includeSugg){
   const notes = [];
-  const base = DATA.filter(d=>!used.has(d.n) && d.e!=='Cerrado temporalmente' && d.e!=='Cerrado definitivamente').map(d=>Object.assign({src:'lista'}, d));
-  const sugs = SUGGERIDOS.filter(d=>!used.has(d.n)).map(d=>Object.assign({src:'sug', v:null, nr:null}, d));
+  const base = DATA.filter(d=>!used.has(d.n) && d.e!=='Cerrado temporalmente' && d.e!=='Cerrado definitivamente' && !pdExcluido(d,p)).map(d=>Object.assign({src:'lista'}, d));
+  const sugs = SUGGERIDOS.filter(d=>!used.has(d.n) && !pdExcluido(d,p)).map(d=>Object.assign({src:'sug', v:null, nr:null}, d));
+  // Ocio en planes de día, con niños o con lluvia: también los museos del mapa
+  if(want.id==='ocio' && (p.dayPlan || p.kids || p.indoor || p.tourist) && window.RentaMuseos){
+    RentaMuseos.list.forEach(m=>{ if(!used.has(m.n) && !base.some(b=>b.n===m.n)) sugs.push({src:'museo', n:m.n, cm:want.cm, cd:'Museo', z:'', lat:m.la, lon:m.lo, locationVerified:true, oh:m.h||'', addr:m.a||'', web:m.w||'', v:4.4}); });
+  }
   const inCat = d => want.cm==='FOOD' ? FOOD_CATS.has(d.cm) : d.cm===want.cm;
   const mySubs = p.subs.filter(x=> x.on ? x.on===want.id : !!want.meal);
   const subFilter = (d)=>{
@@ -5062,7 +5128,7 @@ function pdFilter(want, p, used, minNeeded, includeSugg){
   };
   const zoneFilter = d => p.place ? inRadius(d,1) : (!p.zones.length || p.zones.some(z=>pdNorm(d.z).includes(z)));
   const m30Filter = d => !p.m30 || M30_ZONES.has(d.z);
-  const priceFilter = d => { const pr=pdPrice(d); if(pr==null||!p.price) return true; return p.price==='low' ? pr<=25 : pr>=30; };
+  const priceFilter = d => { const pr=pdPrice(d); if(pr==null||!p.price) return true; if(p.maxEuro) return pr < p.maxEuro; return p.price==='low' ? pr<=25 : pr>=30; };
 
   const steps = p.place ? [
     {name:null, fn:d=>inCat(d)&&subFilter(d)&&inRadius(d,1)&&priceFilter(d)},
@@ -5083,6 +5149,7 @@ function pdFilter(want, p, used, minNeeded, includeSugg){
     usedStep=i;
     if(items.length>=minNeeded) break;
   }
+  if(p.dog){ const terr=d=>/terraz|patio|jardin|parque|aire libre/.test(pdNorm((d.cd||'')+' '+(d.info||'')+' '+d.n))?1:0; items.sort((a,b)=>terr(b)-terr(a)); }
   if(usedStep>0){
     const relaxed = steps.slice(1,usedStep+1).map(s=>s.name).filter(Boolean);
     if(relaxed.length) notes.push(`Para "${want.label}" no había suficientes con todo lo que pedías, así que completé aflojando: ${relaxed.join(' y ')}. Los que encajan mejor van primero.`);
@@ -5375,7 +5442,9 @@ function pdPlaceToItem(pl, cm, city){
 }
 async function pdLive(want, p, cityName, limit){
   const timeout = new Promise(res=>setTimeout(()=>res({items:[], error:'el mapa abierto tarda demasiado; te enseño lo que ya tengo'}), 9000));
-  return Promise.race([pdLiveCore(want, p, cityName, limit), timeout]);
+  const r = await Promise.race([pdLiveCore(want, p, cityName, limit), timeout]);
+  if(r && Array.isArray(r.items)) r.items = r.items.filter(d=>!pdExcluido(d,p));
+  return r;
 }
 async function pdLiveCore(want, p, cityName, limit){
   const rel = p.subs.filter(x=> x.on ? x.on===want.id : !!want.meal); const sub = rel.length ? rel[0].label : '';
@@ -5759,10 +5828,35 @@ function pdUnderstoodHTML(p, mode){
   if(p.price) chips.push(p.price==='low'?'💸 Barato':'💎 Especial');
   if(p.near) chips.push(userCoords?'🛰️ Cerca de ti':'🛰️ Cerca (activa GPS)');
   if(p.newOnes) chips.push('✨ Novedades');
+  if(p.kids) chips.push('🧒 Con niños');
+  if(p.dog) chips.push('🐶 Con perro');
+  if(p.indoor) chips.push('☔ Bajo techo');
+  if(p.group) chips.push('👥 '+p.group+' personas');
+  if(p.maxEuro) chips.push('💶 Hasta '+p.maxEuro+' €');
+  if(p.timeBudget) chips.push('⏱️ '+(p.timeBudget>=60?(p.timeBudget/60+' h').replace('.',','):p.timeBudget+' min'));
+  (p.excl||[]).forEach(w=>chips.push('🚫 '+w));
   return `<div class="understood">${chips.map(c=>`<span class="u">${pdEsc(c)}</span>`).join('')}</div>`;
 }
 
 let pdLast = null;
+// Retoques después del resultado: cambian la frase y vuelven a pensar
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-retoque]'); if(!b) return;
+  const ta = document.getElementById('pideText'); if(!ta) return;
+  let t = ta.value.trim(); const n = pdNorm(t);
+  if(b.dataset.retoque==='barato'){
+    const m = n.match(/(\d{1,3})\s*(euros?|€)/);
+    if(m) t = t.replace(new RegExp(m[1]+'(\\s*(euros?|€))','i'), Math.max(8, Math.round(+m[1]*0.7))+'$1');
+    else if(/\bbarat/.test(n)) t += ', menos de 15 euros';
+    else t += ', barato';
+  } else if(b.dataset.retoque==='cerca'){
+    const m = n.match(/(\d{3,4})\s*(m|metros)\b/);
+    if(m) t = t.replace(new RegExp(m[1]+'(\\s*(m|metros)\\b)','i'), Math.max(200, Math.round(+m[1]*0.6/50)*50)+'$1');
+    else t += ', a menos de 700 metros';
+  }
+  ta.value = t;
+  pdRun(b.dataset.retoque==='otra');
+});
 // ── Eventos en Pídeme: "conciertos este finde", "qué hay hoy en Lavapiés", "teatro y luego cenar" ──
 let PD_EVENTOS = null;
 async function pdLoadEventos(){
@@ -5907,6 +6001,7 @@ async function pdRun(shuffle){
     const t = pdNorm(raw);
     const guess = /\b(beber|copa|copas|tomar algo|salir de noche|fiesta|bailar)\b/.test(t) ? 'cock' : /\b(cafe|merendar|desayun|dulce)\b/.test(t) ? 'cafe' : /\b(hacer algo|ocio|actividad|aburrido|tranquilo|plan)\b/.test(t) && !/\b(comer|cenar|cena|comida)\b/.test(t) ? 'ocio' : 'food';
     p.wants = [PD_CATS.find(c=>c.id===guess)];
+    try{ window.rentaEvento && rentaEvento('pideme-no-entendida'); }catch(e){}
     p.notes.push(`No me dijiste el tipo de sitio, así que interpreto que buscas: ${p.wants[0].label}. Si no es eso, dime por ejemplo "cena italiana", "copas" o "brunch".`);
     p.modeHint = p.modeHint || 'lista';
   }
@@ -5961,7 +6056,8 @@ async function pdRun(shuffle){
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
     }
     const uniq = Array.from(new Set(notes));
-    resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + (p._evHtml||'') + html;
+    const retoques = `<div class="pd-retoques"><button type="button" class="chip" data-retoque="barato">💸 Más barato</button><button type="button" class="chip" data-retoque="cerca">📍 Más cerca</button><button type="button" class="chip" data-retoque="otra">🎲 Otra idea</button></div>`;
+    resEl.innerHTML = uniq.map(n=>`<div class="pideNote">ℹ️ ${pdEsc(n)}</div>`).join('') + (p._evHtml||'') + retoques + html;
     if(document.getElementById('pdPlanMap') && pdRun._mapStops) setTimeout(()=>pdDrawPlanMap(pdRun._mapStops), 30);
     pdUpdateLegs();
     const sh = document.getElementById('pideShuffle'); if(sh) sh.onclick = ()=>pdRun(true);
@@ -7982,6 +8078,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #rntAviso .row{display:flex;gap:8px;margin-top:12px}#rntAviso .row button{flex:1;padding:12px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;border:0}
 #rntAviso .send{background:var(--accent,var(--accent-soft));color:var(--on-accent,#fff)}#rntAviso .send:disabled{opacity:.45}#rntAviso .cancel{background:transparent;color:inherit;border:1px solid var(--line,rgba(255,255,255,.2))!important}
 #rntAviso .ok{font-size:15px;line-height:1.5;padding:8px 0}
+.pd-retoques{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.pd-retoques .chip{min-height:36px;cursor:pointer}
 #catPreview{margin-top:12px}.cp-list{display:grid;gap:8px}
 .cp-item{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
 .cp-row{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
@@ -8184,7 +8281,7 @@ body[data-tab]:not([data-tab="guiado"]):not([data-tab="directo"]) header.top .ta
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v50';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v51';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

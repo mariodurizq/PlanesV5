@@ -8118,7 +8118,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 // Envío con Web3Forms (gratis, 250 avisos/mes). La clave es pública por diseño: solo sirve para mandar al buzón, no para leerlo.
 // Mientras no haya clave, los avisos se guardan en el móvil de quien avisa y se envían solos en cuanto se active.
 (function(){
-  const CLAVE_WEB3FORMS = '';            // ← pegar aquí la «access key» de web3forms.com cuando exista el correo
+  const CLAVE_WEB3FORMS = '66c86b9e-d468-4af7-ac2e-83d335588401';            // ← pegar aquí la «access key» de web3forms.com cuando exista el correo
   const ENDPOINT = 'https://api.web3forms.com/submit';
   const MOTIVOS_SITIO = [['cerrado','🚫 Ha cerrado / ya no existe'],['horario','🕒 El horario está mal'],['ubicacion','📍 La ubicación del mapa está mal'],['datos','💶 Precio, tipo o web incorrectos'],['otro','✏️ Otra cosa']];
   const MOTIVOS_APP = [['fallo','🐞 Algo no funciona'],['pantalla','📱 Se ve mal en mi móvil'],['sitio','📍 Un sitio tiene datos mal'],['falta','➕ Falta un sitio que renta'],['idea','💡 Sugerencia'],['otro','✏️ Otra cosa']];
@@ -8282,7 +8282,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v52';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v53';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

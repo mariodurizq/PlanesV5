@@ -4423,13 +4423,13 @@ const PD_CATS = [
   {id:'cafe', cm:'Café/Brunch/Postres', label:'☕ Café/brunch', role:1, dur:50, q:'cafetería brunch', kw:['cafe','brunch','desayun','merienda','postre','tarta','dulce','pasteleria']},
   {id:'ocio', cm:'Ocio/Espacios no gastronómicos', label:'🎯 Ocio', role:2, dur:90, q:'escape room ocio', kw:['escape','ocio','bolera','karaoke','bolos','billar','recreativ','paintball','cine']},
   {id:'tapas', cm:'Bar/Cervecería', label:'🍺 Bar/cañas', role:3, dur:60, q:'bar de tapas cervecería', kw:['canas','cana ','cerveza','cerveceria','tapeo','tapas','vermut','vermu','aperitivo','taberna']},
-  {id:'asia', cm:'Asiática', label:'🥢 Asiática', role:4, meal:true, dur:90, q:'restaurante asiático', kw:['asiatic','japon','sushi','ramen','chino','thai','tailand','corean','vietnam','indio','izakaya','poke','dim sum']},
+  {id:'asia', cm:'Asiática', label:'🥢 Asiática', role:4, meal:true, dur:90, q:'restaurante asiático', kw:['asiatic','japon','sushi','ramen','chino','thai','tailand','corean','vietnam','indio','india','hindu','tandoor','izakaya','poke','dim sum','malasi','indonesi','filipin','nepal']},
   {id:'ita', cm:'Italiana/Pizza', label:'🍕 Italiana', role:4, meal:true, dur:90, q:'restaurante italiano pizzería', kw:['italian','pizza','pasta','trattoria','risotto']},
   {id:'mex', cm:'Mexicana', label:'🌮 Mexicana', role:4, meal:true, dur:90, q:'restaurante mexicano', kw:['mexican','taco','burrito','nacho','mezcal']},
   {id:'carne', cm:'Carnes/Parrilla', label:'🥩 Carnes', role:4, meal:true, dur:100, q:'asador parrilla carne', kw:['carne','parrilla','chulet','asador','steak','entrecot','brasa','churrasc','argentin','uruguay','parrillada']},
   {id:'burger', cm:'Hamburguesas', label:'🍔 Hamburguesa', role:4, meal:true, dur:75, q:'hamburguesería', kw:['hamburgues','burger','smash']},
   {id:'esp', cm:'Española/Mediterránea', label:'🥘 Española/Medit.', role:4, meal:true, dur:90, q:'restaurante cocina española mediterránea', kw:['espanol','mediterran','tradicional','marisc','pescado','arroz','paella','libanes','arabe','turco','griego']},
-  {id:'mundo', cm:'FOOD', label:'🌍 Cocina del mundo', role:4, meal:true, dur:90, q:'restaurante', kw:['peruan','venezol','colombian','liban','arabe','turc','grieg','marroqu','etiop','cuban','brasil','african','persa','israeli','georgian','ucranian','ruso','portugues','frances','aleman','nepal','pakistan','filipin','hawaian','poke','vegano','vegetarian']},
+  {id:'mundo', cm:'FOOD', label:'🌍 Cocina del mundo', role:4, meal:true, dur:90, q:'restaurante', kw:['peruan','venezol','colombian','liban','arabe','turc','grieg','marroqu','etiop','cuban','brasil','african','persa','israeli','georgian','ucranian','ruso','portugues','frances','aleman','nepal','pakistan','filipin','hawaian','poke','vegano','vegetarian','cevich','cebich','nikkei','arepa','caribe','dominican','americana','tex mex','texmex','senegal','nigeri','momos','khachapuri','rodizio','eritre','irani','gyros','tajin','cuscus','fondue','raclette','bistrot']},
   {id:'food', cm:'FOOD', label:'🍽️ Comer/cenar', role:4, meal:true, dur:90, q:'restaurante', kw:['restaurante','cenar','cena','comer','comida','almuerzo','comilona','menu']},
   {id:'roof', cm:'Rooftop/Terraza', label:'🌇 Rooftop/terraza', role:5, dur:70, q:'rooftop terraza', kw:['rooftop','terraza','azotea','vistas','sky bar']},
   {id:'cock', cm:'Coctelería', label:'🍸 Copas', role:6, dur:80, q:'coctelería cócteles', kw:['cocktel','coctel','copa','copas','gintonic','gin tonic','gin-tonic','combinado','mojito','speakeasy','tomar algo','algo de beber']},
@@ -4474,7 +4474,31 @@ const PD_SUBS = [
   {kw:['corean'], f:['corean'], label:'coreana'},
   {kw:['thai','tailand'], f:['thai','tailand'], label:'tailandesa'},
   {kw:['vietnam'], f:['vietnam','pho'], label:'vietnamita'},
-  {kw:['indio'], f:['indi'], label:'india'},
+  {kw:['indio','india','hindu','tandoor','masala','naan'], f:['indi','hindu','tandoor','masala','curry'], label:'india'},
+  // Cocinas del mundo (cada una se puede pedir sola o como opción: «mexicana o peruana»)
+  {kw:['peruan','ceviche','cebiche','nikkei'], f:['peru','cevich','cebich','nikkei','pisco'], label:'peruana'},
+  {kw:['grieg','gyros','souvlaki','moussaka'], f:['grieg','greek','gyros','souvlaki','pita'], label:'griega'},
+  {kw:['marroqu','tajin','cuscus','cous cous'], f:['marroq','tajin','cuscus','couscous','magreb'], label:'marroquí'},
+  {kw:['venezol','arepa','cachapa'], f:['venez','arepa','cachapa'], label:'venezolana'},
+  {kw:['colombian','bandeja paisa'], f:['colomb','paisa'], label:'colombiana'},
+  {kw:['cuban'], f:['cuba'], label:'cubana'},
+  {kw:['brasil','rodizio','feijoada'], f:['brasil','brazil','rodizio','feijoada','churrasc'], label:'brasileña'},
+  {kw:['frances','bistrot','crepe salad','fondue','raclette'], f:['francesa','frances ','french','bistrot','creperi','fondue','raclette','brasserie'], label:'francesa'},
+  {kw:['portugues','bacalhau','francesinha'], f:['portug','bacalhau','francesinha'], label:'portuguesa'},
+  {kw:['aleman','bratwurst','codillo'], f:['aleman','german','bratwurst','codillo','biergarten'], label:'alemana'},
+  {kw:['nepal','momos','himala'], f:['nepal','momo','himala','tibet'], label:'nepalí'},
+  {kw:['etiop','eritre'], f:['etiop','eritr','injera'], label:'etíope'},
+  {kw:['georgian','khachapuri'], f:['georgia','khachapuri','khinkali'], label:'georgiana'},
+  {kw:['hawaian','poke'], f:['poke','hawai'], label:'hawaiana/poke'},
+  {kw:['filipin'], f:['filipin'], label:'filipina'},
+  {kw:['israeli','sabich'], f:['israel','sabich','tel aviv'], label:'israelí'},
+  {kw:['persa','irani'], f:['persa','iran'], label:'persa'},
+  {kw:['ucranian','ruso','rusa','pelmeni'], f:['ucran','rus','pelmeni','borsch'], label:'rusa/ucraniana'},
+  {kw:['turco','turca','kebab','durum'], f:['turc','kebab','durum','doner','anatol'], label:'turca'},
+  {kw:['african','senegal','nigeri'], f:['afric','senegal','nigeri'], label:'africana'},
+  {kw:['caribe','dominican','puerto ric'], f:['carib','domini','puerto ric'], label:'caribeña'},
+  {kw:['americana','tex mex','texmex'], f:['americ','tex mex','texmex','diner','bbq'], label:'americana'},
+  {kw:['malasi','indonesi','singapur'], f:['malas','indones','singap','satay','nasi'], label:'malaya/indonesia'},
   {kw:['argentin'], f:['argentin'], label:'argentina'},
   {kw:['marisc','pescado'], f:['marisc','pescad'], label:'marisco/pescado'},
   {kw:['libanes','arabe','turco'], f:['liban','arab','turc','shawarma','halal'], label:'árabe/libanesa'},
@@ -5176,6 +5200,9 @@ function pdFilter(want, p, used, minNeeded, includeSugg){
     {name:(p.zones.length||p.m30)?'la zona exacta':null, fn:d=>inCat(d)&&subFilter(d)},
     {name:mySubs.length?'el tipo concreto de cocina':null, fn:d=>inCat(d)},
   ];
+  // Si pidió una cocina concreta (india, peruana, griega…), no se rellena con otras: mejor tirar del mapa
+  const cocinaEstricta = mySubs.some(x=>!x.soft && !x.diet);
+  if(cocinaEstricta) steps.splice(0, steps.length, ...steps.filter(st=>st.name!=='el tipo concreto de cocina'));
   let items = [], seen = new Set(), usedStep = 0;
   for(let i=0;i<steps.length;i++){
     const l = base.filter(steps[i].fn);
@@ -8317,7 +8344,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v55';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v56';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

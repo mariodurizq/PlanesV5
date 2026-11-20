@@ -3999,6 +3999,11 @@ function planTransitMin(km){ return Math.min(55, Math.round(12 + km*2.2)); }
 function planAlts(item, c, used){
   try{
     if(!c || !c.anchor || c.city) return [];
+    if(c.w && c.w._or && c.w._or.length){   // «italiano o sushi»: opciones de cada tipo, alternando
+      const partes = [c.w].concat(c.w._or).map(w=>planAlts(item, Object.assign({}, c, {w:Object.assign({}, w, {_or:null})}), used));
+      const out = []; for(let i=0;i<4;i++) partes.forEach(x=>{ if(x[i] && !out.some(o=>o.n===x[i].n)) out.push(x[i]); });
+      return out.slice(0,4);
+    }
     const f = pdFilter(c.w, c.pw, new Set([...(used||[]), item.n]), 40, false);
     const R = c.maxKm || (c.w._place && c.anchorName===c.w._place.n ? Math.max(1.2, (c.w._place.r||0.8)*1.3) : 1.2);
     return f.items.filter(d=>planHasCoords(d) && planOpenAt(d, c.t)!==false)
@@ -4899,6 +4904,22 @@ function pdParse(raw){
   {
     const idxOf = {}; found.forEach(f=>{ idxOf[f.c.id]=f.idx; });
     p.wants = p.wants.map(w=>Object.assign({}, w, {_idx: idxOf[w.id]!=null?idxOf[w.id]:999}));
+    // «italiano o sushi», «una hamburguesa o pasta»: son opciones para la MISMA parada, no dos paradas
+    { const ord = p.wants.filter(w=>w._idx<999 && w.id!=='paseo').sort((a,b)=>a._idx-b._idx);
+      for(let k=ord.length-1; k>0; k--){
+        const a = ord[k-1], b = ord[k], entre = text.slice(a._idx, b._idx);
+        if(/\b(o|u|o bien|o si no|o mejor|o tambien)\b/.test(entre) && !/\b(y|luego|despues|antes|primero|mas tarde|para acabar|para terminar|seguido)\b/.test(entre)){
+          a._or = [b].concat(b._or||[]); b._merged = true;
+        }
+      }
+      if(ord.some(w=>w._merged)){
+        // cada matiz («japonesa» por «sushi») va con su opción, no con todas
+        p.subs.forEach(su=>{ if(su.on) return; const kw=(su.kw||[]).map(k=>text.indexOf(pdNorm(k))).filter(i=>i>=0); if(!kw.length) return;
+          const grupo = ord.filter(w=>w._or||w._merged); const cerca = grupo.sort((x,y)=>Math.abs(x._idx-kw[0])-Math.abs(y._idx-kw[0]))[0]; if(cerca) su.on = cerca.id; });
+        p.wants = p.wants.filter(w=>!w._merged);
+        p.wants.forEach(w=>{ if(w._or){ w._or.forEach(o=>{ delete o._merged; delete o._or; }); w.label = [w].concat(w._or).map(x=>x.label).join(' o '); if(w._or.some(o=>o.meal)) w.meal = w.meal || true; } });
+      }
+    }
     const lunchM = text.match(/\b(comer|comida|almorzar|almuerzo)\b/), dinnerM = text.match(/\b(cenar|cena)\b/);
     const meals = p.wants.filter(w=>w.meal);
     if(lunchM && dinnerM && meals.length===1){
@@ -5047,14 +5068,22 @@ function pdParse(raw){
   // modo
   const planWords = /\b(plan|planazo|itinerario|ruta|agenda|programa|organiza|organizame|monta|montame|prepara|preparame|tarde|noche completa|luego|despues|y luego|y despues|para acabar|despues de|empezar|terminar)\b/.test(text);
   const listWords = /\b(opcion|opciones|alternativa|alternativas|lista|listado|ideas|sugerencia|sugerencias|recomienda|recomiendame|recomendaciones|dame|top)\b/.test(text);
+  // Solo opciones («italiano o sushi»): lista con un apartado para cada una
+  if(p.wants.length===1 && p.wants[0]._or && !p.dayPlan){
+    const w0 = p.wants[0], meal = w0._meal;
+    p.wants = [w0].concat(w0._or).map((w,k)=>{ const c = Object.assign({}, PD_CATS.find(c=>c.id===w.id)||w, {_idx:w._idx}); if(meal) c._meal = meal; return c; });
+    p.orList = true; p.twoMeals = false;
+    p.notes.push('Te pongo opciones de ' + p.wants.map(w=>{ const su=p.subs.find(x=>x.on===w.id); return su ? su.label : w.label.replace(/^\S+\s/,''); }).join(' y de ') + ' para que elijas.');
+  }
   if(p.dayPlan) p.modeHint='plan';
+  else if(p.orList) p.modeHint='lista';
   else if(p.qty) p.modeHint='lista';
   else if(p.wants.length>=2) p.modeHint='plan';
   else if(planWords && (p.wants.length===0 || /\b(plan|planazo|itinerario|ruta|organiza|organizame|monta|montame|prepara|preparame|noche completa)\b/.test(text))) p.modeHint='plan';
   else p.modeHint='lista';
   if(listWords && p.qty) p.modeHint='lista';
-  if(planWords && p.wants.length>=2 && !p.qty) p.modeHint='plan';
-  if((p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames) && p.wants.length>=2 && !p.qty) p.modeHint='plan';
+  if(planWords && p.wants.length>=2 && !p.qty && !p.orList) p.modeHint='plan';
+  if((p.walk || p.twoMeals || p.multiPlace || p.twoDrinks || p.fixedNames) && p.wants.length>=2 && !p.qty && !p.orList) p.modeHint='plan';
   if((p.fixedNames || (p.namedQueries&&p.namedQueries.length)) && !p.qty) p.modeHint='plan';   // un sitio concreto: se enseña ese sitio (y lo demás alrededor)
   if(p.maxWalk && !p.place && !p.zones.length && !p.near && p.modeHint==='lista') p.near = true;
   if(p.openNow && p.time==null && p.modeHint==='plan'){ const n=new Date(); p.time = Math.ceil((n.getHours()*60+n.getMinutes())/15)*15; }   // "a menos de 300 m" sin sitio = cerca de mí
@@ -5107,6 +5136,12 @@ function pdDist(a,b){ const ca=pdCoord(a), cb=Array.isArray(b)?b:pdCoord(b); if(
 
 // Devuelve elementos que encajan con una categoría + filtros, relajando filtros si no hay suficientes
 function pdFilter(want, p, used, minNeeded, includeSugg){
+  if(want._or && want._or.length){
+    const partes = [want].concat(want._or).map(w=>pdFilter(Object.assign({}, w, {_or:null, label:w.label}), p, used, minNeeded, includeSugg));
+    const items = [], vistos = new Set(), max = Math.max(...partes.map(x=>x.items.length));
+    for(let i=0;i<max;i++) partes.forEach(x=>{ const d=x.items[i]; if(d && !vistos.has(d.n)){ vistos.add(d.n); items.push(d); } });   // alternando: una de cada
+    return Object.assign({}, partes[0], {items, notes:[].concat(...partes.map(x=>x.notes||[]))});
+  }
   const notes = [];
   const base = DATA.filter(d=>!used.has(d.n) && d.e!=='Cerrado temporalmente' && d.e!=='Cerrado definitivamente' && !pdExcluido(d,p)).map(d=>Object.assign({src:'lista'}, d));
   const sugs = SUGGERIDOS.filter(d=>!used.has(d.n) && !pdExcluido(d,p)).map(d=>Object.assign({src:'sug', v:null, nr:null}, d));
@@ -8282,7 +8317,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator)) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v54';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v55';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

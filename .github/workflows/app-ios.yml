@@ -1,0 +1,58 @@
+# App de iPhone (Capacitor). Siempre compila para el simulador para comprobar que todo está bien.
+# Cuando exista la cuenta de Apple Developer y se guarden estos secretos en GitHub
+# (Settings → Secrets → Actions): APPSTORE_KEY_ID, APPSTORE_ISSUER_ID, APPSTORE_KEY_P8 (contenido del .p8) y APPLE_TEAM_ID,
+# al lanzarlo a mano también firma la app y la sube a TestFlight / App Store Connect.
+name: App de iPhone
+on:
+  workflow_dispatch:
+    inputs:
+      subir:
+        description: 'Subir a TestFlight (necesita los secretos de Apple)'
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/app-ios.yml']
+concurrency:
+  group: app-ios
+  cancel-in-progress: true
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Capacitor
+        working-directory: app
+        run: npm ci --no-audit --no-fund
+      - name: Empaquetar la web dentro de la app
+        working-directory: app
+        run: npm run web && npx cap sync ios
+      - name: Compilar para el simulador (comprobación)
+        working-directory: app/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Firmar y subir a TestFlight
+        if: ${{ inputs.subir }}
+        working-directory: app/ios/App
+        env:
+          KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          ISSUER: ${{ secrets.APPSTORE_ISSUER_ID }}
+          KEY_P8: ${{ secrets.APPSTORE_KEY_P8 }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$KEY_ID" ] || [ -z "$TEAM" ]; then echo "Faltan los secretos de Apple: no se sube nada."; exit 0; fi
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8
+          AUTH="-allowProvisioningUpdates -authenticationKeyPath $HOME/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8 -authenticationKeyID $KEY_ID -authenticationKeyIssuerID $ISSUER"
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos \
+            -archivePath build/App.xcarchive DEVELOPMENT_TEAM=$TEAM CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} $AUTH archive | tail -30
+          xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/export $AUTH | tail -30

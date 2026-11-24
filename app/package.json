@@ -1,0 +1,24 @@
+{
+  "name": "me-renta-mazo-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App de iPhone de Me Renta Mazo (Capacitor). La web se empaqueta dentro de la app.",
+  "scripts": {
+    "web": "rm -rf www && cd .. && tools/construir_sitio.sh app/www",
+    "sync": "npm run web && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/local-notifications": "^8.0.0",
+    "@capacitor/network": "^8.0.0",
+    "@capacitor/share": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  }
+}

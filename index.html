@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
 <head>
+<script>window.RENTA_NATIVO=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(window.RENTA_NATIVO)document.documentElement.classList.add('es-app');</script>
 <script>try{var t=localStorage.getItem("radar-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;if(t==="crimson"){document.documentElement.dataset.theme="dark";document.documentElement.dataset.tint="crimson";}}catch(e){}</script>
 <meta charset="UTF-8">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Me Renta Mazo"><meta property="og:title" content="Me Renta Mazo · Planes en Madrid"><meta property="og:description" content="Restaurantes, ocio y planes en Madrid que de verdad rentan: mapa, planes al momento y los sitios que rentan."><meta property="og:url" content="https://mariodurizq.github.io/PlanesV5/"><meta property="og:image" content="https://mariodurizq.github.io/PlanesV5/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Me Renta Mazo: restaurantes, ocio y planes en Madrid"><meta property="og:locale" content="es_ES"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://mariodurizq.github.io/PlanesV5/og-image.jpg">
@@ -1871,6 +1872,7 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
     <button type="button" data-radar-open="live"><span>⌁</span><b>Radar en vivo</b><small>Filtra y compara lugares</small></button>
     <button type="button" data-radar-open="discover"><span>◉</span><b>Discover</b><small>Desliza y afina tus gustos</small></button>
     <button type="button" data-radar-open="crew"><span>♧</span><b>Me Renta Mazo Crew</b><small>Elegid el plan en grupo</small></button>
+    <button type="button" data-app-finde hidden><span>🔔</span><b>Ideas para el finde</b><small>Un aviso los viernes a las 18:00</small></button>
     <button type="button" data-rnt-reportar><span>⚑</span><b>Reportar un error</b><small>Algo no va o un sitio está mal</small></button>
     <button type="button" data-radar-open="autoplan" hidden><span>⤳</span><b>Autoplan inteligente</b><small>Varias paradas, menos vueltas</small></button>
   </div>
@@ -6115,6 +6117,7 @@ async function pdRun(shuffle){
         pdRun._items = out.stops;
         html += `<div class="actionsRow"><button class="ghostBtn" id="pideShuffle">🔄 Otra versión</button><button class="ghostBtn" data-plan-share>📤 Compartir</button><button class="ghostBtn wa" data-plan-wa>💬 Enviar plan</button></div>`;
         pdRun._planDay = p.dayLabel||'';
+        if(window.RENTA_NATIVO) html += `<div class="actionsRow"><button class="ghostBtn" data-plan-aviso>🔔 Avisarme antes del plan</button></div>`;
       } else html += `<div class="emptystate">No he podido montar el plan 😕</div>`;
     }
     const uniq = Array.from(new Set(notes));
@@ -8077,7 +8080,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
     const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
     const standalone=window.navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
     const safari=/Safari/.test(ua)&&!/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/.test(ua);
-    if(!ios||standalone||localStorage.getItem('renta-install-hint')) return;
+    if(!ios||standalone||window.RENTA_NATIVO||localStorage.getItem('renta-install-hint')) return;
     setTimeout(()=>{
       if(document.getElementById('rentaWelcome')) return;
       const d=document.createElement('div'); d.id='rentaInstall'; d.setAttribute('role','dialog');
@@ -8140,6 +8143,9 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #rntAviso .row{display:flex;gap:8px;margin-top:12px}#rntAviso .row button{flex:1;padding:12px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;border:0}
 #rntAviso .send{background:var(--accent,var(--accent-soft));color:var(--on-accent,#fff)}#rntAviso .send:disabled{opacity:.45}#rntAviso .cancel{background:transparent;color:inherit;border:1px solid var(--line,rgba(255,255,255,.2))!important}
 #rntAviso .ok{font-size:15px;line-height:1.5;padding:8px 0}
+#rentaOffline{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9000;background:#111;color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
+[data-app-finde][hidden]{display:none!important}
 .pd-retoques{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.pd-retoques .chip{min-height:36px;cursor:pointer}
 #catPreview{margin-top:12px}.cp-list{display:grid;gap:8px}
 .cp-item{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
@@ -8157,6 +8163,84 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 .pd-alt.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent,#fff);cursor:default}
 .rnt-report-foot{margin-top:12px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--accent,#c8102e);background:transparent;color:var(--accent,#c8102e);font:inherit;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;cursor:pointer}
 </style>
+<script id="renta-app-nativa">
+// Funciones propias de la app de iPhone (Capacitor). En la web no hace nada.
+(function(){
+  if(!window.RENTA_NATIVO) return;
+  const P = window.Capacitor.Plugins || {};
+  const N = P.LocalNotifications, H = P.Haptics, S = P.Share, SB = P.StatusBar, NET = P.Network, APP = P.App;
+  const vibra = (tipo) => { try{ H && (tipo==='ok' ? H.notification({type:'SUCCESS'}) : H.impact({style: tipo==='fuerte'?'MEDIUM':'LIGHT'})); }catch(e){} };
+  window.rentaVibra = vibra;
+  const aviso = (t) => { const el=document.createElement('div'); el.className='renta-toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),3200); };
+
+  // Compartir: hoja nativa de iOS
+  if(S){
+    const webShare = navigator.share ? navigator.share.bind(navigator) : null;
+    navigator.share = async (d={}) => {
+      if(d.files && d.files.length && webShare){ return webShare(d); }
+      await S.share({title:d.title||'Me Renta Mazo', text:d.text||'', url:d.url||undefined, dialogTitle:'Compartir'});
+    };
+  }
+
+  // Barra de estado según el tema
+  const barra = () => { try{ const t=document.documentElement.dataset; SB && SB.setStyle({style: (t.theme==='light' && t.tint!=='crimson') ? 'LIGHT' : 'DARK'}); }catch(e){} };
+  barra(); new MutationObserver(barra).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','data-tint']});
+
+  // Vibración suave en los gestos principales
+  document.addEventListener('click', e=>{
+    if(e.target.closest('[data-fav],.favBtn,.pdSave,[data-plan-share],#pideGo,.pd-alt,[data-retoque],[data-save],.dc-like,.dc-nope,[data-discover-like],[data-discover-skip]')) vibra();
+  }, true);
+
+  // Sin conexión: aviso discreto (la lista, el mapa guardado y Pídeme siguen funcionando)
+  const barraRed = document.createElement('div'); barraRed.id='rentaOffline'; barraRed.textContent='Sin conexión: tu lista y Pídeme siguen funcionando'; barraRed.hidden=true; document.body.appendChild(barraRed);
+  const red = (ok) => { barraRed.hidden = !!ok; };
+  try{ NET && NET.getStatus().then(st=>red(st.connected)); NET && NET.addListener('networkStatusChange', st=>red(st.connected)); }catch(e){}
+
+  // Notificaciones locales (sin servidores: las programa el propio iPhone)
+  async function permiso(){
+    if(!N) return false;
+    try{ let st = await N.checkPermissions(); if(st.display!=='granted') st = await N.requestPermissions(); return st.display==='granted'; }catch(e){ return false; }
+  }
+  // 1) Recordatorio de un plan de Pídeme: 1 hora antes de la primera parada
+  document.addEventListener('click', async e=>{
+    const b = e.target.closest('[data-plan-aviso]'); if(!b) return;
+    const st = (window.pdRun && pdRun._items) || []; if(!st.length) return;
+    const dia = (typeof planDowFrom==='function') ? planDowFrom(pdRun._planDay) : null;
+    const f = new Date(); if(dia!=null){ let d=(dia - f.getDay() + 7) % 7; f.setDate(f.getDate()+d); }
+    const ini = st[0]._start; f.setHours(Math.floor(ini/60), ini%60, 0, 0); f.setMinutes(f.getMinutes()-60);
+    if(f <= new Date()){ aviso('El plan empieza en menos de una hora: ¡a por ello!'); return; }
+    if(!(await permiso())){ aviso('Activa las notificaciones de Me Renta Mazo en Ajustes para recibir el aviso.'); return; }
+    const hora = String(Math.floor(ini/60)).padStart(2,'0')+':'+String(ini%60).padStart(2,'0');
+    await N.schedule({notifications:[{id: 1000 + Math.floor(Math.random()*8000), title:'Tu plan empieza en 1 hora', body:`${hora} · ${st[0].n}${st[1]?' → '+st[1].n:''}`, schedule:{at:f}, extra:{tab:'pide'}}]});
+    vibra('ok'); b.textContent = '🔔 Te aviso a las ' + String(f.getHours()).padStart(2,'0')+':'+String(f.getMinutes()).padStart(2,'0'); b.disabled = true;
+  });
+  // 2) Ideas para el finde: viernes a las 18:00 (se activa y desactiva en «Tu espacio»)
+  const FINDE_ID = 77; const KEY='renta-app-finde';
+  const btnFinde = document.querySelector('[data-app-finde]');
+  const pintar = () => { if(!btnFinde) return; btnFinde.hidden=false; const on=localStorage.getItem(KEY)==='1'; btnFinde.querySelector('small').textContent = on ? 'Activado · viernes a las 18:00 (toca para quitarlo)' : 'Un aviso los viernes a las 18:00'; };
+  pintar();
+  btnFinde && btnFinde.addEventListener('click', async ()=>{
+    if(localStorage.getItem(KEY)==='1'){ try{ await N.cancel({notifications:[{id:FINDE_ID}]}); }catch(e){} localStorage.removeItem(KEY); pintar(); aviso('Avisos del finde desactivados'); return; }
+    if(!(await permiso())){ aviso('Activa las notificaciones de Me Renta Mazo en Ajustes.'); return; }
+    await N.schedule({notifications:[{id:FINDE_ID, title:'¿Plan para el finde? 🔴', body:'Mira los sitios que rentan mazo o pídeme un plan para mañana.', schedule:{on:{weekday:6, hour:18, minute:0}, allowWhileIdle:true}, extra:{tab:'pide', q:'plan para el sábado'}}]});
+    localStorage.setItem(KEY,'1'); pintar(); vibra('ok'); aviso('Listo: te aviso los viernes a las 18:00');
+  });
+  // Al tocar una notificación: abrir Pídeme (y, si toca, con una idea ya escrita)
+  try{ N && N.addListener('localNotificationActionPerformed', ev=>{
+    const x = (ev && ev.notification && ev.notification.extra) || {};
+    const t = document.querySelector(`[data-tab="${x.tab||'pide'}"],[data-go-tab="${x.tab||'pide'}"]`); t && t.click();
+    if(x.q){ const ta=document.getElementById('pideText'); if(ta && !ta.value) ta.value = x.q; }
+  }); }catch(e){}
+
+  // Enlaces merentamazo://… (por ejemplo merentamazo://pide?q=cena%20en%20Malasa%C3%B1a)
+  try{ APP && APP.addListener('appUrlOpen', ev=>{
+    try{ const u = new URL(ev.url); const q = u.searchParams.get('q');
+      const t = document.querySelector('[data-tab="pide"],[data-go-tab="pide"]'); t && t.click();
+      if(q){ const ta=document.getElementById('pideText'); if(ta){ ta.value=q; window.pdRun && pdRun(false); } }
+    }catch(e){}
+  }); }catch(e){}
+})();
+</script>
 <script id="renta-stats">
 // Estadísticas de visitas con GoatCounter: gratis, sin cookies y sin datos personales (solo recuentos agregados).
 // Se activa al pegar aquí el código de la cuenta (lo que va antes de .goatcounter.com).
@@ -8342,9 +8426,9 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 <script id="renta-actualizar">
 // La web abre al instante desde la copia guardada; si hay versión nueva, se avisa para actualizar con un toque
 (function(){
-  if(!('serviceWorker' in navigator)) return;
+  if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v56';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v57';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

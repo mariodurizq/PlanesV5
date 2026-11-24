@@ -1,0 +1,21 @@
+{
+  "appId": "com.merentamazo.app",
+  "appName": "Me Renta Mazo",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "scheme": "Me Renta Mazo",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "backgroundColor": "#9E0B22",
+      "showSpinner": false
+    },
+    "LocalNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}

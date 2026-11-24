@@ -8247,7 +8247,14 @@ html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
 <script type="module" id="renta-cuenta">
 // Cuenta con Google (Firebase, plan gratuito Spark, sin tarjeta): guarda favoritos, tus sitios, planes y colecciones en la nube.
 // Sin sesión todo sigue funcionando en el propio móvil. Las reglas de Firestore (firestore.rules) solo dejan a cada uno tocar su documento.
-const RENTA_FIREBASE = null;   // ← se rellena con la configuración del proyecto de Firebase (es pública por diseño)
+const RENTA_FIREBASE = {   // configuración pública por diseño; la seguridad está en firestore.rules
+  apiKey: "AIzaSyA-rPuM_2L34IfQOk_rrJsqq5Uct7-24Js",
+  authDomain: "me-renta-mazo.firebaseapp.com",
+  projectId: "me-renta-mazo",
+  storageBucket: "me-renta-mazo.firebasestorage.app",
+  messagingSenderId: "554746096242",
+  appId: "1:554746096242:web:06ccb42742f58ab0c8b0eb"
+};
 const CLAVES = ['radar-favorites','renta-mis-sitios','radar-match-v1','radar-collections-v1','radar-plan-history-v1','radar-smart-plan-v1','renta-votaciones-v1','radar-v6-lab'];
 const $b = s => document.querySelector(s);
 const btn = $b('[data-cuenta]'), btnBorrar = $b('[data-cuenta-borrar]');
@@ -8514,7 +8521,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v59';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v60';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

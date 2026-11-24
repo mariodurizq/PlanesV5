@@ -1,4 +1,4 @@
-const VERSION = 'renta-shell-v59';
+const VERSION = 'renta-shell-v60';
 const APP_FILES = [
   './',
   './index.html',

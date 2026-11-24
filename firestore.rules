@@ -1,0 +1,17 @@
+rules_version = '2';
+// Me Renta Mazo: cada persona solo puede leer, escribir y borrar SU documento (usuarios/{su uid}).
+// Nada más es accesible. Límite de tamaño para evitar abusos.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /usuarios/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['datos', 'actualizado', 'version'])
+        && request.resource.data.datos is map
+        && request.resource.data.datos.size() <= 20;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1872,6 +1872,8 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
     <button type="button" data-radar-open="live"><span>⌁</span><b>Radar en vivo</b><small>Filtra y compara lugares</small></button>
     <button type="button" data-radar-open="discover"><span>◉</span><b>Discover</b><small>Desliza y afina tus gustos</small></button>
     <button type="button" data-radar-open="crew"><span>♧</span><b>Me Renta Mazo Crew</b><small>Elegid el plan en grupo</small></button>
+    <button type="button" data-cuenta hidden><span>👤</span><b>Guardar en tu cuenta</b><small>Inicia sesión con Google</small></button>
+    <button type="button" data-cuenta-borrar hidden><span>🗑️</span><b>Borrar mi cuenta</b><small>Borra tus datos guardados en la nube</small></button>
     <button type="button" data-app-finde hidden><span>🔔</span><b>Ideas para el finde</b><small>Un aviso los viernes a las 18:00</small></button>
     <button type="button" data-rnt-reportar><span>⚑</span><b>Reportar un error</b><small>Algo no va o un sitio está mal</small></button>
     <button type="button" data-radar-open="autoplan" hidden><span>⤳</span><b>Autoplan inteligente</b><small>Varias paradas, menos vueltas</small></button>
@@ -8146,7 +8148,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #mapStatus:empty,#resultsCount,#rentaLocalCount:empty{display:none!important}
 #rentaOffline{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9000;background:#111;color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
-[data-app-finde][hidden]{display:none!important}
+[data-app-finde][hidden],[data-cuenta][hidden],[data-cuenta-borrar][hidden]{display:none!important}
 .pd-retoques{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.pd-retoques .chip{min-height:36px;cursor:pointer}
 #catPreview{margin-top:12px}.cp-list{display:grid;gap:8px}
 .cp-item{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
@@ -8241,6 +8243,89 @@ html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
     }catch(e){}
   }); }catch(e){}
 })();
+</script>
+<script type="module" id="renta-cuenta">
+// Cuenta con Google (Firebase, plan gratuito Spark, sin tarjeta): guarda favoritos, tus sitios, planes y colecciones en la nube.
+// Sin sesión todo sigue funcionando en el propio móvil. Las reglas de Firestore (firestore.rules) solo dejan a cada uno tocar su documento.
+const RENTA_FIREBASE = null;   // ← se rellena con la configuración del proyecto de Firebase (es pública por diseño)
+const CLAVES = ['radar-favorites','renta-mis-sitios','radar-match-v1','radar-collections-v1','radar-plan-history-v1','radar-smart-plan-v1','renta-votaciones-v1','radar-v6-lab'];
+const $b = s => document.querySelector(s);
+const btn = $b('[data-cuenta]'), btnBorrar = $b('[data-cuenta-borrar]');
+const aviso = t => { const el=document.createElement('div'); el.className='renta-toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),3400); };
+if(RENTA_FIREBASE && btn && !window.RENTA_NATIVO){
+  btn.hidden = false;
+  let fb = null, auth = null, db = null, usuario = null, subiendo = null, aplicando = false;
+  const cargar = async () => {
+    if(fb) return fb;
+    fb = await import('./vendor/firebase-renta.js');
+    const app = fb.initializeApp(RENTA_FIREBASE);
+    auth = fb.getAuth(app); db = fb.getFirestore(app);
+    return fb;
+  };
+  const leerLocal = () => { const o={}; CLAVES.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null && v.length<200000) o[k]=v; }); return o; };
+  const unir = (remoto, local) => {
+    const out = {};
+    new Set([...Object.keys(remoto||{}), ...Object.keys(local||{})]).forEach(k=>{
+      const r = remoto && remoto[k], l = local && local[k];
+      if(r==null || l==null){ out[k] = r ?? l; return; }
+      try{
+        const R = JSON.parse(r), L = JSON.parse(l);
+        if(Array.isArray(R) && Array.isArray(L)){ const vis=new Set(), res=[]; [...L, ...R].forEach(x=>{ const id=JSON.stringify(x&&x.n?{n:x.n}:x); if(!vis.has(id)){ vis.add(id); res.push(x); } }); out[k]=JSON.stringify(res); }
+        else if(R && L && typeof R==='object' && typeof L==='object'){ out[k]=JSON.stringify(Object.assign({}, R, L)); }
+        else out[k] = l;
+      }catch(e){ out[k] = l; }
+    });
+    return out;
+  };
+  const ref = () => fb.doc(db, 'usuarios', usuario.uid);
+  const subir = () => {
+    if(!usuario || aplicando) return;
+    clearTimeout(subiendo);
+    subiendo = setTimeout(async ()=>{ try{ await fb.setDoc(ref(), {datos: leerLocal(), actualizado: fb.serverTimestamp(), version: 1}); }catch(e){ console.warn('cuenta: no se pudo guardar', e); } }, 4000);
+  };
+  // Cualquier cambio en tus datos se sube solo (como mucho una vez cada 4 s)
+  const setOrig = Storage.prototype.setItem;
+  Storage.prototype.setItem = function(k, v){ setOrig.call(this, k, v); if(this===localStorage && CLAVES.includes(k)) subir(); };
+  const sincronizar = async () => {
+    try{
+      const snap = await fb.getDoc(ref());
+      const local = leerLocal(), remoto = snap.exists() ? (snap.data().datos || {}) : {};
+      const unido = unir(remoto, local);
+      const cambia = Object.keys(unido).some(k=>unido[k]!==local[k]);
+      aplicando = true; Object.entries(unido).forEach(([k,v])=>{ if(v!=null) setOrig.call(localStorage, k, v); }); aplicando = false;
+      await fb.setDoc(ref(), {datos: unido, actualizado: fb.serverTimestamp(), version: 1});
+      if(cambia && !sessionStorage.getItem('renta-cuenta-recarga')){ sessionStorage.setItem('renta-cuenta-recarga','1'); location.reload(); }
+    }catch(e){ console.warn('cuenta: no se pudo sincronizar', e); }
+  };
+  const pintar = () => {
+    btn.querySelector('b').textContent = usuario ? (usuario.displayName || 'Tu cuenta') : 'Guardar en tu cuenta';
+    btn.querySelector('small').textContent = usuario ? 'Guardado en la nube · toca para cerrar sesión' : 'Inicia sesión con Google';
+    btnBorrar.hidden = !usuario;
+  };
+  btn.addEventListener('click', async ()=>{
+    localStorage.setItem('renta-cuenta','1');
+    await conectar();
+    if(usuario){ await fb.signOut(auth); aviso('Sesión cerrada. Tus datos siguen en este móvil.'); return; }
+    try{ await fb.signInWithPopup(auth, new fb.GoogleAuthProvider()); aviso('¡Listo! Tus sitios y planes se guardan en tu cuenta.'); }
+    catch(e){ if(e && e.code==='auth/popup-blocked'){ await fb.signInWithRedirect(auth, new fb.GoogleAuthProvider()); } else if(!(e && /cancelled|closed/.test(e.code||''))) aviso('No se pudo iniciar sesión. Inténtalo otra vez.'); }
+  });
+  btnBorrar.addEventListener('click', async ()=>{
+    if(!usuario || !confirm('¿Borrar tu cuenta y todo lo guardado en la nube? Lo que tienes en este móvil no se borra.')) return;
+    try{
+      await fb.deleteDoc(ref());
+      try{ await fb.deleteUser(usuario); }catch(e){ if(e && e.code==='auth/requires-recent-login'){ await fb.reauthenticateWithPopup(usuario, new fb.GoogleAuthProvider()); await fb.deleteUser(auth.currentUser); } else throw e; }
+      aviso('Cuenta borrada.');
+    }catch(e){ aviso('No se pudo borrar la cuenta. Inténtalo otra vez.'); }
+  });
+  // Si ya habías iniciado sesión en este móvil, se conecta sola (Firebase solo se descarga en ese caso)
+  let escuchando = null;
+  const conectar = () => escuchando || (escuchando = (async () => {
+    await cargar();
+    try{ await fb.getRedirectResult(auth); }catch(e){}
+    await new Promise(ok=>{ let primera=true; fb.onAuthStateChanged(auth, u=>{ const nuevo = !usuario && u; usuario = u; pintar(); if(nuevo) sincronizar(); if(primera){ primera=false; ok(); } }); });
+  })());
+  if(localStorage.getItem('renta-cuenta')==='1') conectar();
+}
 </script>
 <script id="renta-stats">
 // Estadísticas de visitas con GoatCounter: gratis, sin cookies y sin datos personales (solo recuentos agregados).
@@ -8429,7 +8514,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v58';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v59';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

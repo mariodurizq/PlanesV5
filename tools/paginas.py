@@ -8,7 +8,7 @@ import html, json, math, pathlib, re, sys, unicodedata, datetime
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ROOT / '_site')
-BASE = 'https://mariodurizq.github.io/PlanesV5/'
+BASE = 'https://merentamazo.com/'
 MARCA = 'Me Renta Mazo'
 HOY = datetime.date.today()
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']

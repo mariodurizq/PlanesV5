@@ -13,8 +13,8 @@ Todo lo que hay que pegar en App Store Connect al crear la app. Identificador de
 | Clasificación por edad | 17+ (menciona bares, copas y discotecas) |
 | Precio | Gratis |
 | Idioma principal | Español (España) |
-| URL de soporte | https://mariodurizq.github.io/PlanesV5/legal.html |
-| URL de la política de privacidad | https://mariodurizq.github.io/PlanesV5/legal.html#privacidad |
+| URL de soporte | https://merentamazo.com/legal.html |
+| URL de la política de privacidad | https://merentamazo.com/legal.html#privacidad |
 | Copyright | 2026 Mario |
 
 ## Palabras clave (máx. 100 caracteres)

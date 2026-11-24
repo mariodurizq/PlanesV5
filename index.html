@@ -4,7 +4,7 @@
 <script>window.RENTA_NATIVO=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(window.RENTA_NATIVO)document.documentElement.classList.add('es-app');</script>
 <script>try{var t=localStorage.getItem("radar-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;if(t==="crimson"){document.documentElement.dataset.theme="dark";document.documentElement.dataset.tint="crimson";}}catch(e){}</script>
 <meta charset="UTF-8">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Me Renta Mazo"><meta property="og:title" content="Me Renta Mazo · Planes en Madrid"><meta property="og:description" content="Restaurantes, ocio y planes en Madrid que de verdad rentan: mapa, planes al momento y los sitios que rentan."><meta property="og:url" content="https://mariodurizq.github.io/PlanesV5/"><meta property="og:image" content="https://mariodurizq.github.io/PlanesV5/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Me Renta Mazo: restaurantes, ocio y planes en Madrid"><meta property="og:locale" content="es_ES"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://mariodurizq.github.io/PlanesV5/og-image.jpg">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Me Renta Mazo"><meta property="og:title" content="Me Renta Mazo · Planes en Madrid"><meta property="og:description" content="Restaurantes, ocio y planes en Madrid que de verdad rentan: mapa, planes al momento y los sitios que rentan."><meta property="og:url" content="https://merentamazo.com/"><meta property="og:image" content="https://merentamazo.com/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Me Renta Mazo: restaurantes, ocio y planes en Madrid"><meta property="og:locale" content="es_ES"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://merentamazo.com/og-image.jpg">
 <meta name="description" content="Descubre restaurantes, ocio y planes en Madrid. Filtra, guarda favoritos, explora el mapa y organiza tu itinerario con Me Renta Mazo.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -713,7 +713,7 @@ footer.foot{color:var(--muted);font-family:Inter,sans-serif;letter-spacing:1px}
 </style>
 
 <link rel="stylesheet" href="vendor/leaflet.css?v=1">
-<script src="plan-share.js?v=7" defer></script>
+<script src="plan-share.js?v=8" defer></script>
 <script src="vendor/leaflet.js?v=1"></script>
 
 <style id="radar-v6-lab-styles">
@@ -7845,7 +7845,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   const dec=t=>JSON.parse(decodeURIComponent(escape(atob(t.replace(/-/g,'+').replace(/_/g,'/')))));
-  const base=()=>location.origin+location.pathname;
+  const base=()=>/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://merentamazo.com/';
   const VOTES='renta-votaciones-v1';
   const readVotes=()=>{try{return JSON.parse(localStorage.getItem(VOTES)||'{}')}catch(e){return {}}};
   const saveVotes=v=>{try{localStorage.setItem(VOTES,JSON.stringify(v))}catch(e){}};
@@ -8526,7 +8526,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v61';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v62';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

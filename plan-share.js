@@ -1,7 +1,7 @@
 /* Compartir un plan de Me Renta Mazo: enlace a una página solo con el plan (plan.html#…) e imagen PNG.
    Lo usan index.html (al compartir) y plan.html (al abrir el enlace). */
 (function () {
-  const BASE = (location.origin + location.pathname).replace(/[^/]*$/, '');
+  const BASE = /^https?:$/.test(location.protocol) ? (location.origin + location.pathname).replace(/[^/]*$/, '') : 'https://merentamazo.com/';
   const CARTO_KEY = 'cb1_4lmn_1_2aac24edf7da67a8627f2599';
   const fmt = m => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
   const r5 = x => Math.round(x * 1e5) / 1e5;

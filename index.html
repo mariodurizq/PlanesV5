@@ -3511,7 +3511,7 @@ function renderRentaLocalCatalog(){
   const results=document.getElementById('rentaLocalResults');
   if(!title||!count||!filters||!results)return;
   title.textContent=isRoute?'Rutas de senderismo y paseos':'Escape rooms y juegos urbanos';
-  count.textContent=`${list.length} resultados · ${data.length} guardados`;
+  count.textContent='';
   filters.style.display=isRoute?'flex':'none';
   const shown=list.slice(0,rentaLocalVisible);
   results.innerHTML=shown.map(item=>{
@@ -6098,8 +6098,8 @@ async function pdRun(shuffle){
       notes.push(...out.notes);
       pdRun._sections = out.sections; pdRun._p = p; pdRun._rej = new Set();
       out.sections.forEach((s,si)=>{
-        if(out.sections.length>1 || p.wants.length>1) html += `<div class="secTitle">${s.want.label} <small>${s.items.length} opciones</small></div>`;
-        else html += `<div class="secTitle">${s.items.length} opciones <small>ordenadas por selección de Me Renta Mazo${p.near&&userCoords?' y cercanía':''}</small></div>`;
+        if(out.sections.length>1 || p.wants.length>1) html += `<div class="secTitle">${s.want.label}</div>`;
+
         html += s.items.length ? s.items.map((d,ii)=>pdCard(d,{swap:'L:'+si+':'+ii})).join('') : `<div class="emptystate">Nada con esos filtros 😕</div>`;
       });
       pdRun._items = out.sections.flatMap(s=>s.items);
@@ -6316,7 +6316,7 @@ async function fetchNearbyMapPlaces(center, radius){
     try{localStorage.setItem('radar-osm-cache',JSON.stringify(osmDiscovered));}catch(e){}
     renderMapMarkers(mapPlaces);
     updateNearbyList();
-    if(status)status.textContent=`${DATA.filter(d=>d.locationVerified&&!d.osm).length} de tus sitios en el mapa · ${mapPlaces.length} lugares más en esta zona. Pulsa un pin para ver su ficha.`;
+    if(status)status.textContent='';
     
   }catch(e){
     if(status)status.textContent='El mapa abierto está saturado ahora mismo y no he podido traer sitios extra. Tus sitios siguen en el mapa; prueba «Buscar en esta zona» en un rato.';
@@ -7640,7 +7640,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   function status(t){const el=document.getElementById('mapStatus');if(el)el.textContent=t;}
   function refresh(n,fromCache){
     const total=DATA.length, located=DATA.filter(d=>d.locationVerified&&!d.osm).length;
-    status(`${located} de tus ${total} sitios en el mapa. Pulsa un pin para ver su ficha o «Buscar en esta zona» para descubrir más.`);
+    status('');
     try{renderResults();}catch(e){try{renderMapMarkers(radarCatalogOnMap);}catch(e2){}}
   }
   window.RentaAutoLocate={run};
@@ -7701,7 +7701,7 @@ new MutationObserver(()=>{try{if(typeof setMapStyle==='function'&&typeof radarMa
   $('agendaCat').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;cat=b.dataset.cat;shown=12;cats();render();});
   $('agendaFree').addEventListener('change',()=>{shown=12;render();});
   $('agendaMore').addEventListener('click',()=>{shown+=12;render();});
-  fetch('./eventos.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>{all=j.eventos||[];$('agendaSource').textContent=`${all.length} actividades · ${j.fuente} · actualizado ${new Date(j.actualizado+'T12:00:00').toLocaleDateString('es-ES')}`;cats();render();})
+  fetch('./eventos.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>{all=j.eventos||[];$('agendaSource').textContent=`Fuente: ${j.fuente}`;cats();render();})
     .catch(()=>{$('agendaSource').textContent='La agenda se está preparando; vuelve en unos minutos.';});
 })();
 </script>
@@ -8143,6 +8143,7 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #rntAviso .row{display:flex;gap:8px;margin-top:12px}#rntAviso .row button{flex:1;padding:12px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;border:0}
 #rntAviso .send{background:var(--accent,var(--accent-soft));color:var(--on-accent,#fff)}#rntAviso .send:disabled{opacity:.45}#rntAviso .cancel{background:transparent;color:inherit;border:1px solid var(--line,rgba(255,255,255,.2))!important}
 #rntAviso .ok{font-size:15px;line-height:1.5;padding:8px 0}
+#mapStatus:empty,#resultsCount,#rentaLocalCount:empty{display:none!important}
 #rentaOffline{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9000;background:#111;color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
 [data-app-finde][hidden]{display:none!important}
@@ -8428,7 +8429,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v57';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v58';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

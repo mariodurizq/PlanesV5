@@ -1796,6 +1796,7 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
         <button type="button" class="header-shortcut" id="headerMapBtn" hidden aria-label="Abrir mapa" title="Abrir mapa">⌖ Mapa</button>
         <button type="button" class="header-shortcut discover-shortcut" id="headerDiscoverBtn" hidden aria-label="Abrir Me Renta Mazo Discover" title="Abrir Me Renta Mazo Discover">▶ Discover</button>
         <button type="button" class="header-shortcut plan-shortcut" id="openPlanLabBtn" aria-label="Abrir mi plan" title="Mi plan">＋ Mi plan <span id="planCountBadge">0</span></button>
+        <button type="button" class="header-shortcut" id="headerCuentaBtn" hidden aria-label="Tu cuenta" title="Guarda tus sitios en tu cuenta de Google">👤 <span>Entrar</span></button>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">☼</button>
         <div class="readout" id="clockReadout">MADRID<br><span class="dot" id="gpsDot"></span><span id="gpsTxt">SIN GPS</span></div>
       </div>
@@ -8148,7 +8149,8 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.radarMap)return;ra
 #mapStatus:empty,#resultsCount,#rentaLocalCount:empty{display:none!important}
 #rentaOffline{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9000;background:#111;color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
-[data-app-finde][hidden],[data-cuenta][hidden],[data-cuenta-borrar][hidden]{display:none!important}
+.rnt-destaca{outline:3px solid #c8102e;outline-offset:3px;border-radius:14px}
+#headerCuentaBtn[hidden],[data-app-finde][hidden],[data-cuenta][hidden],[data-cuenta-borrar][hidden]{display:none!important}
 .pd-retoques{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.pd-retoques .chip{min-height:36px;cursor:pointer}
 #catPreview{margin-top:12px}.cp-list{display:grid;gap:8px}
 .cp-item{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
@@ -8261,6 +8263,8 @@ const btn = $b('[data-cuenta]'), btnBorrar = $b('[data-cuenta-borrar]');
 const aviso = t => { const el=document.createElement('div'); el.className='renta-toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),3400); };
 if(RENTA_FIREBASE && btn && !window.RENTA_NATIVO){
   btn.hidden = false;
+  const top = $b('#headerCuentaBtn');
+  if(top){ top.hidden = false; top.addEventListener('click', ()=>{ if(typeof switchTab==='function') switchTab('radarlab'); setTimeout(()=>{ btn.scrollIntoView({behavior:'smooth', block:'center'}); btn.classList.add('rnt-destaca'); setTimeout(()=>btn.classList.remove('rnt-destaca'),1600); }, 120); }); }
   let fb = null, auth = null, db = null, usuario = null, subiendo = null, aplicando = false;
   const cargar = async () => {
     if(fb) return fb;
@@ -8308,6 +8312,7 @@ if(RENTA_FIREBASE && btn && !window.RENTA_NATIVO){
     btn.querySelector('b').textContent = usuario ? (usuario.displayName || 'Tu cuenta') : 'Guardar en tu cuenta';
     btn.querySelector('small').textContent = usuario ? 'Guardado en la nube · toca para cerrar sesión' : 'Inicia sesión con Google';
     btnBorrar.hidden = !usuario;
+    if(top) top.querySelector('span').textContent = usuario ? ((usuario.displayName||'Tú').split(' ')[0]) : 'Entrar';
   };
   btn.addEventListener('click', async ()=>{
     localStorage.setItem('renta-cuenta','1');
@@ -8521,7 +8526,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v60';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v61';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

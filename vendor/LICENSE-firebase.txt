@@ -1,0 +1,5 @@
+vendor/firebase-renta.js contiene partes del Firebase JavaScript SDK (versión 13.4.0),
+empaquetadas sin cambios funcionales (solo app, auth y firestore/lite).
+
+Copyright Google LLC. Licencia Apache 2.0: https://www.apache.org/licenses/LICENSE-2.0
+Código fuente original: https://github.com/firebase/firebase-js-sdk

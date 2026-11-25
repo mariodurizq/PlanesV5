@@ -34,7 +34,26 @@
     const kind = code[0], bytes = unb64u(code.slice(1));
     let raw = bytes;
     if (kind === 'z') raw = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
-    return JSON.parse(new TextDecoder().decode(raw));
+    if (raw.length > 200000) throw new Error('plan demasiado grande');
+    return limpiar(JSON.parse(new TextDecoder().decode(raw)));
+  }
+  // Un enlace de plan lo puede fabricar cualquiera: solo se aceptan campos conocidos, números de verdad
+  // y enlaces de mapas de confianza, para que nadie pueda colar código (XSS) en plan.html.
+  function limpiar(p) {
+    const num = (v, a, b) => { if (v === null || v === undefined || v === '') return null; v = Number(v); return Number.isFinite(v) && v >= a && v <= b ? v : null; };
+    const str = (v, n = 200) => v == null ? '' : String(v).slice(0, n);
+    const link = v => { v = str(v, 3000); return /^https:\/\/(www\.google\.[a-z.]+\/maps|maps\.google\.[a-z.]+|maps\.apple\.com|www\.openstreetmap\.org)[\/?]/.test(v) ? v : ''; };
+    const par = v => Array.isArray(v) && num(v[0], -90, 90) != null && num(v[1], -180, 180) != null ? [Number(v[0]), Number(v[1])] : null;
+    if (!p || !Array.isArray(p.s) || !p.s.length) throw new Error('plan vacío');
+    return { v: 1, t: str(p.t, 120) || 'Plan', d: str(p.d, 120), s: p.s.slice(0, 20).map(s => {
+      s = s || {};
+      const o = { n: str(s.n, 120), s: num(s.s, -2880, 4320) ?? 0, e: num(s.e, -2880, 4320) ?? 0 };
+      if (s.p) return Object.assign(o, { p: 1, to: str(s.to, 120), km: num(s.km, 0, 200) ?? 0, wm: num(s.wm, 0, 900) ?? 0, tm: num(s.tm, 0, 600) ?? 0, sl: par(s.sl),
+        r: (Array.isArray(s.r) ? s.r : []).slice(0, 26).filter(x => Array.isArray(x) && par([x[1], x[2]])).map(x => [str(x[0], 120), Number(x[1]), Number(x[2]), str(x[3], 120)]),
+        ru: link(s.ru), tu: link(s.tu) });
+      const ll = par([s.la, s.lo]);
+      return Object.assign(o, { c: str(s.c, 80), z: str(s.z, 80), a: str(s.a, 200), la: ll ? ll[0] : null, lo: ll ? ll[1] : null, b: str(s.b, 160), w: str(s.w, 300), p0: str(s.p0, 20) });
+    }) };
   }
   async function url(plan) { return BASE + 'plan.html#' + await encode(plan); }
   function summary(plan) {

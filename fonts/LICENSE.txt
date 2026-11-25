@@ -1,0 +1,9 @@
+Fuentes incluidas en esta carpeta (archivos .woff2):
+
+- Inter — Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+- Space Grotesk — Copyright (c) 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+- JetBrains Mono — Copyright (c) 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+Todas se distribuyen bajo la SIL Open Font License, versión 1.1.
+Texto completo de la licencia: https://openfontlicense.org/open-font-license-official-text/
+Se usan sin modificar, solo para mostrar el texto de esta web. No se venden por separado.

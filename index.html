@@ -2213,6 +2213,11 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
     <button type="button" role="tab" data-explore="guiado" class="active">📍 Cerca de mí</button>
     <button type="button" role="tab" data-explore="directo">🗺️ Por zona</button>
   </div>
+  <p class="explore-ayuda" id="exploreAyuda">Te enseña lo más cercano a ti. Pulsa «Cerca de mí» para usar tu ubicación.</p>
+  <div class="card" id="directoPanel" style="display:none;">
+    <div class="label">ELIGE UNA ZONA</div>
+    <select class="zonesel" id="zoneSelect"></select>
+  </div>
   <div class="card" id="guiadoPanel">
     <div class="label">CERCA DE TI <span class="n">01</span></div>
     <div class="radarBox">
@@ -2228,10 +2233,6 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
     </div>
   </div>
 
-  <div class="card" id="directoPanel" style="display:none;">
-    <div class="label">EXPLORA POR ZONA <span class="n">02</span></div>
-    <select class="zonesel" id="zoneSelect"></select>
-  </div>
 
   <div class="resultsHead" id="resultsHead">
     <div class="results-heading-copy"><span class="section-kicker">ME RENTA MAZO SELECCIONA</span><h2>LUGARES PARA TI</h2><p>Filtra, compara y guarda los que te llamen.</p></div>
@@ -2982,7 +2983,9 @@ function renderZoneSelect(){
   const sel = document.getElementById('zoneSelect');
   sel.innerHTML = '<option value="">— Todas las zonas —</option>' +
     Object.keys(zones).sort().map(z=>`<option value="${z}">${z} (${zones[z]})</option>`).join('');
-  sel.onchange = ()=>{ selectedZone = sel.value; visibleCount=10; renderResults(); };
+  sel.onchange = ()=>{ selectedZone = sel.value; visibleCount=10; renderResults();
+    try{ const c = selectedZone && ZONE_COORDS[selectedZone]; if(c && ensureRadarMap()){ radarMap.setView([c.lat??c[0], c.lon??c[1]], 15); document.getElementById('mapShell').scrollIntoView({behavior:'smooth',block:'start'}); } }catch(e){}
+    const a=document.getElementById('exploreAyuda'); if(a) a.textContent = selectedZone ? `Mostrando ${selectedZone}. El mapa y la lista se centran en esa zona.` : 'Elige un barrio para ver sus sitios en el mapa y en la lista.'; };
 }
 
 // ---------- radar canvas ----------
@@ -8281,6 +8284,13 @@ html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
 })();
 </script>
 <style id="renta-cabecera-limpia">
+#guiadoPanel:not(#_a):not(#_b):not(#_c):not(#_d):not(#_e){display:none!important}
+.explore-ayuda{margin:8px 4px 10px;font-size:13px;line-height:1.45;opacity:.8;text-align:center}
+#directoPanel:not(#_a):not(#_b):not(#_c){padding:14px 16px!important;min-height:0!important;background-image:none!important}
+#directoPanel:not(#_a):not(#_b):not(#_c)::before,#directoPanel:not(#_a):not(#_b):not(#_c)::after{display:none!important;content:none!important}
+#directoPanel .label{margin-bottom:8px}
+#directoPanel .zonesel{width:100%;min-height:46px;font-size:16px}
+
 html body header.top .header-tools #headerFavoritesBtn,html body header.top .header-tools #headerMapBtn,html body header.top .header-tools #headerDiscoverBtn,
 html body header.top .header-tools #clockReadout,html body header.top .tagline,html body header.top .header-tools #openPlanLabBtn[data-vacio="1"]{display:none!important}
 </style>
@@ -8301,6 +8311,24 @@ html body header.top .header-tools #clockReadout,html body header.top .tagline,h
   document.addEventListener('click',e=>{
     if(e.target.closest('[data-tu-favs]')){ favBtn&&favBtn.click(); }
     if(e.target.closest('[data-tu-plan]')){ planBtn&&planBtn.click(); }
+  });
+  // «Cerca de mí» pide la ubicación y ordena por distancia; «Por zona» muestra el selector de barrio
+  const ayuda=$('exploreAyuda'), gp=$('guiadoPanel');
+  const colocar=()=>{ const sw=$('exploreSwitch'), dp=$('directoPanel'); if(sw&&ayuda&&dp&&sw.nextElementSibling!==ayuda){ sw.after(ayuda); ayuda.after(dp); } };
+  colocar(); window.addEventListener('load',()=>setTimeout(colocar,300)); if(gp) gp.style.setProperty('display','none','important');
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('#exploreSwitch [data-explore]'); if(!b) return;
+    setTimeout(()=>{ colocar();
+      if(b.dataset.explore==='guiado'){
+        try{ selectedZone=''; const z=$('zoneSelect'); if(z) z.value=''; }catch(_){}
+        if(ayuda) ayuda.textContent='Buscando tu ubicación para enseñarte lo más cercano…';
+        const loc=$('mapLocateBtn'); if(loc && !loc.disabled) loc.click();
+        setTimeout(()=>{ if(ayuda) ayuda.textContent= (typeof userCoords!=='undefined' && userCoords) ? 'Ordenado por distancia desde donde estás.' : 'Si no ves tu posición, permite la ubicación en el navegador.'; }, 4000);
+      } else {
+        if(ayuda) ayuda.textContent='Elige un barrio para ver sus sitios en el mapa y en la lista.';
+        const z=$('zoneSelect'); if(z){ z.focus(); }
+      }
+    }, 60);
   });
   // Abrir en Pídeme salvo que el enlace pida otra cosa (sitio compartido, votación…)
   const q=new URLSearchParams(location.search);
@@ -8587,7 +8615,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v68';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v69';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

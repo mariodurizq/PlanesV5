@@ -19,6 +19,9 @@ const fallos = []; const ok = (cond, msg) => { console.log((cond ? '✔ ' : '✘
     const p = await c.newPage(); const errs = [];
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(BASE, { waitUntil: 'load' }); await p.waitForTimeout(2500);
+    const inicio = await p.evaluate(() => document.body.dataset.tab);
+    ok(inicio === 'pide', `[${nombre}] la web se abre en Pídeme (${inicio})`);
+    await p.click('#tabGuiado'); await p.waitForTimeout(1500);
     const info = await p.evaluate(() => ({
       datos: typeof DATA !== 'undefined' ? DATA.length : 0,
       tabs: [...document.querySelectorAll('#tabbar button')].filter(x => x.offsetParent).length,
@@ -33,7 +36,8 @@ const fallos = []; const ok = (cond, msg) => { console.log((cond ? '✔ ' : '✘
     for (let i = 0; i < 40; i++) { await p.waitForTimeout(250); if (!(await p.evaluate(() => !!document.querySelector('#pideResults .thinking')))) break; }
     const pide = await p.evaluate(() => ({ lugar: pdLast?.place?.n, n: (pdRun._items || []).length }));
     ok(pide.lugar === 'Chamberí' && pide.n > 0, `[${nombre}] Pídeme entiende la zona (${pide.lugar}, ${pide.n} resultados)`);
-    for (const t of ['tabEventos', 'tabMatch', 'tabGuiado']) { await p.click('#' + t); await p.waitForTimeout(400); }
+    for (const t of ['tabEventos', 'tabRadarLab', 'tabGuiado']) { await p.click('#' + t); await p.waitForTimeout(400); }
+    await p.evaluate(() => switchTab('match')); await p.waitForTimeout(400); await p.click('#tabGuiado'); await p.waitForTimeout(300);
     ok(errs.length === 0, `[${nombre}] sin errores de JavaScript ${errs.slice(0, 3).join(' | ')}`);
     await c.close();
   }

@@ -59,7 +59,7 @@
   },
   "Saona Pedro Teixeira": {
    "addr": "Calle de Pedro Teixeira 8, 28020 Madrid",
-   "calle": "Calle de Pedro Teixeira 8",
+   "calle": "Calle Pedro Teixeira 8",
    "cp": "28020",
    "ciudad": "Madrid",
    "fuente": "gruposaona.com"
@@ -94,7 +94,7 @@
   },
   "Saona La Moraleja": {
    "addr": "Calle de la Estafeta 1, 28109 Alcobendas",
-   "calle": "Calle de la Estafeta 1",
+   "calle": "Calle Estafeta 1",
    "cp": "28109",
    "ciudad": "Alcobendas",
    "fuente": "gruposaona.com"

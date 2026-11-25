@@ -1257,9 +1257,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .radar-lab-kicker{font-size:9px;letter-spacing:1.5px;font-weight:850;color:var(--accent)}
 .radar-lab-orb{display:grid;place-items:center;width:43px;height:43px;border-radius:15px;background:var(--surface-2);color:var(--accent);font-size:24px}
 .radar-lab-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.radar-lab-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;min-width:0;min-height:115px;padding:13px 11px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2);color:var(--ink);cursor:pointer;transition:transform .18s,border-color .18s}
-.radar-lab-grid button:hover{transform:translateY(-2px);border-color:var(--accent)}
-.radar-lab-grid button>span{font-size:21px;color:var(--accent)}
+.radar-lab-grid button,.radar-lab-grid a.rnt-sig-lab{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;min-width:0;min-height:115px;padding:13px 11px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2);color:var(--ink);cursor:pointer;transition:transform .18s,border-color .18s}
+.radar-lab-grid button:hover,.radar-lab-grid a.rnt-sig-lab:hover{transform:translateY(-2px);border-color:var(--accent)}
+.radar-lab-grid button>span,.radar-lab-grid a.rnt-sig-lab>span{font-size:21px;color:var(--accent)}
 .radar-lab-grid b{font-size:11px;line-height:1.2}
 .radar-lab-grid small{font-size:10px;line-height:1.35;color:var(--muted)}
 .radar-feature-overlay{position:fixed;inset:0;z-index:12000;background:rgba(2,5,9,.78);backdrop-filter:blur(13px);padding:clamp(10px,3vw,26px);display:flex;align-items:center;justify-content:center;overflow:auto}
@@ -1301,7 +1301,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .radar-feature-summary{border:1px solid var(--line);border-radius:15px;padding:13px;background:var(--surface-2)}
 .radar-feature-summary b{font-size:12px}
 .radar-feature-summary p{font-size:11px;line-height:1.5;color:var(--muted);margin:5px 0 0}
-@media(max-width:680px){.radar-lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.radar-lab-grid button{min-height:94px}.radar-lab-grid button:last-child{grid-column:span 2}.radar-live-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.radar-live-results{grid-template-columns:1fr}.radar-feature-fields{grid-template-columns:1fr 1fr}.radar-feature-dialog{border-radius:22px}.radar-lab-launcher,.radar-live-panel{padding:15px}}
+@media(max-width:680px){.radar-lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.radar-lab-grid button,.radar-lab-grid a.rnt-sig-lab{min-height:94px}.radar-lab-grid button:last-child{grid-column:span 2}.radar-live-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.radar-live-results{grid-template-columns:1fr}.radar-feature-fields{grid-template-columns:1fr 1fr}.radar-feature-dialog{border-radius:22px}.radar-lab-launcher,.radar-live-panel{padding:15px}}
 @media(max-width:380px){.radar-feature-fields,.radar-live-controls{grid-template-columns:1fr}.radar-lab-grid b{font-size:10px}}
 </style>
 
@@ -1878,6 +1878,7 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
     <button type="button" data-radar-open="live"><span>⌁</span><b>Radar en vivo</b><small>Filtra y compara lugares</small></button>
     <button type="button" data-radar-open="discover"><span>◉</span><b>Discover</b><small>Desliza y afina tus gustos</small></button>
     <button type="button" data-radar-open="crew"><span>♧</span><b>Me Renta Mazo Crew</b><small>Elegid el plan en grupo</small></button>
+    <a class="rnt-sig-lab" href="https://www.instagram.com/merenta.mazo/" target="_blank" rel="noopener"><span>📸</span><b>Síguenos</b><small>@merenta.mazo en Instagram y TikTok</small></a>
     <button type="button" data-cuenta hidden><span>👤</span><b>Guardar en tu cuenta</b><small>Inicia sesión con Google</small></button>
     <button type="button" data-cuenta-borrar hidden><span>🗑️</span><b>Borrar mi cuenta</b><small>Borra tus datos guardados en la nube</small></button>
     <button type="button" data-app-finde hidden><span>🔔</span><b>Ideas para el finde</b><small>Un aviso los viernes a las 18:00</small></button>
@@ -2324,6 +2325,10 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
   <footer class="foot">
     DATOS DE LA LISTA + OPENSTREETMAP<br>
     Los horarios, precios y algunos puntos deben comprobarse antes de ir · Mapa © OpenStreetMap · © CARTO · <a href="mejores/" style="color:inherit">Los mejores sitios por zona</a> · <a href="legal.html" style="color:inherit">Aviso legal y privacidad</a>
+    <div class="rnt-siguenos"><span>Síguenos en</span>
+      <a href="https://www.instagram.com/merenta.mazo/" target="_blank" rel="noopener" aria-label="Instagram de Me Renta Mazo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg>Instagram</a>
+      <a href="https://www.tiktok.com/@merenta.mazo" target="_blank" rel="noopener" aria-label="TikTok de Me Renta Mazo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v11.2a3.4 3.4 0 1 1-3.4-3.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 3c.4 2.8 2.2 4.5 5 4.7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>TikTok</a>
+      <b>@merenta.mazo</b></div>
     <br><button type="button" class="rnt-report-foot" data-rnt-reportar>⚑ Reportar un error</button>
   </footer>
 </div>
@@ -8174,6 +8179,11 @@ html.es-app .install-hint,html.es-app #rentaInstall{display:none!important}
 .pd-alt{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2,transparent);color:var(--ink);font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
 .pd-alt small{font-weight:500;color:var(--muted);font-size:11.5px}
 .pd-alt.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent,#fff);cursor:default}
+.rnt-siguenos{margin:14px auto 4px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;font-size:13px}
+.rnt-siguenos span{opacity:.75}.rnt-siguenos b{width:100%;text-align:center;font-weight:700;opacity:.85}
+.rnt-siguenos a{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1px solid currentColor;color:inherit;text-decoration:none;font-weight:700}
+.radar-lab-grid a.rnt-sig-lab{text-decoration:none;color:inherit}
+.rnt-siguenos svg{width:18px;height:18px}
 .rnt-report-foot{margin-top:12px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--accent,#c8102e);background:transparent;color:var(--accent,#c8102e);font:inherit;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;cursor:pointer}
 </style>
 <script id="renta-app-nativa">
@@ -8534,7 +8544,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v66';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v67';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

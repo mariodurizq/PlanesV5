@@ -277,6 +277,19 @@
    "sede": "Tetuán",
    "existe": "Four Elements Shisha Lounge Madrid",
    "fuente": "lista propia"
+  },
+  {
+   "marca": "Autén",
+   "sede": "Las Tablas",
+   "n": "Autén",
+   "cm": "Asiática",
+   "cd": "Japonesa · sushi y cocina asiática",
+   "z": "Fuencarral-El Pardo",
+   "addr": "Paseo de la Tierra de Melide 38, 28050 Madrid",
+   "web": "https://autenmadrid.com/",
+   "lat": 40.51073,
+   "lon": -3.66983,
+   "fuente": "Google Maps (captura de Mario)"
   }
  ]
 }

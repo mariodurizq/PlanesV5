@@ -4799,6 +4799,9 @@ function pdParse(raw){
     if(verbo==='sin' && w.every(x=>/^(gluten|lactosa|tacc|alcohol|reserva|prisa|prisas|gastar|mucho|coche|ruido|agobios|colas|esperar|niños|ninos|perro)$/.test(x))) return m;
     excl.push(...w); return ' '.repeat(m.length);
   });
+  // «primera cita», «cita romántica», «plan romántico» → cena tranquila y copas (si no pide otra cosa concreta)
+  text = text.replace(/\b(?:una |mi |la |primera |1a )*(?:cita|plan romantico|algo romantico)(?: romantica| con mi (?:pareja|novi[oa]|chic[oa]))?\b/g, m=>' '.repeat(m.length));
+  if(/\b(?:cita|romantic[oa])\b/.test(pdNorm(raw)) && !/\b(cena|cenar|comer|comida|copas?|coctel|cocktail|bar|tapas|cafe|brunch|museo|paseo|pasear)\b/.test(text)) text += ' cena y copas';
   const p = {raw, text, wants:[], qty:null, time:null, zones:[], zoneLabels:[], city:null, price:null, near:false, newOnes:false, meal:null, dayLabel:'', modeHint:null, subs:[], notes:[], excl};
 
   // cantidad
@@ -8531,7 +8534,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v65';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v66';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();

@@ -112,6 +112,13 @@
    "cp": "28005",
    "ciudad": "Madrid",
    "fuente": "guiadelocio.es"
+  },
+  "Autén": {
+   "addr": "Paseo de la Tierra de Melide 38, 28050 Madrid",
+   "calle": "Paseo de la Tierra de Melide 38",
+   "cp": "28050",
+   "ciudad": "Madrid",
+   "fuente": "Google Maps (captura de Mario)"
   }
  }
 }

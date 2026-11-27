@@ -1371,6 +1371,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .radar-collection-row,.radar-history-row,.radar-smart-stop{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .radar-collection-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px}
 .radar-collection-row button,.radar-history-row button,.radar-smart-stop button{border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--ink);padding:6px 8px;font-size:10px;cursor:pointer}
+.radar-planner-fields input{height:42px;line-height:20px;-webkit-appearance:none;appearance:none}.radar-planner-fields input::-webkit-datetime-edit{padding:0;line-height:20px}.radar-planner-fields input::-webkit-date-and-time-value{text-align:left}.radar-planner-fields label{justify-content:flex-end}
 .radar-planner-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
 .radar-planner-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.radar-planner-actions>*{flex:1}
 .radar-smart-stop{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;align-items:start}
@@ -1923,13 +1924,13 @@ html .mr-sedes button:not(#_s):not(#_t):not(#_u){font-size:12px!important;paddin
       <div id="radarCollectionsList" class="radar-collections-list"></div>
     </article>
     <article class="radar-extra-card">
-      <div class="radar-extra-icon">⤳</div><h3>Planificador 2.0</h3><p>Ordena paradas, estima el presupuesto y cambia solo el sitio que no te convenza.</p>
+      <div class="radar-extra-icon">⤳</div><h3>Planificador 2.0</h3><p>Te monta un plan de 3 paradas cercanas según la hora (usa primero tus likes y favoritos), con presupuesto y tiempo andando. Cambia solo el sitio que no te convenza.</p>
       <div class="radar-planner-fields">
         <label>Presupuesto total (€)<input id="radarPlanBudget" type="number" min="0" placeholder="Ej. 100"></label>
         <label>Empieza a las<input id="radarPlanStart" type="time" value="14:00"></label>
         <label>Personas<input id="radarPlanPeople" type="number" min="1" max="30" value="2"></label>
       </div>
-      <div class="radar-planner-actions"><button type="button" class="radar-feature-primary" id="radarBuildSmartPlan">Crear desde likes y favoritos</button><button type="button" class="radar-feature-secondary" id="radarPlanWeather">☁ Consultar tiempo y Plan B</button></div>
+      <div class="radar-planner-actions"><button type="button" class="radar-feature-primary" id="radarBuildSmartPlan">Crear plan completo</button><button type="button" class="radar-feature-secondary" id="radarPlanWeather">☁ Consultar tiempo y Plan B</button></div>
       <div id="radarPlanWeatherResult" class="radar-extra-inline"></div>
       <div id="radarSmartPlan" class="radar-smart-plan"></div>
       <div class="radar-planner-actions"><button type="button" class="radar-feature-secondary" id="radarSavePlanHistory">Guardar en historial</button><button type="button" class="radar-feature-secondary" id="radarShareSmartPlan">↗ Compartir plan</button></div>
@@ -7467,21 +7468,74 @@ renderResults();
     if(!smartPlan.length){el.innerHTML='<div class="radar-extra-inline">Añade likes o favoritos y crea tu primera propuesta.</div>';return;}
     const start=$('radarPlanStart').value||'14:00';let mins=Number(start.split(':')[0])*60+Number(start.split(':')[1]);
     el.innerHTML=smartPlan.map((d,i)=>{
-      const time=`${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;mins+=i===0?90:75;
+      const walk=i?planWalk(smartPlan[i-1],d):0;mins+=walk;
+      const time=`${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;mins+=planStayMin(d);
       const cost=pMid(d)||0;
       const reason=rentaSellosText(d,1);
-      return `<div class="radar-smart-stop"><div class="stop-number">${i+1}</div><div><h4>${time} · ${esc(d.n)}</h4><p>${esc(d.z||d.address||'Madrid')} · ${esc(priceLabel(d))} · ${reason}</p><div class="stop-actions"><a href="${mapUrl(d)}" target="_blank" rel="noopener" class="radar-feature-secondary" style="text-decoration:none">Mapa ↗</a><button type="button" data-plan-swap="${i}">↻ Cambiar parada</button><button type="button" data-plan-remove="${i}">Quitar</button></div></div></div>`;
+      return (walk?`<div class="radar-extra-inline" style="margin:2px 0 2px 14px">🚶 ${walk} min andando</div>`:'')+`<div class="radar-smart-stop"><div class="stop-number">${i+1}</div><div><h4>${time} · ${esc(d.n)}</h4><p>${esc(rentaCatTexto(d))} · ${esc(d.z||d.address||'Madrid')} · ${esc(priceLabel(d))}${reason?' · '+reason:''}</p><div class="stop-actions"><a href="${mapUrl(d)}" target="_blank" rel="noopener" class="radar-feature-secondary" style="text-decoration:none">Mapa ↗</a><button type="button" data-plan-swap="${i}">↻ Cambiar parada</button><button type="button" data-plan-remove="${i}">Quitar</button></div></div></div>`;
     }).join('');
     const total=smartPlan.reduce((s,d)=>s+(pMid(d)||0),0),people=Math.max(1,Number($('radarPlanPeople').value)||1),budget=Number($('radarPlanBudget').value);
     el.insertAdjacentHTML('afterbegin',`<div class="radar-feature-summary"><b>Presupuesto orientativo</b><p>${total?Math.round(total*people)+' € total para '+people+' persona(s) ('+Math.round(total)+' €/persona)': 'Precios incompletos; comprueba cada sitio.'}${budget>0?' · '+(total*people<=budget?'Dentro':'Por encima')+' del presupuesto indicado.':''}</p></div>`);
   }
+  // Plan completo: momentos según la hora de inicio, usando primero tus likes/favoritos y rellenando con sitios cercanos que encajen.
+  const planStayMin=d=>({food:90,coffee:60,drinks:75,rooftop:75,fun:90})[type(d)]||75;
+  const planKm=(a,b)=>(a&&b&&a.lat&&b.lat)?haversine(Number(a.lat),Number(a.lon),Number(b.lat),Number(b.lon)):null;
+  const planWalk=(a,b)=>{const k=planKm(a,b);return k==null?0:Math.max(5,Math.round(k*13/5)*5);};
+  function planSlots(h){
+    if(h<11)return [['coffee'],['fun','coffee'],['food']];
+    if(h<16)return [['food'],['coffee'],['drinks','rooftop']];
+    if(h<20)return [['coffee','fun'],['drinks','rooftop'],['food']];
+    if(h<23)return [['food'],['drinks','rooftop'],['drinks']];
+    return [['drinks','rooftop'],['drinks']];
+  }
+  let planWant='';
+  function planFits(d,h,maxPp){
+    if(!d||!d.n||matchState.passes.includes(d.n))return false;
+    if(/cerrad/i.test(d.e||''))return false;
+    const c=d.cm||'';
+    if(/Hotel|^Otros$|Ocio\/Espacios/.test(c)&&!/fun/.test(planWant))return false;
+    if(/autocine|parque/i.test(d.n)&&!/fun/.test(planWant))return false;
+    if(h<12&&/helad|gelat/i.test(d.n+' '+(d.cd||'')))return false;
+    if(/hostel/i.test(d.n))return false;
+    if(/Discoteca|Club/.test(c)&&h<22)return false;
+    if(/Shisha/.test(c)&&h<17)return false;
+    const p=pMid(d);if(maxPp>0&&p!=null&&p>maxPp)return false;
+    return true;
+  }
+  const planScore=d=>(Number(d.v)||4)*1.5+Math.log10((Number(d.nr)||1)+1)*0.6+(typeof tasteWeight==='function'?tasteWeight(d)*0.4:0)+(/renta mazo/i.test(rentaSellosText(d,1)||'')?1.2:0)-(/Shisha/.test(d.cm||'')?1.5:0);
+  function planPick(types,h,prev,used,maxPp,seeds){
+    planWant=types.join(',');
+    const ok=d=>types.includes(type(d))&&!used.has(d.n)&&planFits(d,h,maxPp);
+    const near=(d,km)=>{const k=planKm(prev,d);return k==null||k<=km;};
+    const s=seeds.filter(d=>ok(d)&&near(d,3)).sort((a,b)=>(planKm(prev,a)||0)-(planKm(prev,b)||0))[0];if(s)return s;
+    for(const km of (prev?[1.2,2.5]:[99])){
+      const c=allVenues().filter(d=>ok(d)&&d.lat&&near(d,km));
+      if(c.length){c.sort((a,b)=>planScore(b)-planScore(a));const top=c.slice(0,6);return top[Math.floor(Math.random()*Math.min(3,top.length))];}
+    }
+    return null;
+  }
+  function buildFullPlan(){
+    const start=$('radarPlanStart').value||'14:00';const h=Number(start.split(':')[0])||14;
+    const people=Math.max(1,Number($('radarPlanPeople').value)||1),budget=Number($('radarPlanBudget').value)||0;
+    const slots=planSlots(h),seeds=plannerPool();
+    let restPp=budget>0?budget/people:0;
+    const used=new Set(),plan=[];let prev=null,hh=h;
+    // Si hay favoritos, el primero que encaje en algún momento marca la zona del plan.
+    prev=seeds.find(d=>d.lat)||{lat:40.4185,lon:-3.7025}; // sin favoritos: centro (Sol/Callao)
+    slots.forEach((t,k)=>{const maxPp=budget>0?Math.max(1,restPp/(slots.length-k)*(slots.length-k>1?1.2:1)):0;
+      const d=planPick(t,hh,prev,used,maxPp,seeds);if(d){plan.push(d);used.add(d.n);prev=d;hh+=Math.round(planStayMin(d)/60);if(budget>0)restPp-=pMid(d)||0;}});
+    return plan;
+  }
   $('radarBuildSmartPlan').addEventListener('click',()=>{
-    const pool=plannerPool();if(!pool.length){$('radarSmartPlan').innerHTML='<div class="radar-extra-inline">Primero vota sitios en Match o guarda favoritos.</div>';return;}
-    smartPlan=pool.slice(0,5);safeWrite(SMART_PLAN_KEY,smartPlan);renderSmartPlan();
+    smartPlan=buildFullPlan();
+    if(!smartPlan.length){$('radarSmartPlan').innerHTML='<div class="radar-extra-inline">No encuentro sitios que encajen con ese presupuesto. Prueba a subirlo o a cambiar la hora.</div>';return;}
+    safeWrite(SMART_PLAN_KEY,smartPlan);renderSmartPlan();
   });
   $('radarSmartPlan').addEventListener('click',ev=>{
     const swap=ev.target.closest('[data-plan-swap]'),remove=ev.target.closest('[data-plan-remove]');
-    if(swap){const i=Number(swap.dataset.planSwap),used=new Set(smartPlan.map(d=>d.n)),pool=allVenues().filter(d=>!used.has(d.n)&&!matchState.passes.includes(d.n)).sort((a,b)=>tasteWeight(b)-tasteWeight(a));if(pool.length){smartPlan[i]=pool[0];safeWrite(SMART_PLAN_KEY,smartPlan);renderSmartPlan();}}
+    if(swap){const i=Number(swap.dataset.planSwap),cur=smartPlan[i],used=new Set([...smartPlan.map(d=>d.n),...(window._planSwapSeen||[])]);const h=Number(($('radarPlanStart').value||'14').split(':')[0])||14;
+      const nd=planPick([type(cur)],h,smartPlan[i-1]||smartPlan[i+1]||cur,used,0,[]);
+      if(nd){window._planSwapSeen=[...(window._planSwapSeen||[]),cur.n].slice(-30);smartPlan[i]=nd;safeWrite(SMART_PLAN_KEY,smartPlan);renderSmartPlan();}}
     if(remove){smartPlan.splice(Number(remove.dataset.planRemove),1);safeWrite(SMART_PLAN_KEY,smartPlan);renderSmartPlan();}
   });
   $('radarPlanStart').addEventListener('change',renderSmartPlan);
@@ -8615,7 +8669,7 @@ html #rentaWelcome [data-q]:not(#_s):not(#_t):not(#_u){justify-content:space-bet
 (function(){
   if(!('serviceWorker' in navigator) || window.RENTA_NATIVO) return;
   // Al volver a la app (iPhone la deja abierta en segundo plano): si hay versión nueva publicada, se recarga sola
-  const RENTA_VERSION='renta-shell-v70';window.RENTA_VERSION=RENTA_VERSION;
+  const RENTA_VERSION='renta-shell-v71';window.RENTA_VERSION=RENTA_VERSION;
   let ultima=0;
   const comprobar=async()=>{
     if(Date.now()-ultima<60000) return; ultima=Date.now();
